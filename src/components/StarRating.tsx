@@ -6,6 +6,7 @@ interface StarRatingProps {
   onRatingChange?: (rating: number) => void;
   readonly?: boolean;
   size?: number;
+  maxRating?: number;
 }
 
 export const StarRating: React.FC<StarRatingProps> = ({
@@ -13,6 +14,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
   onRatingChange,
   readonly = false,
   size = 20,
+  maxRating = 5,
 }) => {
   const handleStarClick = (starRating: number) => {
     if (!readonly && onRatingChange) {
@@ -22,7 +24,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
 
   return (
     <div className="star-rating">
-      {[1, 2, 3, 4, 5].map((star) => (
+      {Array.from({ length: maxRating }, (_, i) => i + 1).map((star) => (
         <Star
           key={star}
           size={size}

@@ -1,12 +1,23 @@
 import axios from 'axios';
-import type { SpotifyAlbum, SpotifyArtist } from '../types';
+import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack, SpotifyUser } from '../types';
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
+const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 'http://localhost:5173/callback';
+
+const SCOPES = [
+  'user-read-private',
+  'user-read-email',
+  'user-top-read',
+  'user-library-read',
+  'user-read-recently-played'
+].join(' ');
 
 class SpotifyService {
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
+  private userAccessToken: string | null = null;
+  private refreshToken: string | null = null;
 
   async getAccessToken(): Promise<string> {
     if (this.accessToken && Date.now() < this.tokenExpiry) {
@@ -199,19 +210,241 @@ class SpotifyService {
       .slice(0, 20);
   }
 
-  // Mock functions for personal data (would require user authentication in real app)
+  // OAuth Authentication Methods
+  getAuthUrl(): string {
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      redirect_uri: REDIRECT_URI,
+      show_dialog: 'true'
+    });
+
+    return `https://accounts.spotify.com/authorize?${params.toString()}`;
+  }
+
+  async exchangeCodeForToken(code: string): Promise<{access_token: string, refresh_token: string}> {
+    try {
+      const response = await axios.post(
+        'https://accounts.spotify.com/api/token',
+        new URLSearchParams({
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: REDIRECT_URI,
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Authorization: `Basic ${btoa(`${CLIENT_ID}:${CLIENT_SECRET}`)}`,
+          },
+        }
+      );
+
+      this.userAccessToken = response.data.access_token;
+      this.refreshToken = response.data.refresh_token;
+      
+      // Store tokens in localStorage for persistence
+      if (this.userAccessToken) localStorage.setItem('spotify_access_token', this.userAccessToken);
+      if (this.refreshToken) localStorage.setItem('spotify_refresh_token', this.refreshToken);
+
+      return {
+        access_token: response.data.access_token,
+        refresh_token: response.data.refresh_token
+      };
+    } catch (error: any) {
+      console.error('Token exchange error:', error.response?.data || error.message);
+      if (error.response?.data?.error === 'invalid_grant') {
+        throw new Error('Invalid redirect URI or authorization code. Please check your Spotify app settings.');
+      }
+      throw error;
+    }
+  }
+
+  async refreshAccessToken(): Promise<string | null> {
+    if (!this.refreshToken) {
+      this.refreshToken = localStorage.getItem('spotify_refresh_token');
+    }
+
+    if (!this.refreshToken) return null;
+
+    try {
+      const response = await axios.post(
+        'https://accounts.spotify.com/api/token',
+        new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: this.refreshToken,
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Authorization: `Basic ${btoa(`${CLIENT_ID}:${CLIENT_SECRET}`)}`,
+          },
+        }
+      );
+
+      this.userAccessToken = response.data.access_token;
+      if (this.userAccessToken) localStorage.setItem('spotify_access_token', this.userAccessToken);
+
+      return this.userAccessToken;
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+      this.logout();
+      return null;
+    }
+  }
+
+  async getUserAccessToken(): Promise<string | null> {
+    if (this.userAccessToken) return this.userAccessToken;
+    
+    const storedToken = localStorage.getItem('spotify_access_token');
+    if (storedToken) {
+      this.userAccessToken = storedToken;
+      return storedToken;
+    }
+
+    return await this.refreshAccessToken();
+  }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('spotify_access_token');
+  }
+
+  logout(): void {
+    this.userAccessToken = null;
+    this.refreshToken = null;
+    localStorage.removeItem('spotify_access_token');
+    localStorage.removeItem('spotify_refresh_token');
+  }
+
+  // User Profile Methods
+  async getCurrentUser(): Promise<SpotifyUser | null> {
+    const token = await this.getUserAccessToken();
+    if (!token) return null;
+
+    try {
+      const response = await axios.get('https://api.spotify.com/v1/me', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get user profile:', error);
+      await this.refreshAccessToken();
+      return null;
+    }
+  }
+
+  // Album Methods
+  async getAlbumWithTracks(id: string): Promise<SpotifyAlbum> {
+    const token = await this.getAccessToken();
+    
+    const response = await axios.get(
+      `https://api.spotify.com/v1/albums/${id}?market=US`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  }
+
+  async getAlbumTracks(albumId: string): Promise<SpotifyTrack[]> {
+    const token = await this.getAccessToken();
+    
+    const response = await axios.get(
+      `https://api.spotify.com/v1/albums/${albumId}/tracks`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data.items;
+  }
+
+  // Enhanced personal data methods with real user data
   async getPersonalTopAlbums(timeframe: 'week' | '6months' | 'alltime'): Promise<SpotifyAlbum[]> {
-    // In a real app, this would use the user's listening history
-    // For now, return popular albums as a placeholder
-    console.log(`Getting personal top albums for ${timeframe} (mock data)`);
-    return this.getPopularAlbums();
+    const token = await this.getUserAccessToken();
+    if (!token) {
+      console.log(`Getting personal top albums for ${timeframe} (mock data - not logged in)`);
+      return this.getPopularAlbums();
+    }
+
+    try {
+      let timeRange = 'medium_term';
+      switch (timeframe) {
+        case 'week':
+          timeRange = 'short_term';
+          break;
+        case 'alltime':
+          timeRange = 'long_term';
+          break;
+      }
+
+      const response = await axios.get(
+        `https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=${timeRange}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Extract unique albums from top tracks
+      const albums: SpotifyAlbum[] = [];
+      const albumIds = new Set<string>();
+
+      for (const track of response.data.items) {
+        if (!albumIds.has(track.album.id)) {
+          albumIds.add(track.album.id);
+          albums.push(track.album);
+        }
+      }
+
+      return albums.slice(0, 20);
+    } catch (error) {
+      console.error('Failed to get personal top albums:', error);
+      return this.getPopularAlbums();
+    }
   }
 
   async getPersonalTopArtists(timeframe: 'week' | '6months' | 'alltime'): Promise<SpotifyArtist[]> {
-    // In a real app, this would use the user's listening history
-    // For now, return top artists as a placeholder
-    console.log(`Getting personal top artists for ${timeframe} (mock data)`);
-    return this.getTopArtists();
+    const token = await this.getUserAccessToken();
+    if (!token) {
+      console.log(`Getting personal top artists for ${timeframe} (mock data - not logged in)`);
+      return this.getTopArtists();
+    }
+
+    try {
+      let timeRange = 'medium_term';
+      switch (timeframe) {
+        case 'week':
+          timeRange = 'short_term';
+          break;
+        case 'alltime':
+          timeRange = 'long_term';
+          break;
+      }
+
+      const response = await axios.get(
+        `https://api.spotify.com/v1/me/top/artists?limit=20&time_range=${timeRange}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data.items;
+    } catch (error) {
+      console.error('Failed to get personal top artists:', error);
+      return this.getTopArtists();
+    }
   }
 }
 

@@ -16,6 +16,25 @@ export interface SpotifyAlbum {
     spotify: string;
   };
   popularity?: number;
+  tracks?: {
+    items: SpotifyTrack[];
+  };
+}
+
+export interface SpotifyTrack {
+  id: string;
+  name: string;
+  track_number: number;
+  duration_ms: number;
+  explicit: boolean;
+  preview_url: string | null;
+  external_urls: {
+    spotify: string;
+  };
+  artists: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
 export interface SpotifyArtist {
@@ -33,6 +52,24 @@ export interface SpotifyArtist {
   };
 }
 
+export interface SongRating {
+  trackId: string;
+  trackName: string;
+  rating: number;
+}
+
+export interface AlbumReview {
+  id: string;
+  albumId: string;
+  userId: string;
+  overallRating: number;
+  songRatings: SongRating[];
+  writeup: string;
+  createdAt: string;
+  updatedAt: string;
+  album?: SpotifyAlbum;
+}
+
 export interface Review {
   id: string;
   albumId: string;
@@ -43,11 +80,31 @@ export interface Review {
   album?: SpotifyAlbum;
 }
 
+export interface SpotifyUser {
+  id: string;
+  display_name: string;
+  email: string;
+  images: Array<{
+    url: string;
+    height: number;
+    width: number;
+  }>;
+  country: string;
+  followers: {
+    total: number;
+  };
+  external_urls: {
+    spotify: string;
+  };
+}
+
 export interface UserProfile {
   id: string;
   name: string;
   reviews: Review[];
+  albumReviews: AlbumReview[];
   favoriteAlbums: SpotifyAlbum[];
+  spotifyUser?: SpotifyUser;
 }
 
 export type FilterType = 

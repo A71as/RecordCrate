@@ -56,7 +56,7 @@ export const Home: React.FC = () => {
     <div className="home">
       <div className="container">
         <section className="hero">
-          <h1>Welcome to AlbumBoxd</h1>
+          <h1>Welcome to RecordCrate</h1>
           <p>Discover, review, and catalog your favorite albums</p>
         </section>
 
@@ -87,7 +87,6 @@ export const Home: React.FC = () => {
                   <AlbumCard
                     key={album.id}
                     album={album}
-                    onClick={() => console.log('Navigate to album:', album.id)}
                   />
                 ))}
               </div>

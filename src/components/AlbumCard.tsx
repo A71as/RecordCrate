@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { SpotifyAlbum } from '../types';
 import { StarRating } from './StarRating';
 
@@ -13,11 +14,20 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
   userRating,
   onClick,
 }) => {
+  const navigate = useNavigate();
   const imageUrl = album.images[0]?.url || '/placeholder-album.png';
   const artistNames = album.artists.map((artist) => artist.name).join(', ');
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      navigate(`/album/${album.id}`);
+    }
+  };
+
   return (
-    <div className="album-card" onClick={onClick}>
+    <div className="album-card" onClick={handleClick}>
       <div className="album-image">
         <img src={imageUrl} alt={album.name} />
         {userRating && (
