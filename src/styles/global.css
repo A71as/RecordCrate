@@ -1,0 +1,142 @@
+/* RecordCrate Global Styles */
+
+:root {
+    --header-height: 80px;
+
+    /* RecordCrate palette */
+    --rc-bg: #F3EEE6;
+    /* off‑white background */
+    --rc-grid: #D9D1C6;
+    /* grid lines */
+    --rc-text: #0A0A0A;
+    /* primary text */
+    --rc-red: #EE5C5C;
+    /* red accent */
+    --rc-green-1: #7BA86A;
+    /* olive green */
+    --rc-green-2: #66C0B8;
+    /* teal green */
+    --rc-gray: #3D4042;
+    /* dark gray */
+
+    /* Derived tokens */
+    --panel-bg: #ffffffcc;
+    --panel-border: var(--rc-grid);
+    --muted: #4f554f;
+    --muted-2: #6a6f6a;
+}
+
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Base Layout */
+html {
+    width: 100%;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+body {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+        sans-serif;
+    color: var(--rc-text);
+    line-height: 1.6;
+
+    /* Grid paper background */
+    background-color: var(--rc-bg);
+    background-image: linear-gradient(0deg, var(--rc-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--rc-grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+#root {
+    min-height: 100vh;
+    width: 100%;
+}
+
+.App {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Common Utility Classes */
+.main-content {
+    flex: 1;
+    padding-top: calc(var(--header-height) + 2rem);
+    width: 100%;
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    width: 100%;
+}
+
+/* Responsive container padding */
+@media (min-width: 768px) {
+    .container {
+        padding: 0 2rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 320px) {
+    .container {
+        padding: 0 0.5rem;
+    }
+}
+
+.text-center {
+    text-align: center;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--muted-2);
+    border-radius: 50%;
+    border-top-color: var(--rc-red);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error message styles */
+.error-message {
+    color: var(--rc-red);
+    background-color: rgba(238, 92, 92, 0.1);
+    border: 1px solid var(--rc-red);
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.no-results {
+    text-align: center;
+    color: var(--muted);
+    padding: 2rem;
+    font-style: italic;
+}
+
+/* Responsive Variables */
+@media (max-width: 768px) {
+    :root {
+        --header-height: 120px;
+    }
+}

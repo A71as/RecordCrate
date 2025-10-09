@@ -1,0 +1,137 @@
+/* Search Page Styles */
+.search-page {
+    width: 100%;
+}
+
+.search-header {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    width: 100%;
+    padding-top: 1rem;
+}
+
+.search-header h1 {
+    margin-bottom: 1rem;
+    color: var(--rc-text);
+    font-size: 1.8rem;
+    font-weight: 900;
+}
+
+.search-form {
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.search-input-group {
+    display: flex;
+    align-items: center;
+    background-color: var(--panel-bg);
+    border-radius: 12px;
+    padding: 1rem;
+    gap: 1rem;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+    width: 100%;
+    position: relative;
+}
+
+.search-input-group:focus-within {
+    border-color: var(--rc-green-2);
+}
+
+.search-icon {
+    color: var(--muted);
+    flex-shrink: 0;
+}
+
+.search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--rc-text);
+    font-size: 1.1rem;
+    outline: none;
+    width: 100%;
+}
+
+.search-input::placeholder {
+    color: var(--muted-2);
+}
+
+.search-button {
+    background-color: var(--rc-red);
+    color: #111;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.search-button:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+}
+
+.clear-button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.clear-button:hover {
+    color: var(--rc-text);
+}
+
+/* Results sections */
+.unified-results {
+    max-width: 1200px;
+    margin: 2rem auto 0;
+    padding: 0 2rem;
+}
+
+.results-section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--rc-text);
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+}
+
+.results-section-title:first-child {
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .search-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .search-input-group {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .search-input {
+        font-size: 1rem;
+    }
+
+    .search-button {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .unified-results {
+        padding: 0 1rem;
+    }
+}

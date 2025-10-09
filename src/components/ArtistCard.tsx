@@ -1,5 +1,6 @@
 import React from 'react';
 import type { SpotifyArtist } from '../types';
+import '../styles/components/ArtistCard.css';
 
 interface ArtistCardProps {
   artist: SpotifyArtist;
@@ -22,8 +23,8 @@ export const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onClick }) => {
         <div className="artist-popularity">
           <span className="popularity-label">Popularity:</span>
           <div className="popularity-bar">
-            <div 
-              className="popularity-fill" 
+            <div
+              className="popularity-fill"
               style={{ width: `${artist.popularity}%` }}
             />
           </div>

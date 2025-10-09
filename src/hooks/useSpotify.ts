@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { spotifyService } from '../services/spotify';
-import type { SpotifyAlbum, SpotifyArtist, FilterType } from '../types';
+import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack, FilterType } from '../types';
 
 export const useSpotify = () => {
   const [loading, setLoading] = useState(false);
@@ -9,7 +9,7 @@ export const useSpotify = () => {
   const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const results = await spotifyService.searchAlbums(query);
       return results;
@@ -21,10 +21,40 @@ export const useSpotify = () => {
     }
   };
 
+  const searchArtists = async (query: string): Promise<SpotifyArtist[]> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const results = await spotifyService.searchArtists(query);
+      return results;
+    } catch (err) {
+      setError('Failed to search artists');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const searchTracks = async (query: string): Promise<SpotifyTrack[]> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const results = await spotifyService.searchTracks(query);
+      return results;
+    } catch (err) {
+      setError('Failed to search tracks');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getAlbum = async (id: string): Promise<SpotifyAlbum | null> => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const album = await spotifyService.getAlbum(id);
       return album;
@@ -42,7 +72,7 @@ export const useSpotify = () => {
   }> => {
     setLoading(true);
     setError(null);
-    
+
     try {
       let albums: SpotifyAlbum[] = [];
       let artists: SpotifyArtist[] = [];
@@ -91,6 +121,8 @@ export const useSpotify = () => {
     loading,
     error,
     searchAlbums,
+    searchArtists,
+    searchTracks,
     getAlbum,
     getFilteredContent,
   };
