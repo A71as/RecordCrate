@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { spotifyService } from '../services/spotify';
 import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack, FilterType } from '../types';
 
@@ -6,7 +6,7 @@ export const useSpotify = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
+  const searchAlbums = useCallback(async (query: string): Promise<SpotifyAlbum[]> => {
     setLoading(true);
     setError(null);
 
@@ -19,9 +19,9 @@ export const useSpotify = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const searchArtists = async (query: string): Promise<SpotifyArtist[]> => {
+  const searchArtists = useCallback(async (query: string): Promise<SpotifyArtist[]> => {
     setLoading(true);
     setError(null);
 
@@ -34,9 +34,9 @@ export const useSpotify = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const searchTracks = async (query: string): Promise<SpotifyTrack[]> => {
+  const searchTracks = useCallback(async (query: string): Promise<SpotifyTrack[]> => {
     setLoading(true);
     setError(null);
 
@@ -49,7 +49,7 @@ export const useSpotify = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const getAlbum = async (id: string): Promise<SpotifyAlbum | null> => {
     setLoading(true);

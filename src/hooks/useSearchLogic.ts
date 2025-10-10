@@ -78,6 +78,9 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
     const { loading, error: spotifyError, searchAlbums, searchArtists, searchTracks } = useSpotify();
     const debounceTimeoutRef = useRef<number | undefined>(undefined);
     const currentQueryRef = useRef<string>('');
+    const blurTimeoutRef = useRef<number | undefined>(undefined);
+    const isKeyboardActionRef = useRef<boolean>(false);
+    const searchInitiatedRef = useRef<boolean>(false);
 
     // Debounced search for dropdown suggestions with caching
     useEffect(() => {
@@ -87,6 +90,9 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
 
         // Update current query ref
         currentQueryRef.current = query;
+        
+        // Reset search initiated flag when user starts typing again
+        searchInitiatedRef.current = false;
 
         if (query.trim().length >= 1) {
             debounceTimeoutRef.current = window.setTimeout(async () => {
@@ -132,13 +138,13 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
                         .map(item => item.result);
 
                     // Final check before updating state
-                    if (currentQueryRef.current === query && query.trim().length >= 1) {
+                    if (currentQueryRef.current === query && query.trim().length >= 1 && !searchInitiatedRef.current) {
                         setDropdownSuggestions(scoredResults);
                         setShowDropdown(scoredResults.length > 0);
                     }
                 } catch {
-                    // Only update error state if query hasn't changed
-                    if (currentQueryRef.current === query) {
+                    // Only update error state if query hasn't changed and no search initiated
+                    if (currentQueryRef.current === query && !searchInitiatedRef.current) {
                         setDropdownSuggestions([]);
                         setShowDropdown(false);
                     }
@@ -161,7 +167,7 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
                 clearTimeout(debounceTimeoutRef.current);
             }
         };
-    }, [query, searchAlbums, searchArtists, searchTracks]);
+    }, [query]); // Only depend on query, not the search functions
 
     const handleSearch = useCallback(async () => {
         if (!query.trim()) {
@@ -169,8 +175,14 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
             return;
         }
 
+        // Set flag to prevent dropdown from reappearing due to delayed suggestions
+        searchInitiatedRef.current = true;
+
         setLocalError(null);
         setHasSearched(true);
+        setShowDropdown(false); // Hide the dropdown
+        setDropdownSuggestions([]); // Clear suggestions to prevent re-showing
+        setSelectedIndex(-1); // Reset selection
 
         // Search both albums and artists simultaneously
         const [albums, artists] = await Promise.all([
@@ -239,32 +251,40 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
     }, []);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (!showDropdown || dropdownSuggestions.length === 0) return;
-
         switch (e.key) {
             case 'ArrowDown':
-                e.preventDefault();
-                setSelectedIndex(prev =>
-                    prev < dropdownSuggestions.length - 1 ? prev + 1 : 0
-                );
+                if (showDropdown && dropdownSuggestions.length > 0) {
+                    e.preventDefault();
+                    setSelectedIndex(prev =>
+                        prev < dropdownSuggestions.length - 1 ? prev + 1 : 0
+                    );
+                }
                 break;
             case 'ArrowUp':
-                e.preventDefault();
-                setSelectedIndex(prev =>
-                    prev > 0 ? prev - 1 : dropdownSuggestions.length - 1
-                );
+                if (showDropdown && dropdownSuggestions.length > 0) {
+                    e.preventDefault();
+                    setSelectedIndex(prev =>
+                        prev > 0 ? prev - 1 : dropdownSuggestions.length - 1
+                    );
+                }
                 break;
             case 'Enter':
                 e.preventDefault();
-                if (selectedIndex >= 0) {
+                isKeyboardActionRef.current = true; // Mark as keyboard action
+                if (showDropdown && selectedIndex >= 0 && selectedIndex < dropdownSuggestions.length && dropdownSuggestions[selectedIndex]) {
+                    // User has selected a suggestion - use it
                     handleSuggestionSelect(dropdownSuggestions[selectedIndex]);
                 } else {
+                    // No suggestion selected or no dropdown - perform search
                     handleSearch();
                 }
                 break;
             case 'Escape':
-                setShowDropdown(false);
-                setSelectedIndex(-1);
+                if (showDropdown) {
+                    isKeyboardActionRef.current = true; // Mark as keyboard action
+                    setShowDropdown(false);
+                    setSelectedIndex(-1);
+                }
                 break;
         }
     }, [showDropdown, dropdownSuggestions, selectedIndex, handleSearch, handleSuggestionSelect]);
@@ -276,10 +296,22 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
     }, [dropdownSuggestions, query]);
 
     const handleInputBlur = useCallback(() => {
-        // Use a longer delay to prevent flickering when clicking on dropdown items
-        setTimeout(() => {
-            // Only hide if not refocusing
+        // Clear any existing timeout
+        if (blurTimeoutRef.current) {
+            clearTimeout(blurTimeoutRef.current);
+        }
+        
+        // If this blur was caused by a keyboard action (like Enter), don't delay
+        if (isKeyboardActionRef.current) {
+            isKeyboardActionRef.current = false; // Reset flag
             setShowDropdown(false);
+            return;
+        }
+        
+        // Use a delay for mouse actions to prevent flickering when clicking on dropdown items
+        blurTimeoutRef.current = setTimeout(() => {
+            setShowDropdown(false);
+            blurTimeoutRef.current = undefined;
         }, 200);
     }, []);
 

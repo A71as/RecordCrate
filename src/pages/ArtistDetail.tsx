@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { spotifyService } from '../services/spotify';
 import type { SpotifyArtist, SpotifyAlbum, SpotifyTrack } from '../types';
 import '../styles/pages/ArtistDetail.css';
@@ -123,6 +124,17 @@ export const ArtistDetail: React.FC = () => {
     return (
         <div className="main-content">
             <div className="container">
+                <button className="back-button" onClick={() => {
+                    if (window.history.length > 1) {
+                        navigate(-1);
+                    } else {
+                        navigate('/');
+                    }
+                }}>
+                    <ArrowLeft size={20} />
+                    Back
+                </button>
+                
                 <div className="artist-detail">
                     {/* Artist Header */}
                     <div className="artist-header">

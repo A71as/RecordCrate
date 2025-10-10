@@ -149,7 +149,13 @@ export const AlbumDetail: React.FC = () => {
   return (
     <div className="album-detail">
       <div className="container">
-        <button className="back-button" onClick={() => navigate(-1)}>
+        <button className="back-button" onClick={() => {
+          if (window.history.length > 1) {
+            navigate(-1);
+          } else {
+            navigate('/');
+          }
+        }}>
           <ArrowLeft size={20} />
           Back
         </button>

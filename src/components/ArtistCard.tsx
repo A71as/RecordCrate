@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { SpotifyArtist } from '../types';
 import '../styles/components/ArtistCard.css';
 
@@ -8,10 +9,19 @@ interface ArtistCardProps {
 }
 
 export const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onClick }) => {
+  const navigate = useNavigate();
   const imageUrl = artist.images[0]?.url || '/placeholder-artist.png';
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      navigate(`/artist/${artist.id}`);
+    }
+  };
+
   return (
-    <div className="artist-card" onClick={onClick}>
+    <div className="artist-card" onClick={handleClick}>
       <div className="artist-image">
         <img src={imageUrl} alt={artist.name} />
       </div>
