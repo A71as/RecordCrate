@@ -69,12 +69,6 @@ body {
 }
 
 /* Common Utility Classes */
-.main-content {
-    flex: 1;
-    padding-top: calc(var(--header-height) + 2rem);
-    width: 100%;
-}
-
 .container {
     max-width: 960px;
     margin: 0 auto;

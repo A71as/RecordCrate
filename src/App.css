@@ -97,7 +97,7 @@ body {
   flex: 1;
   width: 100%;
   background: transparent;
-  padding-top: var(--header-height);
+  padding-top: calc(var(--header-height) + 2rem);
 }
 
 /* Page containers don't need additional padding since they're wrapped in .main-content */
