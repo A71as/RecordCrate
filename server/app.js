@@ -1,8 +1,5 @@
 import cors from "cors";
-import dotenv from "dotenv";
 import express from "express";
-//import helmet from "helmet";
-import mongoose from "mongoose";
 
 const app = express();
 
@@ -13,8 +10,9 @@ app.use(cors());
 // Routes
 
 import userRoutes from "./routes/users.js";
+import reviewRoutes from "./routes/reviews.js"
 
 app.use("/api", userRoutes);
-
+app.use("/api", reviewRoutes);
 
 export default app;
