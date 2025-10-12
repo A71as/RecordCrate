@@ -1,3 +1,4 @@
+/*
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
@@ -18,3 +19,4 @@ const albumSchema = new Schema({
 const albums = mongoose.model("albums", albumSchema);
 
 export default albums;
+*/
