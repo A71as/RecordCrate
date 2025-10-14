@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { SpotifyAlbum } from '../types';
 import { StarRating } from './StarRating';
+import '../styles/components/AlbumCard.css';
 
 interface AlbumCardProps {
   album: SpotifyAlbum;
