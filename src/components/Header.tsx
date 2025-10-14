@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, User, Music, LogOut } from 'lucide-react';
 import { spotifyService } from '../services/spotify';
 import type { SpotifyUser } from '../types';
@@ -7,6 +7,7 @@ import type { SpotifyUser } from '../types';
 export const Header: React.FC = () => {
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -30,6 +31,10 @@ export const Header: React.FC = () => {
     setIsLoggedIn(false);
   };
 
+  const handleSearchNavClick = () => {
+    navigate('/search', { state: { resetSearch: Date.now() } });
+  };
+
   return (
     <header className="header">
       <div className="header-content">
@@ -42,10 +47,10 @@ export const Header: React.FC = () => {
           <Link to="/" className="nav-link">
             Home
           </Link>
-          <Link to="/search" className="nav-link">
+          <button type="button" className="nav-link" onClick={handleSearchNavClick}>
             <Search size={18} />
             Search
-          </Link>
+          </button>
           <Link to="/profile" className="nav-link">
             <User size={18} />
             Profile

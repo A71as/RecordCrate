@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search as SearchIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { AlbumCard } from '../components/AlbumCard';
 import { useSpotify } from '../hooks/useSpotify';
 import type { SpotifyAlbum } from '../types';
@@ -8,6 +9,7 @@ export const Search: React.FC = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
   const { loading, error, searchAlbums } = useSpotify();
+  const navigate = useNavigate();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +52,7 @@ export const Search: React.FC = () => {
                 <AlbumCard
                   key={album.id}
                   album={album}
-                  onClick={() => console.log('Navigate to album:', album.id)}
+                  onClick={() => navigate(`/album/${album.id}`)}
                 />
               ))}
             </div>

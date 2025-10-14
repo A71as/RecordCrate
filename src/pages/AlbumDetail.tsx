@@ -17,6 +17,7 @@ export const AlbumDetail: React.FC = () => {
   const [writeup, setWriteup] = useState('');
   const [isReviewing, setIsReviewing] = useState(false);
   const [existingReview, setExistingReview] = useState<AlbumReview | null>(null);
+  const [reviewCount, setReviewCount] = useState(0);
 
   useEffect(() => {
     const fetchAlbum = async () => {
@@ -30,8 +31,10 @@ export const AlbumDetail: React.FC = () => {
 
         // Load existing review if any
         const savedReviews = JSON.parse(localStorage.getItem('albumReviews') || '[]');
-        const review = savedReviews.find((r: AlbumReview) => r.albumId === albumId);
-        
+        const albumReviews = savedReviews.filter((r: AlbumReview) => r.albumId === albumId);
+        setReviewCount(albumReviews.length);
+
+        const review = albumReviews[0];
         if (review) {
           setExistingReview(review);
           setOverallRating(review.overallRating);
@@ -42,6 +45,11 @@ export const AlbumDetail: React.FC = () => {
             ratingsMap[sr.trackId] = sr.rating;
           });
           setSongRatings(ratingsMap);
+        } else {
+          setExistingReview(null);
+          setSongRatings({});
+          setOverallRating(0);
+          setWriteup('');
         }
       } catch (err) {
         setError('Failed to fetch album details');
@@ -119,6 +127,7 @@ export const AlbumDetail: React.FC = () => {
     }
     
     localStorage.setItem('albumReviews', JSON.stringify(savedReviews));
+    setReviewCount(savedReviews.filter((r: AlbumReview) => r.albumId === album.id).length);
     setExistingReview(review);
     setIsReviewing(false);
   };
@@ -146,8 +155,15 @@ export const AlbumDetail: React.FC = () => {
 
   const albumImage = album.images?.[0]?.url || album.images?.[1]?.url;
 
+  const trackCount = album.tracks?.items?.length ?? album.total_tracks ?? 0;
+  const BASE_PADDING_REM =.75;
+  const EXTRA_PADDING_PER_TRACK_REM = 3;
+  const EXTRA_PADDING_PER_REVIEW_REM = 18;
+  const paddingTop = `${BASE_PADDING_REM + Math.max(trackCount - 1, 0) * EXTRA_PADDING_PER_TRACK_REM +
+  reviewCount * EXTRA_PADDING_PER_REVIEW_REM}rem`;
+
   return (
-    <div className="album-detail">
+    <div className="album-detail" style={{ paddingTop }}>
       <div className="container">
         <button className="back-button" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
@@ -184,9 +200,9 @@ export const AlbumDetail: React.FC = () => {
                   <StarRating 
                     rating={existingReview.overallRating} 
                     readonly={true} 
-                    maxRating={10}
+                    maxRating={5}
                   />
-                  <span className="rating-number">({existingReview.overallRating}/10)</span>
+                  <span className="rating-number">({existingReview.overallRating}/5)</span>
                 </div>
               </div>
             )}
@@ -225,7 +241,7 @@ export const AlbumDetail: React.FC = () => {
                     <div className="track-rating">
                       <StarRating
                         rating={songRatings[track.id] || 0}
-                        maxRating={10}
+                        maxRating={5}
                         onRatingChange={(rating) => handleSongRatingChange(track.id, rating)}
                         readonly={false}
                         size={14}
@@ -250,11 +266,11 @@ export const AlbumDetail: React.FC = () => {
                 <label>Overall Album Rating:</label>
                 <StarRating
                   rating={overallRating}
-                  maxRating={10}
+                  maxRating={5}
                   onRatingChange={handleOverallRatingChange}
                   readonly={false}
                 />
-                <span className="rating-number">({overallRating}/10)</span>
+                <span className="rating-number">({overallRating}/5)</span>
               </div>
               
               <div className="writeup-section">
@@ -294,10 +310,10 @@ export const AlbumDetail: React.FC = () => {
               <div className="review-rating">
                 <StarRating 
                   rating={existingReview.overallRating} 
-                  maxRating={10}
+                  maxRating={5}
                   readonly={true} 
                 />
-                <span className="rating-number">({existingReview.overallRating}/10)</span>
+                <span className="rating-number">({existingReview.overallRating}/5)</span>
               </div>
               {existingReview.writeup && (
                 <div className="review-writeup">
