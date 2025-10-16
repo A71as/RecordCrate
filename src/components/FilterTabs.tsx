@@ -13,15 +13,6 @@ const filterOptions: FilterOption[] = [
   { id: 'new-releases-month', label: 'This Month', category: 'releases' },
   { id: 'new-releases-year', label: 'This Year', category: 'releases' },
   
-  // Popular
-  { id: 'popular-week', label: 'Week', category: 'popular' },
-  { id: 'popular-month', label: 'Month', category: 'popular' },
-  { id: 'popular-year', label: 'Year', category: 'popular' },
-  
-  // Personal
-  { id: 'personal-week', label: 'Week', category: 'personal' },
-  { id: 'personal-6months', label: '6 Months', category: 'personal' },
-  { id: 'personal-alltime', label: 'All Time', category: 'personal' },
 ];
 
 export const FilterTabs: React.FC<FilterTabsProps> = ({

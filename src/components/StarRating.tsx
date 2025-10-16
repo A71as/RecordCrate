@@ -64,7 +64,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
             }}
           >
             {/* base (empty) star */}
-            <Star size={size} color="#ccc" fill="none" />
+            <Star size={size} color="var(--rc-gray)" fill="none" />
 
             {/* filled overlay clipped to fraction */}
             <div
@@ -78,7 +78,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
                 pointerEvents: 'none',
               }}
             >
-              <Star size={size} color="#ffd700" fill="#ffd700" />
+              <Star size={size} color="var(--rc-warm)" fill="var(--rc-warm)" />
             </div>
           </div>
         );

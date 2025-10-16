@@ -20,14 +20,14 @@
 
 .artist-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(61, 64, 66, 0.15);
+    box-shadow: 0 12px 40px color-mix(in srgb, black 30%, transparent);
     border-color: var(--rc-green-2);
 }
 
 .artist-image {
     aspect-ratio: 1;
     overflow: hidden;
-    background-color: #ffffff;
+    background-color: var(--panel-bg);
     width: 100%;
 }
 

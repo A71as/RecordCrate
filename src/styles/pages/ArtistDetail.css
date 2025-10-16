@@ -23,20 +23,20 @@
     height: 150px;
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px color-mix(in srgb, black 40%, transparent);
 }
 
 .artist-image-placeholder {
     width: 150px;
     height: 150px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--rc-primary) 30%, black) 0%, color-mix(in srgb, var(--rc-accent) 30%, black) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 4rem;
-    color: white;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: var(--rc-text);
+    box-shadow: 0 8px 32px color-mix(in srgb, black 40%, transparent);
 }
 
 .artist-info {
@@ -71,12 +71,12 @@
 }
 
 .genre-tag {
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--panel-bg) 14%, transparent);
     padding: 0.3rem 0.8rem;
     border-radius: 15px;
     font-size: 0.9rem;
-    color: var(--text-secondary);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--muted);
+    border: 1px solid color-mix(in srgb, var(--panel-bg) 22%, transparent);
 }
 
 .spotify-link {
@@ -84,8 +84,8 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.8rem 1.5rem;
-    background: #1db954;
-    color: white;
+    background: var(--rc-green-1);
+    color: var(--rc-text);
     text-decoration: none;
     border-radius: 25px;
     font-weight: 500;
@@ -93,8 +93,8 @@
 }
 
 .spotify-link:hover {
-    background: #1ed760;
-    color: white;
+    background: var(--rc-green-2);
+    color: var(--rc-text);
 }
 
 /* Sections */
@@ -111,10 +111,10 @@
 
 /* Top Tracks */
 .tracks-list {
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--panel-bg) 6%, transparent);
     border-radius: 12px;
     padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid color-mix(in srgb, var(--panel-bg) 12%, transparent);
 }
 
 .track-item {
@@ -127,7 +127,7 @@
 }
 
 .track-item:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--panel-bg) 10%, transparent);
 }
 
 .track-number {
@@ -171,31 +171,24 @@
     transition: background-color 0.2s ease;
 }
 
-.preview-button:hover {
-    background: rgba(255, 255, 255, 0.1);
+preview-button:hover {
+    background: color-mix(in srgb, var(--panel-bg) 10%, transparent);
 }
 
 /* Albums Grid */
-.albums-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1.5rem;
-}
-
 .album-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--panel-bg) 6%, transparent);
     border-radius: 12px;
     padding: 1rem;
     transition: all 0.3s ease;
     cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid color-mix(in srgb, var(--panel-bg) 12%, transparent);
 }
-
 .album-card:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--panel-bg) 10%, transparent);
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
+    box-shadow: 0 8px 25px color-mix(in srgb, black 30%, transparent);
+    }
 
 .album-image {
     width: 100%;
@@ -209,12 +202,12 @@
     width: 100%;
     aspect-ratio: 1;
     border-radius: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--rc-primary) 30%, black) 0%, color-mix(in srgb, var(--rc-accent) 30%, black) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2rem;
-    color: white;
+    color: var(--rc-text);
     margin-bottom: 0.8rem;
 }
 
@@ -333,8 +326,8 @@
 }
 
 .pagination-button {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--panel-bg) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--panel-bg) 18%, transparent);
     color: var(--text-primary);
     padding: 0.6rem 1.2rem;
     border-radius: 8px;
@@ -345,9 +338,9 @@
 }
 
 .pagination-button:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: var(--primary-color);
-    color: var(--primary-color);
+    background: color-mix(in srgb, var(--panel-bg) 16%, transparent);
+    border-color: var(--rc-accent);
+    color: var(--rc-accent);
 }
 
 .pagination-button:disabled {
@@ -359,9 +352,9 @@
     color: var(--text-secondary);
     font-weight: 500;
     padding: 0.6rem 1rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--panel-bg) 6%, transparent);
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid color-mix(in srgb, var(--panel-bg) 12%, transparent);
 }
 
 /* Mobile pagination adjustments */

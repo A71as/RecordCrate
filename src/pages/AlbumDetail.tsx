@@ -196,14 +196,18 @@ export const AlbumDetail: React.FC = () => {
   const albumImage = album.images?.[0]?.url || album.images?.[1]?.url;
 
   const trackCount = album.tracks?.items?.length ?? album.total_tracks ?? 0;
-  const BASE_PADDING_REM = 0.75;
-  const EXTRA_PADDING_PER_TRACK_REM = 3;
-  const EXTRA_PADDING_PER_REVIEW_REM = 18;
-  const paddingTop = `${
+  // Reduce padding multipliers to avoid huge gaps. Clamp to a sensible max.
+  const BASE_PADDING_REM = 1; // base small offset
+  const EXTRA_PADDING_PER_TRACK_REM = 0.25; // small incremental space per track
+  const EXTRA_PADDING_PER_REVIEW_REM = 1.5; // each review adds modest space
+  const MAX_PADDING_REM = 6; // don't let padding grow without bound
+
+  const rawPadding =
     BASE_PADDING_REM +
     Math.max(trackCount - 1, 0) * EXTRA_PADDING_PER_TRACK_REM +
-    reviewCount * EXTRA_PADDING_PER_REVIEW_REM
-  }rem`;
+    reviewCount * EXTRA_PADDING_PER_REVIEW_REM;
+
+  const paddingTop = `${Math.min(rawPadding, MAX_PADDING_REM)}rem`;
 
   return (
     <div className="album-detail" style={{ paddingTop }}>
@@ -371,7 +375,7 @@ export const AlbumDetail: React.FC = () => {
                     style={{
                       width: 140,
                       height: 8,
-                      background: '#eee',
+                      background: 'color-mix(in srgb, var(--panel-bg) 14%, transparent)',
                       borderRadius: 4,
                       overflow: 'hidden',
                     }}

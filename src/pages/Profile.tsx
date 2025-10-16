@@ -144,7 +144,7 @@ export const Profile: React.FC = () => {
                         <div className="review-rating">
                           <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
                             <div className="percent-badge">{review.overallRating}%</div>
-                            <div style={{width: 80, height: 8, background: '#eee', borderRadius: 4, overflow:'hidden'}}>
+                            <div style={{width: 80, height: 8, background: 'color-mix(in srgb, var(--panel-bg) 14%, transparent)', borderRadius: 4, overflow:'hidden'}}>
                               <div className="percent-fill" style={{width: `${review.overallRating}%`, height: '100%', background: percentColor(review.overallRating)}}/>
                             </div>
                           </div>
