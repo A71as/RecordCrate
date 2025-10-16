@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Music, Star, Calendar } from 'lucide-react';
 import { spotifyService } from '../services/spotify';
-import { StarRating } from '../components/StarRating';
 import type { SpotifyUser, AlbumReview } from '../types';
 
 export const Profile: React.FC = () => {
@@ -22,8 +21,16 @@ export const Profile: React.FC = () => {
       }
 
       // Load reviews from localStorage
-      const savedReviews = JSON.parse(localStorage.getItem('albumReviews') || '[]');
-      setReviews(savedReviews);
+      const savedReviewsRaw = JSON.parse(localStorage.getItem('albumReviews') || '[]');
+      // migrate any 0-5 overallRating to 0-100 percent
+      const savedReviewsArr = savedReviewsRaw as AlbumReview[];
+      const migrated: AlbumReview[] = (savedReviewsArr || []).map((r) => {
+        if (typeof r.overallRating === 'number' && r.overallRating <= 5) {
+          return { ...r, overallRating: Math.round(r.overallRating * 20) };
+        }
+        return { ...r, overallRating: Math.round(r.overallRating || 0) };
+      });
+      setReviews(migrated);
       setLoading(false);
     };
 
@@ -56,9 +63,17 @@ export const Profile: React.FC = () => {
     );
   }
 
-  const averageRating = reviews.length > 0 
-    ? reviews.reduce((sum, review) => sum + review.overallRating, 0) / reviews.length 
+  // reviews[].overallRating is now stored as percent (0-100)
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, review) => sum + (review.overallRating || 0), 0) / reviews.length
     : 0;
+
+  const percentColor = (p: number) => {
+    const n = Number(p) || 0;
+    const pct = Math.max(0, Math.min(100, Math.round(n))) / 100;
+    const hue = Math.round(pct * 120);
+    return `hsl(${hue}, 100%, 45%)`;
+  };
 
   return (
     <div className="profile-page">
@@ -83,7 +98,7 @@ export const Profile: React.FC = () => {
                   {reviews.length > 0 && (
                     <div className="stat">
                       <Star size={16} />
-                      <span>Avg Rating: {averageRating.toFixed(1)}/10</span>
+                      <span>Avg Rating: {averageRating.toFixed(1)}%</span>
                     </div>
                   )}
                   <div className="stat">
@@ -127,13 +142,12 @@ export const Profile: React.FC = () => {
                           {review.album?.artists.map(a => a.name).join(', ')}
                         </p>
                         <div className="review-rating">
-                          <StarRating 
-                            rating={review.overallRating} 
-                            maxRating={10} 
-                            readonly={true} 
-                            size={16}
-                          />
-                          <span className="rating-text">({review.overallRating}/10)</span>
+                          <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                            <div className="percent-badge">{review.overallRating}%</div>
+                            <div style={{width: 80, height: 8, background: '#eee', borderRadius: 4, overflow:'hidden'}}>
+                              <div className="percent-fill" style={{width: `${review.overallRating}%`, height: '100%', background: percentColor(review.overallRating)}}/>
+                            </div>
+                          </div>
                         </div>
                         {review.writeup && (
                           <p className="review-excerpt">
