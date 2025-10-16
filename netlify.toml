@@ -1,0 +1,11 @@
+# Netlify build configuration for the RecordCrate monorepo
+# Set base to the folder that contains the app's package.json and Vite config.
+[build]
+  base = "RecordCrate"
+  command = "npm run build"
+  publish = "dist"
+
+# Optional: make Netlify use Node 18 (adjust if you need a different version)
+[context]
+  [context.production.environment]
+    NODE_VERSION = "18"
