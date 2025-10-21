@@ -1,59 +1,141 @@
-import React, { useState } from 'react';
-import { Search as SearchIcon } from 'lucide-react';
-import { AlbumCard } from '../components/AlbumCard';
-import { useSpotify } from '../hooks/useSpotify';
-import type { SpotifyAlbum } from '../types';
+import React, { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { SearchInput } from '../components/SearchInput';
+import { SearchDropdown } from '../components/SearchDropdown';
+import { SearchResults } from '../components/SearchResults';
+import { ArtistSearchResults } from '../components/ArtistSearchResults';
+import { TrackSearchResults } from '../components/TrackSearchResults';
+import { useSearchLogic } from '../hooks/useSearchLogic';
+import { useClickOutside } from '../hooks/useClickOutside';
+import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack } from '../types';
 
 export const Search: React.FC = () => {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SpotifyAlbum[]>([]);
-  const { loading, error, searchAlbums } = useSpotify();
+  const navigate = useNavigate();
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  const {
+    query,
+    albumResults,
+    artistResults,
+    trackResults,
+    localError,
+    dropdownSuggestions,
+    showDropdown,
+    selectedIndex,
+    hasSearched,
+    loading,
+    spotifyError,
+    setQuery,
+    setSelectedIndex,
+    setShowDropdown,
+    handleSearch,
+    handleSuggestionSelect,
+    handleClear,
+    handleKeyDown,
+    handleInputFocus,
+    handleInputBlur
+  } = useSearchLogic({
+    onAlbumSelect: (album: SpotifyAlbum) => {
+      navigate(`/album/${album.id}`);
+    },
+    onArtistSelect: (artist: SpotifyArtist) => {
+      navigate(`/artist/${artist.id}`);
+    },
+    onTrackSelect: (track: SpotifyTrack) => {
+      // For now, just log the track selection and play preview if available
+      console.log('Selected track:', track.name, 'by', track.artists.map(a => a.name).join(', '));
+      if (track.preview_url) {
+        const audio = new Audio(track.preview_url);
+        audio.play().catch(console.error);
+      }
+    }
+  });
 
-    const albums = await searchAlbums(query);
-    setResults(albums);
-  };
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Handle click outside to close dropdown
+  useClickOutside(
+    dropdownRef,
+    () => {
+      if (showDropdown) {
+        setShowDropdown(false);
+        setSelectedIndex(-1);
+      }
+    },
+    showDropdown
+  );
+
+  const error = localError || spotifyError;
 
   return (
     <div className="search-page">
       <div className="container">
         <div className="search-header">
-          <h1>Search Albums</h1>
-          <form onSubmit={handleSearch} className="search-form">
-            <div className="search-input-group">
-              <SearchIcon size={20} className="search-icon" />
-              <input
-                type="text"
+          <h1>Search Music</h1>
+
+          <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="search-form">
+            <div className="search-input-group" ref={dropdownRef}>
+              <SearchInput
+                ref={inputRef}
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for albums, artists..."
-                className="search-input"
+                onChange={setQuery}
+                onSubmit={handleSearch}
+                onClear={handleClear}
+                onKeyDown={handleKeyDown}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
+                ariaExpanded={showDropdown}
+                ariaControls="search-dropdown"
+                ariaDescribedBy={error ? "search-error" : undefined}
+                placeholder="Search for albums, artists, and tracks..."
               />
-              <button type="submit" className="search-button">
-                Search
-              </button>
+
+              <SearchDropdown
+                suggestions={dropdownSuggestions}
+                isVisible={showDropdown}
+                selectedIndex={selectedIndex}
+                onSuggestionSelect={handleSuggestionSelect}
+                onHover={setSelectedIndex}
+              />
             </div>
           </form>
         </div>
 
-        {loading && <div className="loading">Searching...</div>}
-        {error && <div className="error">Error: {error}</div>}
+        {/* Results Section - Show albums, artists, and tracks */}
+        {(albumResults.length > 0 || artistResults.length > 0 || trackResults.length > 0) && (
+          <div className="unified-results">
+            {albumResults.length > 0 && (
+              <SearchResults
+                results={albumResults}
+                query={query}
+                hasSearched={hasSearched}
+                isLoading={loading}
+                error={error}
+              />
+            )}
 
-        {results.length > 0 && (
-          <div className="search-results">
-            <h2>Results ({results.length})</h2>
-            <div className="album-grid">
-              {results.map((album) => (
-                <AlbumCard
-                  key={album.id}
-                  album={album}
-                  onClick={() => console.log('Navigate to album:', album.id)}
-                />
-              ))}
-            </div>
+            {artistResults.length > 0 && (
+              <ArtistSearchResults
+                results={artistResults}
+                query={query}
+                hasSearched={hasSearched}
+                isLoading={loading}
+                error={error}
+              />
+            )}
+
+            {trackResults.length > 0 && (
+              <TrackSearchResults
+                tracks={trackResults}
+              />
+            )}
+          </div>
+        )}
+
+        {/* No results message */}
+        {!loading && albumResults.length === 0 && artistResults.length === 0 && trackResults.length === 0 && hasSearched && (
+          <div className="no-results">
+            <p>No albums, artists, or tracks found for "{query}". Try a different search term.</p>
           </div>
         )}
       </div>
