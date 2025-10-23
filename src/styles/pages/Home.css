@@ -63,7 +63,7 @@
 
 .filter-button {
     background-color: var(--panel-bg);
-    color: var(--rc-text, #0A0A0A);
+    color: var(--spotify-green, #1DB954);
     border: 1px solid var(--panel-border, #D9D1C6);
     padding: 0.75rem 1.25rem;
     border-radius: 10px;

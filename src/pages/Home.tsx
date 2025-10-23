@@ -4,7 +4,6 @@ import { ArtistCard } from '../components/ArtistCard';
 import { FilterTabs } from '../components/FilterTabs';
 import { useSpotify } from '../hooks/useSpotify';
 import type { SpotifyAlbum, SpotifyArtist, FilterType } from '../types';
-import '../styles/pages/Home.css';
 
 export const Home: React.FC = () => {
   const [albums, setAlbums] = useState<SpotifyAlbum[]>([]);
@@ -14,7 +13,7 @@ export const Home: React.FC = () => {
 
   useEffect(() => {
     const fetchContent = async () => {
-      const { albums: fetchedAlbums, artists: fetchedArtists } =
+      const { albums: fetchedAlbums, artists: fetchedArtists } = 
         await getFilteredContent(activeFilter);
       setAlbums(fetchedAlbums);
       setArtists(fetchedArtists || []);
@@ -62,16 +61,16 @@ export const Home: React.FC = () => {
         </section>
 
         <section className="content-filters">
-          <FilterTabs
-            activeFilter={activeFilter}
-            onFilterChange={setActiveFilter}
+          <FilterTabs 
+            activeFilter={activeFilter} 
+            onFilterChange={setActiveFilter} 
           />
         </section>
 
         {showPersonalNote && (
           <div className="personal-note">
             <p>
-              <strong>Note:</strong> Personal listening data requires Spotify account
+              <strong>Note:</strong> Personal listening data requires Spotify account 
               connection. Currently showing popular content as placeholder.
             </p>
           </div>
@@ -79,7 +78,7 @@ export const Home: React.FC = () => {
 
         <section className="filtered-content">
           <h2>{getContentTitle()}</h2>
-
+          
           {albums.length > 0 && (
             <div className="content-section">
               <h3>Albums</h3>

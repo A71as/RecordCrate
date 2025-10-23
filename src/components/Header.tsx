@@ -1,39 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, User, Music, LogOut } from 'lucide-react';
-import { spotifyService } from '../services/spotify';
-import type { SpotifyUser } from '../types';
+import { Search, User, Music, LogOut, PlugZap } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const Header: React.FC = () => {
-  const [user, setUser] = useState<SpotifyUser | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const {
+    googleUser,
+    spotifyUser,
+    isGoogleLoggedIn,
+    isSpotifyLinked,
+    loadingSpotify,
+    linkSpotifyAccount,
+    logout,
+  } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      setIsLoggedIn(spotifyService.isLoggedIn());
-      if (spotifyService.isLoggedIn()) {
-        const currentUser = await spotifyService.getCurrentUser();
-        setUser(currentUser);
-      }
-    };
-
-    checkAuthStatus();
-  }, []);
-
-  const handleLogin = () => {
-    window.location.href = spotifyService.getAuthUrl();
-  };
-
-  const handleLogout = () => {
-    spotifyService.logout();
-    setUser(null);
-    setIsLoggedIn(false);
-  };
 
   const handleSearchNavClick = () => {
     navigate('/search', { state: { resetSearch: Date.now() } });
   };
+
+  const displayName = spotifyUser?.display_name ?? googleUser?.name ?? 'Guest';
+  const avatarUrl = spotifyUser?.images?.[0]?.url ?? googleUser?.picture;
 
   return (
     <header className="header">
@@ -56,27 +43,40 @@ export const Header: React.FC = () => {
             Profile
           </Link>
           
-          {isLoggedIn ? (
+          {isGoogleLoggedIn ? (
             <div className="user-section">
-              {user && (
-                <div className="user-info">
-                  {user.images && user.images[0] && (
-                    <img 
-                      src={user.images[0].url} 
-                      alt={user.display_name}
-                      className="user-avatar" 
-                    />
-                  )}
-                  <span className="user-name">{user.display_name}</span>
-                </div>
+              <div className="user-info">
+                {avatarUrl && (
+                  <img 
+                    src={avatarUrl} 
+                    alt={displayName}
+                    className="user-avatar" 
+                  />
+                )}
+                <span className="user-name">{displayName}</span>
+              </div>
+              {!isSpotifyLinked ? (
+                <button
+                  className="spotify-login-btn"
+                  onClick={linkSpotifyAccount}
+                  disabled={loadingSpotify}
+                >
+                  <PlugZap size={16} />
+                  {loadingSpotify ? 'Linking...' : 'Link Spotify'}
+                </button>
+              ) : (
+                <button className="logout-btn" onClick={logout}>
+                  <LogOut size={16} />
+                  Logout
+                </button>
               )}
-              <button className="logout-btn" onClick={handleLogout}>
-                <LogOut size={16} />
-                Logout
-              </button>
             </div>
           ) : (
-            <button className="spotify-login-btn" onClick={handleLogin}>
+            <button
+              className="spotify-login-btn"
+              onClick={linkSpotifyAccount}
+              disabled={loadingSpotify}
+            >
               <Music size={16} />
               Login with Spotify
             </button>

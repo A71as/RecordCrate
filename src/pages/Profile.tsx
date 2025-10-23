@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Music, Star, Calendar } from 'lucide-react';
-import { spotifyService } from '../services/spotify';
-import type { SpotifyUser, AlbumReview } from '../types';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
+import { User, Music, Star, Calendar, Plug } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import type { AlbumReview } from '../types';
 
 export const Profile: React.FC = () => {
-  const [user, setUser] = useState<SpotifyUser | null>(null);
   const [reviews, setReviews] = useState<AlbumReview[]>([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const {
+    googleUser,
+    spotifyUser,
+    isGoogleLoggedIn,
+    isSpotifyLinked,
+    loadingSpotify,
+    isGoogleConfigured,
+    loginWithGoogle,
+    linkSpotifyAccount,
+  } = useAuth();
 
   useEffect(() => {
     const loadProfile = async () => {
-      setLoading(true);
-      setIsLoggedIn(spotifyService.isLoggedIn());
-      
-      if (spotifyService.isLoggedIn()) {
-        const currentUser = await spotifyService.getCurrentUser();
-        setUser(currentUser);
-      }
-
       // Load reviews from localStorage
       const savedReviewsRaw = JSON.parse(localStorage.getItem('albumReviews') || '[]');
       // migrate any 0-5 overallRating to 0-100 percent
@@ -31,31 +33,80 @@ export const Profile: React.FC = () => {
         return { ...r, overallRating: Math.round(r.overallRating || 0) };
       });
       setReviews(migrated);
-      setLoading(false);
+      setLoadingReviews(false);
     };
 
     loadProfile();
   }, []);
 
-  const handleLogin = () => {
-    window.location.href = spotifyService.getAuthUrl();
+  const handleGoogleSuccess = (response: CredentialResponse) => {
+    setGoogleError(null);
+    if (response.credential) {
+      loginWithGoogle(response.credential);
+    } else {
+      setGoogleError('Google login failed. Please try again.');
+    }
   };
 
-  if (loading) return <div className="loading">Loading profile...</div>;
+  const handleGoogleError = () => {
+    setGoogleError('Google login did not complete. Please try again.');
+  };
 
-  if (!isLoggedIn) {
+  if (loadingReviews) return <div className="loading">Loading profile...</div>;
+
+  if (!isGoogleLoggedIn) {
     return (
       <div className="profile-page">
         <div className="container">
           <div className="profile-content">
             <div className="login-prompt">
               <User size={64} className="login-icon" />
-              <h1>Connect Your Spotify Account</h1>
-              <p>Sign in with Spotify to access personalized features and sync your music preferences.</p>
-              <button className="spotify-login-btn large" onClick={handleLogin}>
+              <h1>Sign in to RecordCrate</h1>
+              <p>Use your Google account to access your RecordCrate profile.</p>
+              {isGoogleConfigured ? (
+                <div className="google-login-btn">
+                  <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+                </div>
+              ) : (
+                <p className="error">
+                  Google login is not configured. Please ask the site admin to set{' '}
+                  <code>VITE_GOOGLE_CLIENT_ID</code>.
+                </p>
+              )}
+              {googleError && <p className="error">{googleError}</p>}
+              <div className="login-divider">or</div>
+              <button className="spotify-login-btn large" onClick={linkSpotifyAccount}>
                 <Music size={20} />
                 Login with Spotify
               </button>
+              <p className="login-note">
+                After connecting Spotify you&apos;ll be redirected back here to finish signing in with
+                Google.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isSpotifyLinked) {
+    return (
+      <div className="profile-page">
+        <div className="container">
+          <div className="profile-content">
+            <div className="login-prompt">
+              <Plug size={64} className="login-icon" />
+              <h1>Link Your Spotify Account</h1>
+              <p>
+                Hi {googleUser?.name?.split(' ')[0] || 'there'}! Connect Spotify to sync your music
+                tastes and pull in your listening data.
+              </p>
+              <button className="spotify-login-btn large" onClick={linkSpotifyAccount}>
+                <Music size={20} />
+                Link Spotify Account
+              </button>
+              {loadingSpotify && <p className="loading">Checking Spotify connection...</p>}
             </div>
           </div>
         </div>
@@ -79,17 +130,20 @@ export const Profile: React.FC = () => {
     <div className="profile-page">
       <div className="container">
         <div className="profile-header">
-          {user && (
+          {spotifyUser && (
             <div className="user-profile">
-              {user.images && user.images[0] && (
+              {spotifyUser.images && spotifyUser.images[0] && (
                 <img 
-                  src={user.images[0].url} 
-                  alt={user.display_name}
+                  src={spotifyUser.images[0].url} 
+                  alt={spotifyUser.display_name}
                   className="profile-avatar" 
                 />
               )}
               <div className="user-details">
-                <h1>{user.display_name}</h1>
+                <h1>{spotifyUser.display_name}</h1>
+                {googleUser && (
+                  <p className="linked-account">Signed in as {googleUser.email}</p>
+                )}
                 <div className="user-stats">
                   <div className="stat">
                     <Music size={16} />
@@ -103,7 +157,7 @@ export const Profile: React.FC = () => {
                   )}
                   <div className="stat">
                     <User size={16} />
-                    <span>{user.followers.total} Followers</span>
+                    <span>{spotifyUser.followers.total} Followers</span>
                   </div>
                 </div>
               </div>

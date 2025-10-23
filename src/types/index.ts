@@ -131,6 +131,13 @@ export interface SpotifyUser {
   };
 }
 
+export interface GoogleUser {
+  id: string;
+  name: string;
+  email: string;
+  picture?: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;

@@ -72,6 +72,23 @@ export const ArtistDetail: React.FC = () => {
         navigate(`/album/${albumId}`);
     };
 
+    const handleTrackClick = (track: SpotifyTrack) => {
+        const albumId = track.album?.id;
+        if (albumId) {
+            navigate(`/album/${albumId}`);
+        }
+    };
+
+    const handleTrackKeyDown = (
+        event: React.KeyboardEvent<HTMLDivElement>,
+        track: SpotifyTrack
+    ) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleTrackClick(track);
+        }
+    };
+
     // Pagination helpers for tracks
     const totalTrackPages = Math.ceil(topTracks.length / tracksPerPage);
     const startIndex = (currentTrackPage - 1) * tracksPerPage;
@@ -191,7 +208,21 @@ export const ArtistDetail: React.FC = () => {
                             </div>
                             <div className="tracks-list">
                                 {currentTracks.map((track, index) => (
-                                    <div key={track.id} className="track-item">
+                                    <div
+                                        key={track.id}
+                                        className="track-item"
+                                        role={track.album?.id ? 'button' : undefined}
+                                        tabIndex={track.album?.id ? 0 : -1}
+                                        onClick={() => track.album?.id && handleTrackClick(track)}
+                                        onKeyDown={(event) =>
+                                            track.album?.id && handleTrackKeyDown(event, track)
+                                        }
+                                        aria-label={
+                                            track.album?.id
+                                                ? `Open album ${track.album?.name}`
+                                                : undefined
+                                        }
+                                    >
                                         <span className="track-number">
                                             {startIndex + index + 1}
                                         </span>
@@ -205,7 +236,8 @@ export const ArtistDetail: React.FC = () => {
                                         {track.preview_url && (
                                             <button
                                                 className="preview-button"
-                                                onClick={() => {
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
                                                     const audio = new Audio(track.preview_url!);
                                                     audio.play().catch(console.error);
                                                 }}
