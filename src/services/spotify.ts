@@ -1,5 +1,11 @@
 import axios from 'axios';
-import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack, SpotifyUser } from '../types';
+import type {
+  DiscographyEntry,
+  SpotifyAlbum,
+  SpotifyArtist,
+  SpotifyTrack,
+  SpotifyUser,
+} from '../types';
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
@@ -12,6 +18,8 @@ const SCOPES = [
   'user-library-read',
   'user-read-recently-played'
 ].join(' ');
+
+const DEFAULT_MARKET = 'US';
 
 class SpotifyService {
   private accessToken: string | null = null;
@@ -37,13 +45,25 @@ class SpotifyService {
 
     this.accessToken = response.data.access_token;
     this.tokenExpiry = Date.now() + response.data.expires_in * 1000;
-    
+
     return this.accessToken!;
+  }
+
+  async getAvailableGenres(): Promise<string[]> {
+    const token = await this.getAccessToken();
+
+    const response = await axios.get('https://api.spotify.com/v1/recommendations/available-genre-seeds', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data.genres ?? [];
   }
 
   async searchAlbums(query: string): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-    
+
     const response = await axios.get(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(
         query
@@ -58,9 +78,43 @@ class SpotifyService {
     return response.data.albums.items;
   }
 
+  async searchArtists(query: string): Promise<SpotifyArtist[]> {
+    const token = await this.getAccessToken();
+
+    const response = await axios.get(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+        query
+      )}&type=artist&limit=20`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data.artists.items;
+  }
+
+  async searchTracks(query: string): Promise<SpotifyTrack[]> {
+    const token = await this.getAccessToken();
+
+    const response = await axios.get(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+        query
+      )}&type=track&limit=20`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data.tracks.items;
+  }
+
   async getAlbum(id: string): Promise<SpotifyAlbum> {
     const token = await this.getAccessToken();
-    
+
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${id}`,
       {
@@ -73,9 +127,54 @@ class SpotifyService {
     return response.data;
   }
 
+  async getArtist(id: string): Promise<SpotifyArtist> {
+    const token = await this.getAccessToken();
+
+    const response = await axios.get(
+      `https://api.spotify.com/v1/artists/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  }
+
+  async getArtistAlbums(id: string): Promise<SpotifyAlbum[]> {
+    const token = await this.getAccessToken();
+
+    const response = await axios.get(
+      `https://api.spotify.com/v1/artists/${id}/albums?include_groups=album,single&limit=20`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data.items;
+  }
+
+  async getArtistTopTracks(id: string): Promise<SpotifyTrack[]> {
+    const token = await this.getAccessToken();
+
+    const response = await axios.get(
+      `https://api.spotify.com/v1/artists/${id}/top-tracks?market=US`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data.tracks;
+  }
+
   async getNewReleases(limit: number = 20): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-    
+
     const response = await axios.get(
       `https://api.spotify.com/v1/browse/new-releases?limit=${limit}`,
       {
@@ -90,11 +189,11 @@ class SpotifyService {
 
   async getNewReleasesByTimeframe(timeframe: 'week' | 'month' | 'year'): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-    
+
     // Calculate date range based on timeframe
     const now = new Date();
     const startDate = new Date();
-    
+
     switch (timeframe) {
       case 'week':
         startDate.setDate(now.getDate() - 7);
@@ -127,14 +226,14 @@ class SpotifyService {
     });
 
     // Sort by release date (newest first)
-    return albums.sort((a: SpotifyAlbum, b: SpotifyAlbum) => 
+    return albums.sort((a: SpotifyAlbum, b: SpotifyAlbum) =>
       new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
     ).slice(0, 20);
   }
 
   async getPopularAlbums(): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-    
+
     // Get featured playlists which often contain popular albums
     const playlistsResponse = await axios.get(
       'https://api.spotify.com/v1/browse/featured-playlists?limit=10',
@@ -174,9 +273,188 @@ class SpotifyService {
     return albums.slice(0, 20);
   }
 
+  private parseCsvLine(line: string): string[] {
+    const values: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i += 1) {
+      const char = line[i];
+
+      if (char === '"') {
+        if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+          current += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        values.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+
+    values.push(current);
+    return values.map((value) => value.trim());
+  }
+
+  private extractTrackIdsFromCsv(csv: string, limit: number): string[] {
+    const lines = csv
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+
+    if (lines.length === 0) {
+      return [];
+    }
+
+    const dataLines = lines.filter((line) => !line.toLowerCase().startsWith('"position"')).slice(0, limit);
+    const trackIds: string[] = [];
+
+    for (const line of dataLines) {
+      const columns = this.parseCsvLine(line);
+      if (columns.length < 5) {
+        continue;
+      }
+
+      const url = columns[4];
+      const match = url.match(/track\/([a-zA-Z0-9]+)/);
+      if (match && match[1]) {
+        trackIds.push(match[1]);
+      }
+
+      if (trackIds.length >= limit) {
+        break;
+      }
+    }
+
+    return trackIds;
+  }
+
+  private async fetchTrackDetails(trackIds: string[]): Promise<SpotifyTrack[]> {
+    const token = await this.getAccessToken();
+    const tracks: SpotifyTrack[] = [];
+
+    for (let i = 0; i < trackIds.length; i += 50) {
+      const chunk = trackIds.slice(i, i + 50);
+      const response = await axios.get('https://api.spotify.com/v1/tracks', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          ids: chunk.join(','),
+          market: DEFAULT_MARKET,
+        },
+      });
+
+      tracks.push(...(response.data?.tracks ?? []).filter((track: SpotifyTrack | null): track is SpotifyTrack => Boolean(track && track.id)));
+    }
+
+    return tracks;
+  }
+
+  async getPopularTracks(
+    page: number,
+    limit: number = 50
+  ): Promise<{ entries: DiscographyEntry[]; hasMore: boolean }> {
+    if (page > 0) {
+      return { entries: [], hasMore: false };
+    }
+
+    try {
+      const csvResponse = await axios.get(
+        'https://spotifycharts.com/regional/global/daily/latest/download',
+        { responseType: 'text' }
+      );
+
+      const trackIds = this.extractTrackIdsFromCsv(csvResponse.data, limit);
+
+      if (trackIds.length === 0) {
+        console.warn('No track IDs were extracted from the Spotify Charts CSV');
+        return { entries: [], hasMore: false };
+      }
+
+      const tracks = await this.fetchTrackDetails(trackIds);
+      if (tracks.length === 0) {
+        return { entries: [], hasMore: false };
+      }
+
+      const token = await this.getAccessToken();
+
+      const artistIds = Array.from(
+        new Set(
+          tracks.flatMap((track) =>
+            track.artists.map((artist) => artist.id).filter((id): id is string => Boolean(id))
+          )
+        )
+      );
+
+      const artistGenres = new Map<string, string[]>();
+
+      for (let i = 0; i < artistIds.length; i += 50) {
+        const chunk = artistIds.slice(i, i + 50);
+
+        try {
+          const artistsResponse = await axios.get('https://api.spotify.com/v1/artists', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: {
+              ids: chunk.join(','),
+            },
+          });
+
+          artistsResponse.data.artists.forEach((artist: SpotifyArtist) => {
+            if (artist?.id) {
+              artistGenres.set(artist.id, artist.genres ?? []);
+            }
+          });
+        } catch (genreError) {
+          console.warn('Failed to fetch artist genres chunk:', genreError);
+        }
+      }
+
+      const entries: DiscographyEntry[] = tracks.map((track) => {
+        const releaseDate = track.album?.release_date ?? '';
+        const releaseYear = releaseDate ? Number(releaseDate.slice(0, 4)) || 0 : 0;
+        const genres = Array.from(
+          new Set(track.artists.flatMap((artist) => artistGenres.get(artist.id) ?? []))
+        ).slice(0, 6);
+
+        return {
+          id: track.id,
+          type: 'track',
+          name: track.name,
+          artists: track.artists.map((artist) => ({
+            id: artist.id,
+            name: artist.name,
+          })),
+          imageUrl: track.album?.images?.[0]?.url ?? null,
+          releaseDate,
+          releaseYear,
+          popularity: track.popularity ?? 0,
+          explicit: track.explicit,
+          albumName: track.album?.name ?? undefined,
+          genres,
+          externalUrl: track.external_urls?.spotify ?? '',
+        };
+      });
+
+      return {
+        entries,
+        hasMore: false,
+      };
+    } catch (error) {
+      console.error('Failed to assemble global top tracks:', error);
+      return { entries: [], hasMore: false };
+    }
+  }
+
   async getTopArtists(): Promise<SpotifyArtist[]> {
     const token = await this.getAccessToken();
-    
+
     // Search for popular artists across different genres
     const genres = ['pop', 'rock', 'hip-hop', 'electronic', 'indie', 'jazz'];
     const artists: SpotifyArtist[] = [];
@@ -223,7 +501,7 @@ class SpotifyService {
     return `https://accounts.spotify.com/authorize?${params.toString()}`;
   }
 
-  async exchangeCodeForToken(code: string): Promise<{access_token: string, refresh_token: string}> {
+  async exchangeCodeForToken(code: string): Promise<{ access_token: string, refresh_token: string }> {
     try {
       const response = await axios.post(
         'https://accounts.spotify.com/api/token',
@@ -242,7 +520,7 @@ class SpotifyService {
 
       this.userAccessToken = response.data.access_token;
       this.refreshToken = response.data.refresh_token;
-      
+
       // Store tokens in localStorage for persistence
       if (this.userAccessToken) localStorage.setItem('spotify_access_token', this.userAccessToken);
       if (this.refreshToken) localStorage.setItem('spotify_refresh_token', this.refreshToken);
@@ -295,7 +573,7 @@ class SpotifyService {
 
   async getUserAccessToken(): Promise<string | null> {
     if (this.userAccessToken) return this.userAccessToken;
-    
+
     const storedToken = localStorage.getItem('spotify_access_token');
     if (storedToken) {
       this.userAccessToken = storedToken;
@@ -339,7 +617,7 @@ class SpotifyService {
   // Album Methods
   async getAlbumWithTracks(id: string): Promise<SpotifyAlbum> {
     const token = await this.getAccessToken();
-    
+
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${id}?market=US`,
       {
@@ -354,7 +632,7 @@ class SpotifyService {
 
   async getAlbumTracks(albumId: string): Promise<SpotifyTrack[]> {
     const token = await this.getAccessToken();
-    
+
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${albumId}/tracks`,
       {

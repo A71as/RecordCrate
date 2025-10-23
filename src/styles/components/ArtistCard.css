@@ -1,0 +1,82 @@
+/* Artist Grid */
+.artist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    padding: 1rem 0;
+    width: 100%;
+}
+
+/* Artist Card */
+.artist-card {
+    background-color: var(--panel-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid var(--panel-border);
+    width: 100%;
+}
+
+.artist-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px color-mix(in srgb, black 30%, transparent);
+    border-color: var(--rc-green-2);
+}
+
+.artist-image {
+    aspect-ratio: 1;
+    overflow: hidden;
+    background-color: var(--panel-bg);
+    width: 100%;
+}
+
+.artist-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.artist-card:hover .artist-image img {
+    transform: scale(1.05);
+}
+
+.artist-info {
+    padding: 1.5rem;
+}
+
+.artist-name {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--rc-text);
+    font-weight: 700;
+}
+
+.artist-genres {
+    color: var(--muted);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.artist-popularity {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--muted-2);
+    font-size: 0.8rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .artist-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .artist-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,376 @@
+/* Artist Detail Page Styles */
+
+.artist-detail {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Artist Header */
+.artist-header {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    align-items: flex-start;
+}
+
+.artist-image-container {
+    flex-shrink: 0;
+}
+
+.artist-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 8px 32px color-mix(in srgb, black 40%, transparent);
+}
+
+.artist-image-placeholder {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--rc-primary) 30%, black) 0%, color-mix(in srgb, var(--rc-accent) 30%, black) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: var(--rc-text);
+    box-shadow: 0 8px 32px color-mix(in srgb, black 40%, transparent);
+}
+
+.artist-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.artist-name {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0 0 0.75rem 0;
+    color: var(--primary-color);
+    line-height: 1.2;
+}
+
+.artist-stats {
+    margin-bottom: 2rem;
+}
+
+.followers {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.genre-tag {
+    background: color-mix(in srgb, var(--panel-bg) 14%, transparent);
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    border: 1px solid color-mix(in srgb, var(--panel-bg) 22%, transparent);
+}
+
+.spotify-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background: var(--rc-green-1);
+    color: var(--rc-text);
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.spotify-link:hover {
+    background: var(--rc-green-2);
+    color: var(--rc-text);
+}
+
+/* Sections */
+.artist-section {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+/* Top Tracks */
+.tracks-list {
+    background: color-mix(in srgb, var(--panel-bg) 6%, transparent);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--panel-bg) 12%, transparent);
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.track-item:hover {
+    background: color-mix(in srgb, var(--panel-bg) 10%, transparent);
+}
+
+.track-number {
+    color: var(--text-muted);
+    font-weight: 500;
+    width: 1.5rem;
+    text-align: center;
+}
+
+.track-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.track-name {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0 0 0.2rem 0;
+    color: var(--text-primary);
+}
+
+.track-album {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.track-duration {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+}
+
+.preview-button {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+preview-button:hover {
+    background: color-mix(in srgb, var(--panel-bg) 10%, transparent);
+}
+
+/* Albums Grid */
+.album-card {
+    background: color-mix(in srgb, var(--panel-bg) 6%, transparent);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid color-mix(in srgb, var(--panel-bg) 12%, transparent);
+}
+.album-card:hover {
+    background: color-mix(in srgb, var(--panel-bg) 10%, transparent);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px color-mix(in srgb, black 30%, transparent);
+    }
+
+.album-image {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-bottom: 0.8rem;
+}
+
+.album-image-placeholder {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--rc-primary) 30%, black) 0%, color-mix(in srgb, var(--rc-accent) 30%, black) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--rc-text);
+    margin-bottom: 0.8rem;
+}
+
+.album-info {
+    text-align: center;
+}
+
+.album-name {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0 0 0.3rem 0;
+    color: var(--text-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.album-year {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0 0 0.2rem 0;
+}
+
+.album-type {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+    text-transform: capitalize;
+}
+
+/* Loading and Error States */
+.loading-container {
+    padding: 4rem 0;
+}
+
+.loading-message {
+    margin-top: 1rem;
+}
+
+.back-button {
+    margin-top: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .artist-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1.5rem;
+    }
+
+    .artist-image,
+    .artist-image-placeholder {
+        width: 150px;
+        height: 150px;
+    }
+
+    .artist-name {
+        font-size: 2.2rem;
+    }
+
+    .albums-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+
+    .track-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .track-number {
+        width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .artist-detail {
+        padding: 1rem 0.5rem;
+    }
+
+    .artist-name {
+        font-size: 1.8rem;
+    }
+
+    .albums-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.pagination-info {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Pagination Controls */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1rem;
+}
+
+.pagination-button {
+    background: color-mix(in srgb, var(--panel-bg) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--panel-bg) 18%, transparent);
+    color: var(--text-primary);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--panel-bg) 16%, transparent);
+    border-color: var(--rc-accent);
+    color: var(--rc-accent);
+}
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-current {
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    background: color-mix(in srgb, var(--panel-bg) 6%, transparent);
+    border-radius: 8px;
+    border: 1px solid color-mix(in srgb, var(--panel-bg) 12%, transparent);
+}
+
+/* Mobile pagination adjustments */
+@media (max-width: 768px) {
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .pagination-controls {
+        gap: 0.5rem;
+    }
+
+    .pagination-button {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+}

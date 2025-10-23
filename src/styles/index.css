@@ -1,0 +1,12 @@
+/* RecordCrate Styles Index */
+
+/* Global Styles */
+@import './global.css';
+
+/* Component Styles */
+@import './components/Header.css';
+@import './components/SearchDropdown.css';
+@import './components/TrackSearchResults.css';
+
+/* Page Styles */
+@import './pages/Search.css';

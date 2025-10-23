@@ -44,8 +44,8 @@ export const Header: React.FC = () => {
         </Link>
 
         <nav className="nav">
-          <Link to="/" className="nav-link">
-            Home
+          <Link to="/discography" className="nav-link">
+            Discography
           </Link>
           <button type="button" className="nav-link" onClick={handleSearchNavClick}>
             <Search size={18} />

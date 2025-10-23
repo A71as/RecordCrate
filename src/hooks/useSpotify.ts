@@ -1,15 +1,21 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { spotifyService } from '../services/spotify';
-import type { SpotifyAlbum, SpotifyArtist, FilterType } from '../types';
+import type {
+  DiscographyEntry,
+  FilterType,
+  SpotifyAlbum,
+  SpotifyArtist,
+  SpotifyTrack,
+} from '../types';
 
 export const useSpotify = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const searchAlbums = async (query: string): Promise<SpotifyAlbum[]> => {
+  const searchAlbums = useCallback(async (query: string): Promise<SpotifyAlbum[]> => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const results = await spotifyService.searchAlbums(query);
       return results;
@@ -19,12 +25,42 @@ export const useSpotify = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const searchArtists = useCallback(async (query: string): Promise<SpotifyArtist[]> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const results = await spotifyService.searchArtists(query);
+      return results;
+    } catch (err) {
+      setError('Failed to search artists');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const searchTracks = useCallback(async (query: string): Promise<SpotifyTrack[]> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const results = await spotifyService.searchTracks(query);
+      return results;
+    } catch (err) {
+      setError('Failed to search tracks');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const getAlbum = async (id: string): Promise<SpotifyAlbum | null> => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const album = await spotifyService.getAlbum(id);
       return album;
@@ -36,13 +72,48 @@ export const useSpotify = () => {
     }
   };
 
+  const getPopularTracks = useCallback(
+    async (
+      page: number,
+      limit: number = 50
+    ): Promise<{ entries: DiscographyEntry[]; hasMore: boolean }> => {
+      if (page === 0) {
+        setLoading(true);
+      }
+      setError(null);
+
+      try {
+        const result = await spotifyService.getPopularTracks(page, limit);
+        return result;
+      } catch (err) {
+        setError('Failed to fetch popular tracks');
+        return { entries: [], hasMore: false };
+      } finally {
+        if (page === 0) {
+          setLoading(false);
+        }
+      }
+    },
+    []
+  );
+
+  const getAvailableGenres = useCallback(async (): Promise<string[]> => {
+    try {
+      const genres = await spotifyService.getAvailableGenres();
+      return genres.sort((a, b) => a.localeCompare(b));
+    } catch (err) {
+      console.error('Failed to fetch available genres', err);
+      return [];
+    }
+  }, []);
+
   const getFilteredContent = async (filterType: FilterType): Promise<{
     albums: SpotifyAlbum[];
     artists?: SpotifyArtist[];
   }> => {
     setLoading(true);
     setError(null);
-    
+
     try {
       let albums: SpotifyAlbum[] = [];
       let artists: SpotifyArtist[] = [];
@@ -91,7 +162,11 @@ export const useSpotify = () => {
     loading,
     error,
     searchAlbums,
+    searchArtists,
+    searchTracks,
     getAlbum,
     getFilteredContent,
+    getPopularTracks,
+    getAvailableGenres,
   };
 };
