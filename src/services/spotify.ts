@@ -37,13 +37,13 @@ class SpotifyService {
 
     this.accessToken = response.data.access_token;
     this.tokenExpiry = Date.now() + response.data.expires_in * 1000;
-
+    
     return this.accessToken!;
   }
 
   async searchAlbums(query: string): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-
+    
     const response = await axios.get(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(
         query
@@ -58,43 +58,9 @@ class SpotifyService {
     return response.data.albums.items;
   }
 
-  async searchArtists(query: string): Promise<SpotifyArtist[]> {
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-        query
-      )}&type=artist&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data.artists.items;
-  }
-
-  async searchTracks(query: string): Promise<SpotifyTrack[]> {
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-        query
-      )}&type=track&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data.tracks.items;
-  }
-
   async getAlbum(id: string): Promise<SpotifyAlbum> {
     const token = await this.getAccessToken();
-
+    
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${id}`,
       {
@@ -107,54 +73,9 @@ class SpotifyService {
     return response.data;
   }
 
-  async getArtist(id: string): Promise<SpotifyArtist> {
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/artists/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data;
-  }
-
-  async getArtistAlbums(id: string): Promise<SpotifyAlbum[]> {
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/artists/${id}/albums?include_groups=album,single&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data.items;
-  }
-
-  async getArtistTopTracks(id: string): Promise<SpotifyTrack[]> {
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/artists/${id}/top-tracks?market=US`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data.tracks;
-  }
-
   async getNewReleases(limit: number = 20): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-
+    
     const response = await axios.get(
       `https://api.spotify.com/v1/browse/new-releases?limit=${limit}`,
       {
@@ -169,11 +90,11 @@ class SpotifyService {
 
   async getNewReleasesByTimeframe(timeframe: 'week' | 'month' | 'year'): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-
+    
     // Calculate date range based on timeframe
     const now = new Date();
     const startDate = new Date();
-
+    
     switch (timeframe) {
       case 'week':
         startDate.setDate(now.getDate() - 7);
@@ -206,14 +127,14 @@ class SpotifyService {
     });
 
     // Sort by release date (newest first)
-    return albums.sort((a: SpotifyAlbum, b: SpotifyAlbum) =>
+    return albums.sort((a: SpotifyAlbum, b: SpotifyAlbum) => 
       new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
     ).slice(0, 20);
   }
 
   async getPopularAlbums(): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-
+    
     // Get featured playlists which often contain popular albums
     const playlistsResponse = await axios.get(
       'https://api.spotify.com/v1/browse/featured-playlists?limit=10',
@@ -255,7 +176,7 @@ class SpotifyService {
 
   async getTopArtists(): Promise<SpotifyArtist[]> {
     const token = await this.getAccessToken();
-
+    
     // Search for popular artists across different genres
     const genres = ['pop', 'rock', 'hip-hop', 'electronic', 'indie', 'jazz'];
     const artists: SpotifyArtist[] = [];
@@ -302,7 +223,7 @@ class SpotifyService {
     return `https://accounts.spotify.com/authorize?${params.toString()}`;
   }
 
-  async exchangeCodeForToken(code: string): Promise<{ access_token: string, refresh_token: string }> {
+  async exchangeCodeForToken(code: string): Promise<{access_token: string, refresh_token: string}> {
     try {
       const response = await axios.post(
         'https://accounts.spotify.com/api/token',
@@ -321,7 +242,7 @@ class SpotifyService {
 
       this.userAccessToken = response.data.access_token;
       this.refreshToken = response.data.refresh_token;
-
+      
       // Store tokens in localStorage for persistence
       if (this.userAccessToken) localStorage.setItem('spotify_access_token', this.userAccessToken);
       if (this.refreshToken) localStorage.setItem('spotify_refresh_token', this.refreshToken);
@@ -374,7 +295,7 @@ class SpotifyService {
 
   async getUserAccessToken(): Promise<string | null> {
     if (this.userAccessToken) return this.userAccessToken;
-
+    
     const storedToken = localStorage.getItem('spotify_access_token');
     if (storedToken) {
       this.userAccessToken = storedToken;
@@ -418,7 +339,7 @@ class SpotifyService {
   // Album Methods
   async getAlbumWithTracks(id: string): Promise<SpotifyAlbum> {
     const token = await this.getAccessToken();
-
+    
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${id}?market=US`,
       {
@@ -433,7 +354,7 @@ class SpotifyService {
 
   async getAlbumTracks(albumId: string): Promise<SpotifyTrack[]> {
     const token = await this.getAccessToken();
-
+    
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${albumId}/tracks`,
       {
