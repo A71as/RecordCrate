@@ -268,25 +268,49 @@ class SpotifyService {
 
   // OAuth Authentication Methods
   getAuthUrl(): string {
+    // Prefer the configured REDIRECT_URI, but at runtime fall back to the current origin
+    // so local dev always uses the right host/port even if an env var was stale.
+    const runtimeRedirect = (typeof window !== 'undefined')
+      ? (REDIRECT_URI || `${window.location.origin}/callback`)
+      : (REDIRECT_URI || 'http://localhost:5173/callback');
+
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: CLIENT_ID,
       scope: SCOPES,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: runtimeRedirect,
       show_dialog: 'true'
     });
 
-    return `https://accounts.spotify.com/authorize?${params.toString()}`;
+    const url = `https://accounts.spotify.com/authorize?${params.toString()}`;
+    // Debug: expose the effective redirect URI and final URL to help troubleshoot INVALID_CLIENT errors
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[spotify] effective redirect_uri:', runtimeRedirect);
+      // eslint-disable-next-line no-console
+      console.debug('[spotify] auth url:', url);
+    } catch (err) {}
+
+    return url;
   }
 
   async exchangeCodeForToken(code: string): Promise<{access_token: string, refresh_token: string}> {
+    // Use the configured REDIRECT_URI, but fall back to the current origin at runtime
+    const effectiveRedirect = (typeof window !== 'undefined')
+      ? (REDIRECT_URI || `${window.location.origin}/callback`)
+      : (REDIRECT_URI || 'http://localhost:5173/callback');
+
     try {
+      // Debug: log the code and redirect used for token exchange
+      try { console.debug('[spotify] exchange code:', code); } catch (e) {}
+      try { console.debug('[spotify] exchange redirect_uri:', effectiveRedirect); } catch (e) {}
+
       const response = await axios.post(
         'https://accounts.spotify.com/api/token',
         new URLSearchParams({
           grant_type: 'authorization_code',
           code,
-          redirect_uri: REDIRECT_URI,
+          redirect_uri: effectiveRedirect,
         }),
         {
           headers: {
@@ -308,10 +332,18 @@ class SpotifyService {
         refresh_token: response.data.refresh_token
       };
     } catch (error: any) {
-      console.error('Token exchange error:', error.response?.data || error.message);
-      if (error.response?.data?.error === 'invalid_grant') {
+      // Log the full response body when available to help debugging
+      console.error('Token exchange error:', error.response?.data || error.message || error);
+      // If the Spotify API returns a more descriptive error field, include it
+      const respData = error.response?.data;
+      if (respData) {
+        try { console.debug('[spotify] token exchange response:', respData); } catch (e) {}
+      }
+
+      if (respData?.error === 'invalid_grant' || respData?.error_description?.toLowerCase?.().includes('redirect')) {
         throw new Error('Invalid redirect URI or authorization code. Please check your Spotify app settings.');
       }
+
       throw error;
     }
   }
