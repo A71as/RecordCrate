@@ -3,7 +3,7 @@ import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack, SpotifyUser } from '../
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
-const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 'http://localhost:5173/callback';
+const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
 
 const SCOPES = [
   'user-read-private',
@@ -208,6 +208,62 @@ class SpotifyService {
     return artists
       .sort((a, b) => b.popularity - a.popularity)
       .slice(0, 20);
+  }
+
+  // Additional search helpers used across the app
+  async searchArtists(query: string): Promise<SpotifyArtist[]> {
+    const token = await this.getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=20`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    return response.data.artists.items;
+  }
+
+  async searchTracks(query: string): Promise<SpotifyTrack[]> {
+    const token = await this.getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=20`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    return response.data.tracks.items;
+  }
+
+  // Artist-specific endpoints
+  async getArtist(id: string): Promise<SpotifyArtist> {
+    const token = await this.getAccessToken();
+    const response = await axios.get(`https://api.spotify.com/v1/artists/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  }
+
+  async getArtistAlbums(id: string): Promise<SpotifyAlbum[]> {
+    const token = await this.getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/artists/${id}/albums?include_groups=album,single,ep&limit=50`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data.items;
+  }
+
+  async getArtistTopTracks(id: string, market: string = 'US'): Promise<SpotifyTrack[]> {
+    const token = await this.getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/artists/${id}/top-tracks?market=${market}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data.tracks;
   }
 
   // OAuth Authentication Methods
