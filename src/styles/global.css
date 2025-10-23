@@ -1,29 +1,19 @@
 /* RecordCrate Global Styles */
 
 :root {
-    --header-height: 80px;
-
-    /* RecordCrate palette */
-    --rc-bg: #F3EEE6;
-    /* off‑white background */
-    --rc-grid: #D9D1C6;
-    /* grid lines */
-    --rc-text: #0A0A0A;
-    /* primary text */
-    --rc-red: #EE5C5C;
-    /* red accent */
-    --rc-green-1: #7BA86A;
-    /* olive green */
-    --rc-green-2: #66C0B8;
-    /* teal green */
-    --rc-gray: #3D4042;
-    /* dark gray */
-
-    /* Derived tokens */
-    --panel-bg: #ffffffcc;
-    --panel-border: var(--rc-grid);
-    --muted: #4f554f;
-    --muted-2: #6a6f6a;
+    /* Reuse the canonical tokens defined in src/App.css to avoid duplication. */
+    --header-height: var(--header-height, 80px);
+    --rc-bg: var(--rc-bg);
+    --rc-grid: var(--rc-grid);
+    --rc-text: var(--rc-text);
+    --rc-red: var(--rc-red);
+    --rc-green-1: var(--rc-green-1);
+    --rc-green-2: var(--rc-green-2);
+    --rc-gray: var(--rc-gray);
+    --panel-bg: var(--panel-bg);
+    --panel-border: var(--panel-border);
+    --muted: var(--muted);
+    --muted-2: var(--muted-2);
 }
 
 /* Global Reset */
@@ -113,8 +103,8 @@ body {
 /* Error message styles */
 .error-message {
     color: var(--rc-red);
-    background-color: rgba(238, 92, 92, 0.1);
-    border: 1px solid var(--rc-red);
+    background-color: color-mix(in srgb, var(--percent-red) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--percent-red) 30%, transparent);
     border-radius: 4px;
     padding: 1rem;
     margin: 1rem 0;

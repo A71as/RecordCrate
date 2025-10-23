@@ -1,22 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Star, ArrowLeft, Clock } from 'lucide-react';
-import { spotifyService } from '../services/spotify';
-import { StarRating } from '../components/StarRating';
-import type { SpotifyAlbum, SongRating, AlbumReview } from '../types';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Star, ArrowLeft, Clock } from "lucide-react";
+import { spotifyService } from "../services/spotify";
+import { StarRating } from "../components/StarRating";
+import type { SpotifyAlbum, SongRating, AlbumReview } from "../types";
 
 export const AlbumDetail: React.FC = () => {
   const { albumId } = useParams<{ albumId: string }>();
   const navigate = useNavigate();
-  
+
   const [album, setAlbum] = useState<SpotifyAlbum | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [songRatings, setSongRatings] = useState<{ [trackId: string]: number }>({});
+  const [songRatings, setSongRatings] = useState<{ [trackId: string]: number }>(
+    {}
+  );
   const [overallRating, setOverallRating] = useState(0);
-  const [writeup, setWriteup] = useState('');
+  const [writeup, setWriteup] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
-  const [existingReview, setExistingReview] = useState<AlbumReview | null>(null);
+  const [existingReview, setExistingReview] = useState<AlbumReview | null>(
+    null
+  );
+  const [reviewCount, setReviewCount] = useState(0);
 
   useEffect(() => {
     const fetchAlbum = async () => {
@@ -29,22 +34,39 @@ export const AlbumDetail: React.FC = () => {
         setAlbum(albumData);
 
         // Load existing review if any
-        const savedReviews = JSON.parse(localStorage.getItem('albumReviews') || '[]');
-        const review = savedReviews.find((r: AlbumReview) => r.albumId === albumId);
-        
+        const savedReviews = JSON.parse(
+          localStorage.getItem("albumReviews") || "[]"
+        );
+        const albumReviews = savedReviews.filter(
+          (r: AlbumReview) => r.albumId === albumId
+        );
+        setReviewCount(albumReviews.length);
+
+        const review = albumReviews[0];
         if (review) {
+          // migrate older 0-5 scale to 0-100% if necessary
+          const migratedOverall =
+            typeof review.overallRating === 'number' && review.overallRating <= 5
+              ? Math.round(review.overallRating * 20)
+              : Math.round(review.overallRating || 0);
+          review.overallRating = migratedOverall;
           setExistingReview(review);
-          setOverallRating(review.overallRating);
+          setOverallRating(migratedOverall);
           setWriteup(review.writeup);
-          
+
           const ratingsMap: { [trackId: string]: number } = {};
           review.songRatings.forEach((sr: SongRating) => {
             ratingsMap[sr.trackId] = sr.rating;
           });
           setSongRatings(ratingsMap);
+        } else {
+          setExistingReview(null);
+          setSongRatings({});
+          setOverallRating(0);
+          setWriteup("");
         }
       } catch (err) {
-        setError('Failed to fetch album details');
+        setError("Failed to fetch album details");
         console.error(err);
       } finally {
         setLoading(false);
@@ -57,7 +79,10 @@ export const AlbumDetail: React.FC = () => {
   const calculateOverallRating = (ratings: { [trackId: string]: number }) => {
     const ratingValues = Object.values(ratings);
     if (ratingValues.length === 0) return 0;
-    return Math.round(ratingValues.reduce((sum, rating) => sum + rating, 0) / ratingValues.length);
+    const avg =
+      ratingValues.reduce((sum, rating) => sum + rating, 0) / ratingValues.length;
+    // convert average (1-5) to percent (0-100) and round
+    return Math.round((avg / 5) * 100);
   };
 
   const handleSongRatingChange = (trackId: string, rating: number) => {
@@ -67,60 +92,84 @@ export const AlbumDetail: React.FC = () => {
   };
 
   const handleOverallRatingChange = (rating: number) => {
-    setOverallRating(rating);
+    // clamp to 0-100 percent
+    const snapped = Math.max(0, Math.min(100, Math.round(rating)));
+    setOverallRating(snapped);
   };
 
   const formatDuration = (durationMs: number) => {
     const minutes = Math.floor(durationMs / 60000);
     const seconds = Math.floor((durationMs % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   const getTotalDuration = () => {
-    if (!album?.tracks?.items) return '';
-    const totalMs = album.tracks.items.reduce((sum, track) => sum + track.duration_ms, 0);
+    if (!album?.tracks?.items) return "";
+    const totalMs = album.tracks.items.reduce(
+      (sum, track) => sum + track.duration_ms,
+      0
+    );
     const totalMinutes = Math.floor(totalMs / 60000);
     const totalSeconds = Math.floor((totalMs % 60000) / 1000);
-    return `${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
+    return `${totalMinutes}:${totalSeconds.toString().padStart(2, "0")}`;
   };
 
   const handleSaveReview = () => {
     if (!album) return;
 
-    const songRatingsArray: SongRating[] = Object.entries(songRatings).map(([trackId, rating]) => {
-      const track = album.tracks?.items.find(t => t.id === trackId);
-      return {
-        trackId,
-        trackName: track?.name || '',
-        rating
-      };
-    });
+    const songRatingsArray: SongRating[] = Object.entries(songRatings).map(
+      ([trackId, rating]) => {
+        const track = album.tracks?.items.find((t) => t.id === trackId);
+        return {
+          trackId,
+          trackName: track?.name || "",
+          rating,
+        };
+      }
+    );
 
     const review: AlbumReview = {
       id: existingReview?.id || Date.now().toString(),
       albumId: album.id,
-      userId: 'current-user', // In real app, this would be the logged-in user's ID
+      userId: "current-user", // In real app, this would be the logged-in user's ID
       overallRating,
       songRatings: songRatingsArray,
       writeup,
       createdAt: existingReview?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      album
+      album,
     };
 
     // Save to localStorage (in real app, this would go to a backend)
-    const savedReviews = JSON.parse(localStorage.getItem('albumReviews') || '[]');
-    const existingIndex = savedReviews.findIndex((r: AlbumReview) => r.albumId === album.id);
-    
+    const savedReviews = JSON.parse(
+      localStorage.getItem("albumReviews") || "[]"
+    );
+    const existingIndex = savedReviews.findIndex(
+      (r: AlbumReview) => r.albumId === album.id
+    );
+
     if (existingIndex >= 0) {
       savedReviews[existingIndex] = review;
     } else {
       savedReviews.push(review);
     }
-    
-    localStorage.setItem('albumReviews', JSON.stringify(savedReviews));
+
+    localStorage.setItem("albumReviews", JSON.stringify(savedReviews));
+    setReviewCount(
+      savedReviews.filter((r: AlbumReview) => r.albumId === album.id).length
+    );
     setExistingReview(review);
     setIsReviewing(false);
+  };
+
+  // color gradient helper: returns an rgb string interpolated from red (0%) -> yellow (50%) -> green (100%)
+  const percentColor = (p: number) => {
+    // Robust HSL interpolation: hue 0 (red) -> 60 (yellow) -> 120 (green)
+    const n = Number(p) || 0;
+    const pct = Math.max(0, Math.min(100, Math.round(n))) / 100;
+    const hue = Math.round(pct * 120); // 0..120
+    // keep saturation and lightness consistent
+    return `hsl(${hue}, 100%, 45%)`;
   };
 
   const handleCancelReview = () => {
@@ -129,14 +178,14 @@ export const AlbumDetail: React.FC = () => {
       setOverallRating(existingReview.overallRating);
       setWriteup(existingReview.writeup);
       const ratingsMap: { [trackId: string]: number } = {};
-      existingReview.songRatings.forEach(sr => {
+      existingReview.songRatings.forEach((sr) => {
         ratingsMap[sr.trackId] = sr.rating;
       });
       setSongRatings(ratingsMap);
     } else {
       setSongRatings({});
       setOverallRating(0);
-      setWriteup('');
+      setWriteup("");
     }
   };
 
@@ -146,64 +195,77 @@ export const AlbumDetail: React.FC = () => {
 
   const albumImage = album.images?.[0]?.url || album.images?.[1]?.url;
 
+  const trackCount = album.tracks?.items?.length ?? album.total_tracks ?? 0;
+  // Reduce padding multipliers to avoid huge gaps. Clamp to a sensible max.
+  const BASE_PADDING_REM = 1; // base small offset
+  const EXTRA_PADDING_PER_TRACK_REM = 0.25; // small incremental space per track
+  const EXTRA_PADDING_PER_REVIEW_REM = 1.5; // each review adds modest space
+  const MAX_PADDING_REM = 6; // don't let padding grow without bound
+
+  const rawPadding =
+    BASE_PADDING_REM +
+    Math.max(trackCount - 1, 0) * EXTRA_PADDING_PER_TRACK_REM +
+    reviewCount * EXTRA_PADDING_PER_REVIEW_REM;
+
+  const paddingTop = `${Math.min(rawPadding, MAX_PADDING_REM)}rem`;
+
   return (
-    <div className="album-detail">
+    <div className="album-detail" style={{ paddingTop }}>
       <div className="container">
-        <button className="back-button" onClick={() => {
-          if (window.history.length > 1) {
-            navigate(-1);
-          } else {
-            navigate('/');
-          }
-        }}>
+        <button className="back-button" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
           Back
         </button>
 
         <div className="album-header">
           <div className="album-artwork">
-            {albumImage && (
-              <img src={albumImage} alt={album.name} />
-            )}
+            {albumImage && <img src={albumImage} alt={album.name} />}
           </div>
-          
+
           <div className="album-info">
             <h1 className="album-title">{album.name}</h1>
             <div className="album-artists">
               {album.artists.map((artist, index) => (
                 <span key={artist.id}>
                   {artist.name}
-                  {index < album.artists.length - 1 && ', '}
+                  {index < album.artists.length - 1 && ", "}
                 </span>
               ))}
             </div>
             <div className="album-meta">
-              <span className="release-date">{new Date(album.release_date).getFullYear()}</span>
+              <span className="release-date">
+                {new Date(album.release_date).getFullYear()}
+              </span>
               <span className="track-count">{album.total_tracks} tracks</span>
               <span className="duration">{getTotalDuration()}</span>
             </div>
-            
+
             {existingReview && !isReviewing && (
               <div className="existing-review-summary">
                 <div className="overall-rating">
                   <span>Your Rating: </span>
-                  <StarRating 
-                    rating={existingReview.overallRating} 
-                    readonly={true} 
-                    maxRating={10}
-                  />
-                  <span className="rating-number">({existingReview.overallRating}/10)</span>
+                  <div className="percent-badge">
+                    {existingReview.overallRating}%
+                  </div>
+                  <div className="percent-bar" style={{ marginLeft: 8 }}>
+                    <div className="percent-fill"
+                      style={{
+                        width: `${existingReview.overallRating}%`,
+                        background: percentColor(existingReview.overallRating),
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             )}
-            
+
             <div className="album-actions">
-              <button 
+              <button
                 className="review-button"
                 onClick={() => setIsReviewing(!isReviewing)}
               >
                 <Star size={20} />
-                {existingReview ? 'Edit Review' : 'Write Review'}
+                {existingReview ? "Edit Review" : "Write Review"}
               </button>
             </div>
           </div>
@@ -222,7 +284,7 @@ export const AlbumDetail: React.FC = () => {
                       {track.artists.map((artist, index) => (
                         <span key={artist.id}>
                           {artist.name}
-                          {index < track.artists.length - 1 && ', '}
+                          {index < track.artists.length - 1 && ", "}
                         </span>
                       ))}
                     </div>
@@ -231,8 +293,10 @@ export const AlbumDetail: React.FC = () => {
                     <div className="track-rating">
                       <StarRating
                         rating={songRatings[track.id] || 0}
-                        maxRating={10}
-                        onRatingChange={(rating) => handleSongRatingChange(track.id, rating)}
+                        maxRating={5}
+                        onRatingChange={(rating) =>
+                          handleSongRatingChange(track.id, rating)
+                        }
                         readonly={false}
                         size={14}
                       />
@@ -253,36 +317,43 @@ export const AlbumDetail: React.FC = () => {
             <h2>Write Your Review</h2>
             <div className="review-form">
               <div className="overall-rating-section">
-                <label>Overall Album Rating:</label>
-                <StarRating
-                  rating={overallRating}
-                  maxRating={10}
-                  onRatingChange={handleOverallRatingChange}
-                  readonly={false}
-                />
-                <span className="rating-number">({overallRating}/10)</span>
-              </div>
-              
-              <div className="writeup-section">
-                <label htmlFor="writeup">Your Thoughts (up to 350 words):</label>
-                <textarea
-                  id="writeup"
-                  value={writeup}
-                  onChange={(e) => setWriteup(e.target.value.slice(0, 1400))} // ~350 words
-                  placeholder="Share your thoughts about this album..."
-                  rows={6}
-                />
-                <div className="character-count">
-                  {writeup.length}/1400 characters (~{Math.ceil(writeup.split(' ').length)} words)
+                <label htmlFor="overall-percent">Overall Album Rating:</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      id="overall-percent"
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={overallRating}
+                      onChange={(e) => handleOverallRatingChange(Number(e.target.value))}
+                    />
+                    <div className="percent-badge">{overallRating}%</div>
+                  </div>
                 </div>
+
+                <div className="writeup-section">
+                  <label htmlFor="writeup">Your Thoughts (up to 350 words):</label>
+                  <textarea
+                    id="writeup"
+                    value={writeup}
+                    onChange={(e) => setWriteup(e.target.value.slice(0, 1400))}
+                    placeholder="Share your thoughts about this album..."
+                    rows={6}
+                  />
+                  <div className="character-count">
+                    {writeup.length}/1400 characters (~{Math.ceil(writeup.split(' ').length)} words)
+                  </div>
+                </div>
+
               </div>
-              
+
               <div className="review-actions">
                 <button className="cancel-btn" onClick={handleCancelReview}>
                   Cancel
                 </button>
-                <button 
-                  className="save-btn" 
+                <button
+                  className="save-btn"
                   onClick={handleSaveReview}
                   disabled={overallRating === 0}
                 >
@@ -298,12 +369,25 @@ export const AlbumDetail: React.FC = () => {
             <h2>Your Review</h2>
             <div className="review-content">
               <div className="review-rating">
-                <StarRating 
-                  rating={existingReview.overallRating} 
-                  maxRating={10}
-                  readonly={true} 
-                />
-                <span className="rating-number">({existingReview.overallRating}/10)</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className="percent-badge">{existingReview.overallRating}%</div>
+                  <div
+                    style={{
+                      width: 140,
+                      height: 8,
+                      background: 'color-mix(in srgb, var(--panel-bg) 14%, transparent)',
+                      borderRadius: 4,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div className="percent-fill"
+                      style={{
+                        width: `${existingReview.overallRating}%`,
+                        background: percentColor(existingReview.overallRating),
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
               {existingReview.writeup && (
                 <div className="review-writeup">
@@ -311,9 +395,14 @@ export const AlbumDetail: React.FC = () => {
                 </div>
               )}
               <div className="review-meta">
-                Reviewed on {new Date(existingReview.createdAt).toLocaleDateString()}
+                Reviewed on{" "}
+                {new Date(existingReview.createdAt).toLocaleDateString()}
                 {existingReview.updatedAt !== existingReview.createdAt && (
-                  <span> • Updated {new Date(existingReview.updatedAt).toLocaleDateString()}</span>
+                  <span>
+                    {" "}
+                    • Updated{" "}
+                    {new Date(existingReview.updatedAt).toLocaleDateString()}
+                  </span>
                 )}
               </div>
             </div>
