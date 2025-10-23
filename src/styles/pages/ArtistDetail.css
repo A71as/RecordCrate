@@ -79,22 +79,23 @@
     border: 1px solid color-mix(in srgb, var(--panel-bg) 22%, transparent);
 }
 
-.spotify-link {
+.artist-info .spotify-link {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.8rem 1.5rem;
     background: var(--rc-green-1);
-    color: var(--rc-text);
+    color: #ffffff !important;
     text-decoration: none;
     border-radius: 25px;
     font-weight: 500;
     transition: background-color 0.3s ease;
+    border: none;
 }
 
-.spotify-link:hover {
+.artist-info .spotify-link:hover {
     background: var(--rc-green-2);
-    color: var(--rc-text);
+    color: #ffffff !important;
 }
 
 /* Sections */
@@ -182,6 +183,12 @@ preview-button:hover {
 }
 
 /* Albums Grid */
+.albums-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
 .album-card {
     background: color-mix(in srgb, var(--panel-bg) 6%, transparent);
     border-radius: 12px;
