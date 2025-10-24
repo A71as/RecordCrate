@@ -5,6 +5,13 @@ import { spotifyService } from "../services/spotify";
 import { StarRating } from "../components/StarRating";
 import type { SpotifyAlbum, SongRating, AlbumReview } from "../types";
 
+type ModifierState = {
+  emotionalStoryConnection: number;
+  cohesionAndFlow: number;
+  artistIdentityOriginality: number;
+  visualAestheticEcosystem: number;
+};
+
 export const AlbumDetail: React.FC = () => {
   const { albumId } = useParams<{ albumId: string }>();
   const navigate = useNavigate();
@@ -22,6 +29,13 @@ export const AlbumDetail: React.FC = () => {
     null
   );
   const [reviewCount, setReviewCount] = useState(0);
+  // Score modifiers: signed percentages (-10..+10) per category
+  const [modifiers, setModifiers] = useState<ModifierState>({
+    emotionalStoryConnection: 0,
+    cohesionAndFlow: 0,
+    artistIdentityOriginality: 0,
+    visualAestheticEcosystem: 0,
+  });
 
   useEffect(() => {
     const fetchAlbum = async () => {
@@ -50,9 +64,21 @@ export const AlbumDetail: React.FC = () => {
               ? Math.round(review.overallRating * 20)
               : Math.round(review.overallRating || 0);
           review.overallRating = migratedOverall;
+          // prefer base overall if stored
+          const baseOverall = typeof (review as AlbumReview).baseOverallRating === 'number'
+            ? Math.round((review as AlbumReview).baseOverallRating as number)
+            : migratedOverall;
           setExistingReview(review);
-          setOverallRating(migratedOverall);
+          setOverallRating(baseOverall);
           setWriteup(review.writeup);
+
+          // restore modifiers (optional in legacy reviews) with clamping to ±5
+          setModifiers({
+            emotionalStoryConnection: Math.max(-5, Math.min(5, review.scoreModifiers?.emotionalStoryConnection ?? 0)),
+            cohesionAndFlow: Math.max(-5, Math.min(5, review.scoreModifiers?.cohesionAndFlow ?? 0)),
+            artistIdentityOriginality: Math.max(-5, Math.min(5, review.scoreModifiers?.artistIdentityOriginality ?? 0)),
+            visualAestheticEcosystem: Math.max(-5, Math.min(5, review.scoreModifiers?.visualAestheticEcosystem ?? 0)),
+          });
 
           const ratingsMap: { [trackId: string]: number } = {};
           review.songRatings.forEach((sr: SongRating) => {
@@ -64,6 +90,12 @@ export const AlbumDetail: React.FC = () => {
           setSongRatings({});
           setOverallRating(0);
           setWriteup("");
+          setModifiers({
+            emotionalStoryConnection: 0,
+            cohesionAndFlow: 0,
+            artistIdentityOriginality: 0,
+            visualAestheticEcosystem: 0,
+          });
         }
       } catch (err) {
         setError("Failed to fetch album details");
@@ -97,6 +129,27 @@ export const AlbumDetail: React.FC = () => {
     setOverallRating(snapped);
   };
 
+  // Sum of all signed modifier percentages
+  const totalModifier = () =>
+    (modifiers.emotionalStoryConnection || 0) +
+    (modifiers.cohesionAndFlow || 0) +
+    (modifiers.artistIdentityOriginality || 0) +
+    (modifiers.visualAestheticEcosystem || 0);
+
+  // Final adjusted overall (clamped 0..100)
+  const adjustedOverall = () => {
+    const base = Number.isFinite(overallRating) ? overallRating : 0;
+    const adj = base + totalModifier();
+    return Math.max(0, Math.min(100, Math.round(adj)));
+  };
+
+  // Helpers for modifier adjustments/formatting
+  const clampMod = (n: number) => Math.max(-5, Math.min(5, n));
+  const round1 = (n: number) => Math.round(n * 10) / 10; // keep one decimal
+  const adjustModifier = (key: keyof ModifierState, delta: number) =>
+    setModifiers((m) => ({ ...m, [key]: clampMod(round1((m[key] ?? 0) + delta)) }));
+  const formatSigned = (n: number) => `${n >= 0 ? "+" : ""}${round1(n).toFixed(Math.abs(round1(n) % 1) < 0.05 ? 0 : 1)}%`;
+
   const formatDuration = (durationMs: number) => {
     const minutes = Math.floor(durationMs / 60000);
     const seconds = Math.floor((durationMs % 60000) / 1000);
@@ -128,11 +181,15 @@ export const AlbumDetail: React.FC = () => {
       }
     );
 
+    const finalAdjusted = adjustedOverall();
     const review: AlbumReview = {
       id: existingReview?.id || Date.now().toString(),
       albumId: album.id,
       userId: "current-user", // In real app, this would be the logged-in user's ID
-      overallRating,
+      overallRating: finalAdjusted,
+      baseOverallRating: overallRating,
+      adjustedOverallRating: finalAdjusted,
+      scoreModifiers: { ...modifiers },
       songRatings: songRatingsArray,
       writeup,
       createdAt: existingReview?.createdAt || new Date().toISOString(),
@@ -175,8 +232,17 @@ export const AlbumDetail: React.FC = () => {
   const handleCancelReview = () => {
     setIsReviewing(false);
     if (existingReview) {
-      setOverallRating(existingReview.overallRating);
+      const base = typeof existingReview.baseOverallRating === 'number'
+        ? Math.round(existingReview.baseOverallRating)
+        : existingReview.overallRating;
+      setOverallRating(base);
       setWriteup(existingReview.writeup);
+      setModifiers({
+        emotionalStoryConnection: Math.max(-5, Math.min(5, existingReview.scoreModifiers?.emotionalStoryConnection ?? 0)),
+        cohesionAndFlow: Math.max(-5, Math.min(5, existingReview.scoreModifiers?.cohesionAndFlow ?? 0)),
+        artistIdentityOriginality: Math.max(-5, Math.min(5, existingReview.scoreModifiers?.artistIdentityOriginality ?? 0)),
+        visualAestheticEcosystem: Math.max(-5, Math.min(5, existingReview.scoreModifiers?.visualAestheticEcosystem ?? 0)),
+      });
       const ratingsMap: { [trackId: string]: number } = {};
       existingReview.songRatings.forEach((sr) => {
         ratingsMap[sr.trackId] = sr.rating;
@@ -186,6 +252,12 @@ export const AlbumDetail: React.FC = () => {
       setSongRatings({});
       setOverallRating(0);
       setWriteup("");
+      setModifiers({
+        emotionalStoryConnection: 0,
+        cohesionAndFlow: 0,
+        artistIdentityOriginality: 0,
+        visualAestheticEcosystem: 0,
+      });
     }
   };
 
@@ -317,7 +389,7 @@ export const AlbumDetail: React.FC = () => {
             <h2>Write Your Review</h2>
             <div className="review-form">
               <div className="overall-rating-section">
-                <label htmlFor="overall-percent">Overall Album Rating:</label>
+                <label htmlFor="overall-percent">Base Overall Album Rating:</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
@@ -329,6 +401,94 @@ export const AlbumDetail: React.FC = () => {
                       onChange={(e) => handleOverallRatingChange(Number(e.target.value))}
                     />
                     <div className="percent-badge">{overallRating}%</div>
+                  </div>
+                </div>
+                {/* Score Modifiers */}
+                <div className="modifiers-section">
+                  <div className="modifiers-header">
+                    <span>Score Modifiers (±5% each, step 2.5%)</span>
+                    <span className="modifiers-total">Total: {formatSigned(totalModifier())}</span>
+                  </div>
+                  <div className="modifier-row">
+                    <label>Emotional/story connection</label>
+                    <div className="modifier-control">
+                      <button
+                        type="button"
+                        className="modifier-btn"
+                        onClick={() => adjustModifier('emotionalStoryConnection', -2.5)}
+                        disabled={modifiers.emotionalStoryConnection <= -5}
+                      >-2.5%</button>
+                      <span className="modifier-value">{formatSigned(modifiers.emotionalStoryConnection)}</span>
+                      <button
+                        type="button"
+                        className="modifier-btn"
+                        onClick={() => adjustModifier('emotionalStoryConnection', 2.5)}
+                        disabled={modifiers.emotionalStoryConnection >= 5}
+                      >+2.5%</button>
+                    </div>
+                  </div>
+                  <div className="modifier-row">
+                    <label>Cohesion and flow</label>
+                    <div className="modifier-control">
+                      <button
+                        type="button"
+                        className="modifier-btn"
+                        onClick={() => adjustModifier('cohesionAndFlow', -2.5)}
+                        disabled={modifiers.cohesionAndFlow <= -5}
+                      >-2.5%</button>
+                      <span className="modifier-value">{formatSigned(modifiers.cohesionAndFlow)}</span>
+                      <button
+                        type="button"
+                        className="modifier-btn"
+                        onClick={() => adjustModifier('cohesionAndFlow', 2.5)}
+                        disabled={modifiers.cohesionAndFlow >= 5}
+                      >+2.5%</button>
+                    </div>
+                  </div>
+                  <div className="modifier-row">
+                    <label>Artist identity and originality</label>
+                    <div className="modifier-control">
+                      <button
+                        type="button"
+                        className="modifier-btn"
+                        onClick={() => adjustModifier('artistIdentityOriginality', -2.5)}
+                        disabled={modifiers.artistIdentityOriginality <= -5}
+                      >-2.5%</button>
+                      <span className="modifier-value">{formatSigned(modifiers.artistIdentityOriginality)}</span>
+                      <button
+                        type="button"
+                        className="modifier-btn"
+                        onClick={() => adjustModifier('artistIdentityOriginality', 2.5)}
+                        disabled={modifiers.artistIdentityOriginality >= 5}
+                      >+2.5%</button>
+                    </div>
+                  </div>
+                  <div className="modifier-row">
+                    <label>Visual/aesthetic ecosystem</label>
+                    <div className="modifier-control">
+                      <button
+                        type="button"
+                        className="modifier-btn"
+                        onClick={() => adjustModifier('visualAestheticEcosystem', -2.5)}
+                        disabled={modifiers.visualAestheticEcosystem <= -5}
+                      >-2.5%</button>
+                      <span className="modifier-value">{formatSigned(modifiers.visualAestheticEcosystem)}</span>
+                      <button
+                        type="button"
+                        className="modifier-btn"
+                        onClick={() => adjustModifier('visualAestheticEcosystem', 2.5)}
+                        disabled={modifiers.visualAestheticEcosystem >= 5}
+                      >+2.5%</button>
+                    </div>
+                  </div>
+                  <div className="adjusted-summary">
+                    <div>Final Rating with Modifiers:</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div className="percent-badge">{adjustedOverall()}%</div>
+                      <div className="percent-bar" style={{ marginLeft: 8 }}>
+                        <div className="percent-fill" style={{ width: `${adjustedOverall()}%`, background: percentColor(adjustedOverall()) }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -389,6 +549,51 @@ export const AlbumDetail: React.FC = () => {
                   </div>
                 </div>
               </div>
+              {/* Modifiers breakdown if present */}
+              {existingReview.scoreModifiers && (
+                <div className="review-modifiers">
+                  {(() => {
+                    const mods = existingReview.scoreModifiers || {};
+                    const esc = clampMod(mods.emotionalStoryConnection ?? 0);
+                    const caf = clampMod(mods.cohesionAndFlow ?? 0);
+                    const aio = clampMod(mods.artistIdentityOriginality ?? 0);
+                    const vae = clampMod(mods.visualAestheticEcosystem ?? 0);
+                    const total = esc + caf + aio + vae;
+                    const finalAdjusted = Math.round(existingReview.adjustedOverallRating ?? existingReview.overallRating);
+                    const base = Math.max(0, Math.min(100, Math.round((existingReview.baseOverallRating ?? (finalAdjusted - total)))));
+                    return (
+                      <>
+                        <div className="modifiers-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>Score Modifiers</span>
+                          <span className="modifiers-total">Total: {formatSigned(total)}</span>
+                        </div>
+                        <div className="modifier-list">
+                          <div className="modifier-item">
+                            <span className="label">Emotional/story connection</span>
+                            <span className="value">{formatSigned(esc)}</span>
+                          </div>
+                          <div className="modifier-item">
+                            <span className="label">Cohesion and flow</span>
+                            <span className="value">{formatSigned(caf)}</span>
+                          </div>
+                          <div className="modifier-item">
+                            <span className="label">Artist identity and originality</span>
+                            <span className="value">{formatSigned(aio)}</span>
+                          </div>
+                          <div className="modifier-item">
+                            <span className="label">Visual/aesthetic ecosystem</span>
+                            <span className="value">{formatSigned(vae)}</span>
+                          </div>
+                          <div className="modifier-item modifier-total">
+                            <span className="label">Base → Final</span>
+                            <span className="value">{base}% → {finalAdjusted}%</span>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
               {existingReview.writeup && (
                 <div className="review-writeup">
                   <p>{existingReview.writeup}</p>
