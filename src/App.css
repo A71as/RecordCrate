@@ -1275,6 +1275,83 @@ body {
   justify-content: flex-end;
 }
 
+/* Score Modifiers */
+.modifiers-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--panel-bg) 92%, white);
+  border: 1px solid var(--panel-border);
+}
+
+.modifiers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  color: var(--rc-text);
+}
+
+.modifiers-total {
+  color: var(--rc-green-1);
+}
+
+.modifier-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.modifier-row > label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.modifier-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modifier-value {
+  min-width: 44px;
+  text-align: right;
+  font-weight: 700;
+}
+
+.modifier-btn {
+  background-color: color-mix(in srgb, var(--panel-bg) 90%, white);
+  color: var(--rc-text);
+  border: 1px solid var(--panel-border);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modifier-btn:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--panel-bg) 84%, white);
+  border-color: var(--rc-green-2);
+}
+
+.modifier-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.adjusted-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+
 .cancel-btn,
 .save-btn {
   padding: 0.75rem 1.5rem;
@@ -1331,6 +1408,41 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+/* Review modifiers breakdown */
+.review-modifiers {
+  background-color: color-mix(in srgb, var(--panel-bg) 92%, white);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.modifier-list {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: 0.35rem;
+  column-gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.modifier-item .label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.modifier-item .value {
+  text-align: right;
+  font-weight: 800;
+}
+
+.modifier-item.modifier-total .label {
+  color: var(--rc-text);
+}
+
+.modifier-item.modifier-total .value {
+  color: var(--rc-green-1);
 }
 
 .review-rating {

@@ -71,6 +71,24 @@ export interface AlbumReview {
   albumId: string;
   userId: string;
   overallRating: number;
+  /**
+   * Base overall rating (0-100%) before applying any score modifiers.
+   * Added in Oct 2025 to support score modifier breakdown. Optional for legacy reviews.
+   */
+  baseOverallRating?: number;
+  /**
+   * Final overall rating (0-100%) after applying modifiers. Mirrors overallRating for convenience.
+   */
+  adjustedOverallRating?: number;
+  /**
+   * Signed percentage deltas (each -5..+5) applied on top of baseOverallRating.
+   */
+  scoreModifiers?: {
+    emotionalStoryConnection?: number; // Emotional/story connection
+    cohesionAndFlow?: number;          // Cohesion and flow
+    artistIdentityOriginality?: number;// Artist identity and originality
+    visualAestheticEcosystem?: number; // Visual/aesthetic ecosystem
+  };
   songRatings: SongRating[];
   writeup: string;
   createdAt: string;
