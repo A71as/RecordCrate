@@ -1,9 +1,10 @@
+import { auth } from "express-oauth2-jwt-bearer";
 import cors from "cors";
+import dotenv from "dotenv";
 import express from "express";
-import auth from "express-oauth2-jwt-bearer";
 
-const env = dotenv.config({override: false, quiet: true}).parsed;
 const app = express();
+const env = dotenv.config({override: false, quiet: true}).parsed;
 
 app.use(express.json());
 app.use(cors());
@@ -22,5 +23,9 @@ import reviewRoutes from "./routes/reviews.js"
 
 app.use("/api", userRoutes);
 app.use("/api", reviewRoutes);
+
+app.get("/protected", checkJwt, (req, res) => {
+  res.json({ message: "This is a protected route", user: req.auth });
+});
 
 export default app;
