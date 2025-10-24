@@ -3,7 +3,7 @@ import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack, SpotifyUser } from '../
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
-const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 'http://localhost:5173/callback';
+const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
 
 const SCOPES = [
   'user-read-private',
@@ -37,13 +37,13 @@ class SpotifyService {
 
     this.accessToken = response.data.access_token;
     this.tokenExpiry = Date.now() + response.data.expires_in * 1000;
-
+    
     return this.accessToken!;
   }
 
   async searchAlbums(query: string): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-
+    
     const response = await axios.get(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(
         query
@@ -58,43 +58,9 @@ class SpotifyService {
     return response.data.albums.items;
   }
 
-  async searchArtists(query: string): Promise<SpotifyArtist[]> {
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-        query
-      )}&type=artist&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data.artists.items;
-  }
-
-  async searchTracks(query: string): Promise<SpotifyTrack[]> {
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-        query
-      )}&type=track&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data.tracks.items;
-  }
-
   async getAlbum(id: string): Promise<SpotifyAlbum> {
     const token = await this.getAccessToken();
-
+    
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${id}`,
       {
@@ -107,54 +73,9 @@ class SpotifyService {
     return response.data;
   }
 
-  async getArtist(id: string): Promise<SpotifyArtist> {
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/artists/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data;
-  }
-
-  async getArtistAlbums(id: string): Promise<SpotifyAlbum[]> {
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/artists/${id}/albums?include_groups=album,single&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data.items;
-  }
-
-  async getArtistTopTracks(id: string): Promise<SpotifyTrack[]> {
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/artists/${id}/top-tracks?market=US`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return response.data.tracks;
-  }
-
   async getNewReleases(limit: number = 20): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-
+    
     const response = await axios.get(
       `https://api.spotify.com/v1/browse/new-releases?limit=${limit}`,
       {
@@ -169,11 +90,11 @@ class SpotifyService {
 
   async getNewReleasesByTimeframe(timeframe: 'week' | 'month' | 'year'): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-
+    
     // Calculate date range based on timeframe
     const now = new Date();
     const startDate = new Date();
-
+    
     switch (timeframe) {
       case 'week':
         startDate.setDate(now.getDate() - 7);
@@ -206,14 +127,14 @@ class SpotifyService {
     });
 
     // Sort by release date (newest first)
-    return albums.sort((a: SpotifyAlbum, b: SpotifyAlbum) =>
+    return albums.sort((a: SpotifyAlbum, b: SpotifyAlbum) => 
       new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
     ).slice(0, 20);
   }
 
   async getPopularAlbums(): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-
+    
     // Get featured playlists which often contain popular albums
     const playlistsResponse = await axios.get(
       'https://api.spotify.com/v1/browse/featured-playlists?limit=10',
@@ -255,7 +176,7 @@ class SpotifyService {
 
   async getTopArtists(): Promise<SpotifyArtist[]> {
     const token = await this.getAccessToken();
-
+    
     // Search for popular artists across different genres
     const genres = ['pop', 'rock', 'hip-hop', 'electronic', 'indie', 'jazz'];
     const artists: SpotifyArtist[] = [];
@@ -289,27 +210,107 @@ class SpotifyService {
       .slice(0, 20);
   }
 
+  // Additional search helpers used across the app
+  async searchArtists(query: string): Promise<SpotifyArtist[]> {
+    const token = await this.getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=20`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    return response.data.artists.items;
+  }
+
+  async searchTracks(query: string): Promise<SpotifyTrack[]> {
+    const token = await this.getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=20`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    return response.data.tracks.items;
+  }
+
+  // Artist-specific endpoints
+  async getArtist(id: string): Promise<SpotifyArtist> {
+    const token = await this.getAccessToken();
+    const response = await axios.get(`https://api.spotify.com/v1/artists/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  }
+
+  async getArtistAlbums(id: string): Promise<SpotifyAlbum[]> {
+    const token = await this.getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/artists/${id}/albums?include_groups=album,single,ep&limit=50`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data.items;
+  }
+
+  async getArtistTopTracks(id: string, market: string = 'US'): Promise<SpotifyTrack[]> {
+    const token = await this.getAccessToken();
+    const response = await axios.get(
+      `https://api.spotify.com/v1/artists/${id}/top-tracks?market=${market}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data.tracks;
+  }
+
   // OAuth Authentication Methods
   getAuthUrl(): string {
+    // Prefer the configured REDIRECT_URI, but at runtime fall back to the current origin
+    // so local dev always uses the right host/port even if an env var was stale.
+    const runtimeRedirect = (typeof window !== 'undefined')
+      ? (REDIRECT_URI || `${window.location.origin}/callback`)
+      : (REDIRECT_URI || 'http://localhost:5173/callback');
+
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: CLIENT_ID,
       scope: SCOPES,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: runtimeRedirect,
       show_dialog: 'true'
     });
 
-    return `https://accounts.spotify.com/authorize?${params.toString()}`;
+    const url = `https://accounts.spotify.com/authorize?${params.toString()}`;
+    // Debug: expose the effective redirect URI and final URL to help troubleshoot INVALID_CLIENT errors
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[spotify] effective redirect_uri:', runtimeRedirect);
+      // eslint-disable-next-line no-console
+      console.debug('[spotify] auth url:', url);
+    } catch (err) {}
+
+    return url;
   }
 
-  async exchangeCodeForToken(code: string): Promise<{ access_token: string, refresh_token: string }> {
+  async exchangeCodeForToken(code: string): Promise<{access_token: string, refresh_token: string}> {
+    // Use the configured REDIRECT_URI, but fall back to the current origin at runtime
+    const effectiveRedirect = (typeof window !== 'undefined')
+      ? (REDIRECT_URI || `${window.location.origin}/callback`)
+      : (REDIRECT_URI || 'http://localhost:5173/callback');
+
     try {
+      // Debug: log the code and redirect used for token exchange
+      try { console.debug('[spotify] exchange code:', code); } catch (e) {}
+      try { console.debug('[spotify] exchange redirect_uri:', effectiveRedirect); } catch (e) {}
+
       const response = await axios.post(
         'https://accounts.spotify.com/api/token',
         new URLSearchParams({
           grant_type: 'authorization_code',
           code,
-          redirect_uri: REDIRECT_URI,
+          redirect_uri: effectiveRedirect,
         }),
         {
           headers: {
@@ -321,7 +322,7 @@ class SpotifyService {
 
       this.userAccessToken = response.data.access_token;
       this.refreshToken = response.data.refresh_token;
-
+      
       // Store tokens in localStorage for persistence
       if (this.userAccessToken) localStorage.setItem('spotify_access_token', this.userAccessToken);
       if (this.refreshToken) localStorage.setItem('spotify_refresh_token', this.refreshToken);
@@ -331,10 +332,18 @@ class SpotifyService {
         refresh_token: response.data.refresh_token
       };
     } catch (error: any) {
-      console.error('Token exchange error:', error.response?.data || error.message);
-      if (error.response?.data?.error === 'invalid_grant') {
+      // Log the full response body when available to help debugging
+      console.error('Token exchange error:', error.response?.data || error.message || error);
+      // If the Spotify API returns a more descriptive error field, include it
+      const respData = error.response?.data;
+      if (respData) {
+        try { console.debug('[spotify] token exchange response:', respData); } catch (e) {}
+      }
+
+      if (respData?.error === 'invalid_grant' || respData?.error_description?.toLowerCase?.().includes('redirect')) {
         throw new Error('Invalid redirect URI or authorization code. Please check your Spotify app settings.');
       }
+
       throw error;
     }
   }
@@ -374,7 +383,7 @@ class SpotifyService {
 
   async getUserAccessToken(): Promise<string | null> {
     if (this.userAccessToken) return this.userAccessToken;
-
+    
     const storedToken = localStorage.getItem('spotify_access_token');
     if (storedToken) {
       this.userAccessToken = storedToken;
@@ -418,7 +427,7 @@ class SpotifyService {
   // Album Methods
   async getAlbumWithTracks(id: string): Promise<SpotifyAlbum> {
     const token = await this.getAccessToken();
-
+    
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${id}?market=US`,
       {
@@ -433,7 +442,7 @@ class SpotifyService {
 
   async getAlbumTracks(albumId: string): Promise<SpotifyTrack[]> {
     const token = await this.getAccessToken();
-
+    
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${albumId}/tracks`,
       {
