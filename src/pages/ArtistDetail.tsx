@@ -34,15 +34,15 @@ export const ArtistDetail: React.FC = () => {
                 ]);
 
                 // Categorize and sort albums chronologically (newest first)
-                const sortedAlbums = albumsData.sort((a, b) =>
+                const sortedAlbums = albumsData.sort((a: SpotifyAlbum, b: SpotifyAlbum) =>
                     new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
                 );
 
-                const albumsOnly = sortedAlbums.filter(album =>
+                const albumsOnly = sortedAlbums.filter((album: SpotifyAlbum) =>
                     album.album_type === 'album'
                 );
 
-                const epsAndSingles = sortedAlbums.filter(album =>
+                const epsAndSingles = sortedAlbums.filter((album: SpotifyAlbum) =>
                     album.album_type === 'single' || album.album_type === 'ep'
                 );
 
