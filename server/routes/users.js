@@ -1,26 +1,35 @@
+import checkJwt from "../middleware/checkJwt.js";
 import express from "express";
 import User from "../models/Users.js";
 
 const router = express.Router();
 
-// Router.get user will need authentication to be working first.
-// router.get("user", async (req, res) => {})
+// Work in progress
+router.get("user", checkJwt, async (req, res) => {
+    const user_id = req.auth.payload.sub;
+    const user = await User.findOne({ user_id: user_id });
+})
 
-router.post("/new-user", async (req, res) => {
-    const { user_id, spotify_id, username, email } = req.body;
+// This will handle auth0 registration
+router.post("/new-user", checkJwt, async (req, res) => {
+    const payload = req.auth.payload;
+    const sub = payload.sub;
+    const name = payload["https://your-api/name"];
+    const email = payload["https://your-api/email"];
+    const picture = payload["https://your-api/picture"];
 
     try {
         // Check if user already exists
-        const existing_user = await User.findOne({ user_id });
+        const existing_user = await User.findOne({ sub });
         if (existing_user)
             return res.status(409).json({ message: "User already exists" });
 
         // Create new user
         const newUser = new User({
-            user_id,
-            spotify_id,
-            username,
-            email
+            user_id: sub,
+            name,
+            email,
+            picture
         });
 
         // Save new user

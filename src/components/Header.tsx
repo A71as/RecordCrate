@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { Search, User, Music, LogOut } from 'lucide-react';
 import { spotifyService } from '../services/spotify';
 import type { SpotifyUser } from '../types';
+import { useAuth0 } from "@auth0/auth0-react";
 
 export const Header: React.FC = () => {
+  const { loginWithRedirect } = useAuth0();
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -20,8 +22,13 @@ export const Header: React.FC = () => {
     checkAuthStatus();
   }, []);
 
-  const handleLogin = () => {
-    window.location.href = spotifyService.getAuthUrl();
+  const handleLogin = async () => {
+    await loginWithRedirect({
+      authorizationParams: {
+        redirect_uri: "http://localhost:5173/callback",
+        connection: "spotify",
+      },
+    })
   };
 
   const handleLogout = () => {
@@ -50,16 +57,16 @@ export const Header: React.FC = () => {
             <User size={18} />
             Profile
           </Link>
-          
+
           {isLoggedIn ? (
             <div className="user-section">
               {user && (
                 <div className="user-info">
                   {user.images && user.images[0] && (
-                    <img 
-                      src={user.images[0].url} 
+                    <img
+                      src={user.images[0].url}
                       alt={user.display_name}
-                      className="user-avatar" 
+                      className="user-avatar"
                     />
                   )}
                   <span className="user-name">{user.display_name}</span>

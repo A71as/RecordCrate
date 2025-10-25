@@ -36,10 +36,14 @@ const reviewSchema = new Schema({
     type: String,
     maxlength: 350,
   },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 },
-  { 
+  {
     collection: "Reviews",
-    timestamps: true 
+    timestamps: true
   },
 );
 

@@ -1,31 +1,22 @@
-import { auth } from "express-oauth2-jwt-bearer";
 import cors from "cors";
-import dotenv from "dotenv";
 import express from "express";
 
 const app = express();
-const env = dotenv.config({override: false, quiet: true}).parsed;
 
 app.use(express.json());
 app.use(cors());
 //app.use(helmet());
 
-const checkJwt = auth({
-  audience: env.AUTH0_AUDIENCE,
-  issuerBaseURL: `https://${env.AUTH0_DOMAIN}`,
-  tokenSigningAlg: "RS256",
-});
-
 // Routes
 
+import defaultRoutes from "./routes/default.js";
 import userRoutes from "./routes/users.js";
-import reviewRoutes from "./routes/reviews.js"
+import reviewRoutes from "./routes/reviews.js";
+import spotifyRoutes from "./routes/spotify.js";
 
+app.use("/", defaultRoutes);
 app.use("/api", userRoutes);
 app.use("/api", reviewRoutes);
-
-app.get("/protected", checkJwt, (req, res) => {
-  res.json({ message: "This is a protected route", user: req.auth });
-});
+app.use("/spotify", spotifyRoutes);
 
 export default app;

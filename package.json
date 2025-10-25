@@ -12,6 +12,7 @@
     "test": "set NODE_OPTIONS=--experimental-vm-modules && jest --runInBand --detectOpenHandles"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.8.0",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.11.0",
     "cors": "^2.8.5",

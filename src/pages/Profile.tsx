@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { User, Music, Star, Calendar } from 'lucide-react';
 import { spotifyService } from '../services/spotify';
 import type { SpotifyUser, AlbumReview } from '../types';
+import { useAuth0 } from "@auth0/auth0-react";
 
 export const Profile: React.FC = () => {
+  const { loginWithRedirect } = useAuth0();
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [reviews, setReviews] = useState<AlbumReview[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -14,7 +16,7 @@ export const Profile: React.FC = () => {
     const loadProfile = async () => {
       setLoading(true);
       setIsLoggedIn(spotifyService.isLoggedIn());
-      
+
       if (spotifyService.isLoggedIn()) {
         const currentUser = await spotifyService.getCurrentUser();
         setUser(currentUser);
@@ -37,8 +39,13 @@ export const Profile: React.FC = () => {
     loadProfile();
   }, []);
 
-  const handleLogin = () => {
-    window.location.href = spotifyService.getAuthUrl();
+  const handleLogin = async () => {
+    await loginWithRedirect({
+      authorizationParams: {
+        redirect_uri: "http://localhost:5173/callback",
+        connection: "spotify",
+      },
+    });
   };
 
   if (loading) return <div className="loading">Loading profile...</div>;
@@ -82,10 +89,10 @@ export const Profile: React.FC = () => {
           {user && (
             <div className="user-profile">
               {user.images && user.images[0] && (
-                <img 
-                  src={user.images[0].url} 
+                <img
+                  src={user.images[0].url}
                   alt={user.display_name}
-                  className="profile-avatar" 
+                  className="profile-avatar"
                 />
               )}
               <div className="user-details">
@@ -130,8 +137,8 @@ export const Profile: React.FC = () => {
                     <Link to={`/album/${review.albumId}`} className="review-link">
                       <div className="review-album-art">
                         {review.album?.images?.[0] && (
-                          <img 
-                            src={review.album.images[0].url} 
+                          <img
+                            src={review.album.images[0].url}
                             alt={review.album.name}
                           />
                         )}
@@ -142,17 +149,17 @@ export const Profile: React.FC = () => {
                           {review.album?.artists.map(a => a.name).join(', ')}
                         </p>
                         <div className="review-rating">
-                          <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <div className="percent-badge">{review.overallRating}%</div>
-                            <div style={{width: 80, height: 8, background: 'color-mix(in srgb, var(--panel-bg) 14%, transparent)', borderRadius: 4, overflow:'hidden'}}>
-                              <div className="percent-fill" style={{width: `${review.overallRating}%`, height: '100%', background: percentColor(review.overallRating)}}/>
+                            <div style={{ width: 80, height: 8, background: 'color-mix(in srgb, var(--panel-bg) 14%, transparent)', borderRadius: 4, overflow: 'hidden' }}>
+                              <div className="percent-fill" style={{ width: `${review.overallRating}%`, height: '100%', background: percentColor(review.overallRating) }} />
                             </div>
                           </div>
                         </div>
                         {review.writeup && (
                           <p className="review-excerpt">
-                            {review.writeup.length > 100 
-                              ? `${review.writeup.substring(0, 100)}...` 
+                            {review.writeup.length > 100
+                              ? `${review.writeup.substring(0, 100)}...`
                               : review.writeup
                             }
                           </p>

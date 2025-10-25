@@ -5,6 +5,7 @@ const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
 
+
 const SCOPES = [
   'user-read-private',
   'user-read-email',
@@ -37,13 +38,13 @@ class SpotifyService {
 
     this.accessToken = response.data.access_token;
     this.tokenExpiry = Date.now() + response.data.expires_in * 1000;
-    
+
     return this.accessToken!;
   }
 
   async searchAlbums(query: string): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-    
+
     const response = await axios.get(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(
         query
@@ -60,7 +61,7 @@ class SpotifyService {
 
   async getAlbum(id: string): Promise<SpotifyAlbum> {
     const token = await this.getAccessToken();
-    
+
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${id}`,
       {
@@ -75,7 +76,7 @@ class SpotifyService {
 
   async getNewReleases(limit: number = 20): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-    
+
     const response = await axios.get(
       `https://api.spotify.com/v1/browse/new-releases?limit=${limit}`,
       {
@@ -90,11 +91,11 @@ class SpotifyService {
 
   async getNewReleasesByTimeframe(timeframe: 'week' | 'month' | 'year'): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-    
+
     // Calculate date range based on timeframe
     const now = new Date();
     const startDate = new Date();
-    
+
     switch (timeframe) {
       case 'week':
         startDate.setDate(now.getDate() - 7);
@@ -127,14 +128,14 @@ class SpotifyService {
     });
 
     // Sort by release date (newest first)
-    return albums.sort((a: SpotifyAlbum, b: SpotifyAlbum) => 
+    return albums.sort((a: SpotifyAlbum, b: SpotifyAlbum) =>
       new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
     ).slice(0, 20);
   }
 
   async getPopularAlbums(): Promise<SpotifyAlbum[]> {
     const token = await this.getAccessToken();
-    
+
     // Get featured playlists which often contain popular albums
     const playlistsResponse = await axios.get(
       'https://api.spotify.com/v1/browse/featured-playlists?limit=10',
@@ -176,7 +177,7 @@ class SpotifyService {
 
   async getTopArtists(): Promise<SpotifyArtist[]> {
     const token = await this.getAccessToken();
-    
+
     // Search for popular artists across different genres
     const genres = ['pop', 'rock', 'hip-hop', 'electronic', 'indie', 'jazz'];
     const artists: SpotifyArtist[] = [];
@@ -270,7 +271,8 @@ class SpotifyService {
   getAuthUrl(): string {
     // Prefer the configured REDIRECT_URI, but at runtime fall back to the current origin
     // so local dev always uses the right host/port even if an env var was stale.
-    const runtimeRedirect = (typeof window !== 'undefined')
+
+    /*const runtimeRedirect = (typeof window !== 'undefined')
       ? (REDIRECT_URI || `${window.location.origin}/callback`)
       : (REDIRECT_URI || 'http://localhost:5173/callback');
 
@@ -291,10 +293,25 @@ class SpotifyService {
       console.debug('[spotify] auth url:', url);
     } catch (err) {}
 
-    return url;
+    return url;*/
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: 'https://dev-g3gfbaps5ypq871s.us.auth0.com/authorize?response_type=code&client_id=njJKNNpKXqX6DW0wOPAF3NkzwN0aED47&connection=spotify&redirect_uri=https%3A%2F%2Flocalhost%2F5179%2Fcallback',
+      headers: {}
+    };
+    axios.request(config)
+      .then((response) => {
+        return JSON.stringify(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    return "";
+
   }
 
-  async exchangeCodeForToken(code: string): Promise<{access_token: string, refresh_token: string}> {
+  async exchangeCodeForToken(code: string): Promise<{ access_token: string, refresh_token: string }> {
     // Use the configured REDIRECT_URI, but fall back to the current origin at runtime
     const effectiveRedirect = (typeof window !== 'undefined')
       ? (REDIRECT_URI || `${window.location.origin}/callback`)
@@ -302,8 +319,8 @@ class SpotifyService {
 
     try {
       // Debug: log the code and redirect used for token exchange
-      try { console.debug('[spotify] exchange code:', code); } catch (e) {}
-      try { console.debug('[spotify] exchange redirect_uri:', effectiveRedirect); } catch (e) {}
+      try { console.debug('[spotify] exchange code:', code); } catch (e) { }
+      try { console.debug('[spotify] exchange redirect_uri:', effectiveRedirect); } catch (e) { }
 
       const response = await axios.post(
         'https://accounts.spotify.com/api/token',
@@ -322,7 +339,7 @@ class SpotifyService {
 
       this.userAccessToken = response.data.access_token;
       this.refreshToken = response.data.refresh_token;
-      
+
       // Store tokens in localStorage for persistence
       if (this.userAccessToken) localStorage.setItem('spotify_access_token', this.userAccessToken);
       if (this.refreshToken) localStorage.setItem('spotify_refresh_token', this.refreshToken);
@@ -337,7 +354,7 @@ class SpotifyService {
       // If the Spotify API returns a more descriptive error field, include it
       const respData = error.response?.data;
       if (respData) {
-        try { console.debug('[spotify] token exchange response:', respData); } catch (e) {}
+        try { console.debug('[spotify] token exchange response:', respData); } catch (e) { }
       }
 
       if (respData?.error === 'invalid_grant' || respData?.error_description?.toLowerCase?.().includes('redirect')) {
@@ -383,7 +400,7 @@ class SpotifyService {
 
   async getUserAccessToken(): Promise<string | null> {
     if (this.userAccessToken) return this.userAccessToken;
-    
+
     const storedToken = localStorage.getItem('spotify_access_token');
     if (storedToken) {
       this.userAccessToken = storedToken;
@@ -427,7 +444,7 @@ class SpotifyService {
   // Album Methods
   async getAlbumWithTracks(id: string): Promise<SpotifyAlbum> {
     const token = await this.getAccessToken();
-    
+
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${id}?market=US`,
       {
@@ -442,7 +459,7 @@ class SpotifyService {
 
   async getAlbumTracks(albumId: string): Promise<SpotifyTrack[]> {
     const token = await this.getAccessToken();
-    
+
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${albumId}/tracks`,
       {

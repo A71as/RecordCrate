@@ -1,79 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { spotifyService } from '../services/spotify';
+import React, { useEffect } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
 
 export const SpotifyCallback: React.FC = () => {
+  const { handleRedirectCallback } = useAuth0();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleCallback = async () => {
-      const urlParams = new URLSearchParams(location.search);
-      const code = urlParams.get('code');
-      const error = urlParams.get('error');
-
-      if (error) {
-        setError(`Spotify authentication failed: ${error}`);
-        setLoading(false);
-        return;
-      }
-
-      if (!code) {
-        setError('No authorization code received from Spotify');
-        setLoading(false);
-        return;
-      }
-
+    const handleAuth0Callback = async () => {
       try {
-        await spotifyService.exchangeCodeForToken(code);
-        navigate('/', { replace: true });
+        await handleRedirectCallback(); // Auth0 handles token exchange internally
+        navigate('/profile', { replace: true });
       } catch (err) {
-        console.error('Token exchange failed:', err);
-        setError('Failed to authenticate with Spotify. Please try again.');
-        setLoading(false);
+        console.error('Auth0 callback error:', err);
+        navigate('/error', { state: { message: 'Login failed. Please try again.' } });
       }
     };
 
-    handleCallback();
-  }, [location.search, navigate]);
+    handleAuth0Callback();
+  }, [handleRedirectCallback, navigate]);
 
-  if (loading) {
-    return (
-      <div className="spotify-callback">
-        <div className="container">
-          <div className="callback-content">
-            <div className="loading">
-              <h2>Connecting to Spotify...</h2>
-              <p>Please wait while we set up your account.</p>
-            </div>
-          </div>
-        </div>
+  return (
+    <div className="auth-callback">
+      <div className="container">
+        <h2>Connecting your Spotify account...</h2>
+        <p>Please wait while we complete the authentication.</p>
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="spotify-callback">
-        <div className="container">
-          <div className="callback-content">
-            <div className="error">
-              <h2>Authentication Failed</h2>
-              <p>{error}</p>
-              <button 
-                className="retry-button"
-                onClick={() => navigate('/', { replace: true })}
-              >
-                Return Home
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 };
+
+export default SpotifyCallback;

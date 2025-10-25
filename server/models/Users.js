@@ -8,11 +8,6 @@ const userSchema = new Schema(
             required: true,
             unique: true
         },
-        spotify_id: {
-            type: String,
-            required: false,
-            unique: true
-        },
         username: {
             type: String,
             required: true
@@ -21,6 +16,13 @@ const userSchema = new Schema(
             type: String,
             required: false
         },
+        picture: {
+            type: String
+        },
+        createdAt: { 
+            type: Date, 
+            default: Date.now 
+        }
     },
     // Name of the Collection
     { collection: "Users" }
