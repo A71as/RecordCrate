@@ -4,30 +4,27 @@ import User from "../models/Users.js";
 
 const router = express.Router();
 
-// Work in progress
-router.get("user", checkJwt, async (req, res) => {
-    const user_id = req.auth.payload.sub;
-    const user = await User.findOne({ user_id: user_id });
+// Checks if user already exists in database. Used to check for new users
+router.get("/check-user/:user_id", checkJwt, async (req, res) => {
+    try {
+        const user = await User.findOne({ user_id: req.params.user_id });
+        if (!user)
+            res.status(204).json({ message: "User doesn't exist" });
+        res.json({ message: "User exists" });
+    } catch {
+        res.status(500).json({ message: "Search Failed" });
+    }
 })
 
-// This will handle auth0 registration
+// If new user, this api should be called to add the new user to the database
 router.post("/new-user", checkJwt, async (req, res) => {
-    const payload = req.auth.payload;
-    const sub = payload.sub;
-    const name = payload["https://your-api/name"];
-    const email = payload["https://your-api/email"];
-    const picture = payload["https://your-api/picture"];
-
     try {
-        // Check if user already exists
-        const existing_user = await User.findOne({ sub });
-        if (existing_user)
-            return res.status(409).json({ message: "User already exists" });
-
+        const { user_id, name, username, email, picture } = req.body;
         // Create new user
         const newUser = new User({
-            user_id: sub,
+            user_id,
             name,
+            username,
             email,
             picture
         });
@@ -35,15 +32,15 @@ router.post("/new-user", checkJwt, async (req, res) => {
         // Save new user
         await newUser.save();
         res.status(201).json({ message: "New user saved" });
-        // If not, return error code 500
     } catch (error) {
         console.error("Database connection error:", error);
         res.status(500).json({ message: "Save failed" });
     }
 })
 
-router.post("/delete-user", async (req, res) => {
-    const { user_id } = req.body;
+// Delete user route
+router.delete("/user/:user_id", async (req, res) => {
+    const user_id = req.params.id;
     try {
         const deletedCount = (await User.deleteOne({ user_id })).deletedCount;
         if (deletedCount == 0)

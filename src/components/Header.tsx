@@ -1,31 +1,64 @@
-import React, { useState, useEffect } from 'react';
+import axios from "axios";
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, User, Music, LogOut } from 'lucide-react';
-import { spotifyService } from '../services/spotify';
-import type { SpotifyUser } from '../types';
 import { useAuth0 } from "@auth0/auth0-react";
 
 export const Header: React.FC = () => {
-  const { loginWithRedirect } = useAuth0();
-  const [user, setUser] = useState<SpotifyUser | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, isAuthenticated, getAccessTokenSilently, loginWithRedirect, isLoading, logout } = useAuth0();
+
+  const memoizedGetAccessTokenSilently = useCallback(
+    () => getAccessTokenSilently(),
+    [getAccessTokenSilently]
+  );
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      setIsLoggedIn(spotifyService.isLoggedIn());
-      if (spotifyService.isLoggedIn()) {
-        const currentUser = await spotifyService.getCurrentUser();
-        setUser(currentUser);
+    const checkUser = async () => {
+      try {
+        if (isAuthenticated && user) {
+          const accessToken = await memoizedGetAccessTokenSilently();
+          const response = await axios.get(`http://localhost:8000/api/check-user/${user.sub}`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            },
+          });
+          if (response.status == 204) {
+            const createResponse = await axios.post(`http://localhost:8000/api/new-user`, {
+              user_id: user.sub,
+              email: user.email,
+              name: user.name,
+              username: user.nickname,
+              picture: user.picture
+            }, {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json"
+              },
+            });
+            if (createResponse.status == 500)
+              console.error("Failed to create user in database");
+          } else if (response.status == 500)
+            console.error("Failed to check user in database");
+        }
+      } catch (error) {
+        console.error("Error during user check:", error);
       }
     };
 
-    checkAuthStatus();
-  }, []);
+    if (isAuthenticated && !isLoading) {
+      checkUser();
+    }
+  }, [
+    isAuthenticated,
+    memoizedGetAccessTokenSilently,
+    user,
+    isLoading,
+  ]);
 
   const handleLogin = async () => {
     await loginWithRedirect({
       authorizationParams: {
-        redirect_uri: "http://localhost:5173/callback",
+        redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI,
         connection: "spotify",
       },
       appState: { returnTo: '/' }
@@ -33,9 +66,9 @@ export const Header: React.FC = () => {
   };
 
   const handleLogout = () => {
-    spotifyService.logout();
-    setUser(null);
-    setIsLoggedIn(false);
+    logout({
+      logoutParams: { returnTo: window.location.origin } 
+    });
   };
 
   return (
@@ -59,7 +92,7 @@ export const Header: React.FC = () => {
             Profile
           </Link>
 
-          {isLoggedIn ? (
+          {isAuthenticated ? (
             <div className="user-section">
               {user && (
                 <div className="user-info">

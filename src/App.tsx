@@ -18,7 +18,6 @@ function App() {
   const clientId = env.VITE_AUTH0_CLIENT_ID;
   const redirectUri = env.VITE_AUTH0_REDIRECT_URI;
   const audience = env.VITE_AUTH0_AUDIENCE;
-  console.log(env);
   return (
     <Auth0Provider
       domain={domain!}
