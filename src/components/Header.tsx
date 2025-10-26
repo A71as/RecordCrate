@@ -28,6 +28,7 @@ export const Header: React.FC = () => {
         redirect_uri: "http://localhost:5173/callback",
         connection: "spotify",
       },
+      appState: { returnTo: '/' }
     })
   };
 

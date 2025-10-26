@@ -1,5 +1,6 @@
-import { SpotifyService  } from "../services/spotifyServices";
-import Users from "../models/Users";
+import SpotifyService from "../services/spotifyServices.js";
+import checkJwt from "../middleware/checkJwt.js";
+import Users from "../models/Users.js";
 import express from "express";
 
 const router = express.Router();

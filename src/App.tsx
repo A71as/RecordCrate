@@ -16,25 +16,22 @@ function App() {
   const env = import.meta.env;
   const domain = env.VITE_AUTH0_DOMAIN;
   const clientId = env.VITE_AUTH0_CLIENT_ID;
-  const redirectUri =
-    env.VITE_AUTH0_REDIRECT_URI || `${window.location.origin}/callback`;
+  const redirectUri = env.VITE_AUTH0_REDIRECT_URI;
   const audience = env.VITE_AUTH0_AUDIENCE;
-  console.log(redirectUri);
-
+  console.log(env);
   return (
-    <Router>
-      <div className="App">
-        <Auth0Provider
-          domain={domain!}
-          clientId={clientId!}
-          authorizationParams={{
-            redirect_uri: redirectUri,
-            audience,
-          }}
-        >
+    <Auth0Provider
+      domain={domain!}
+      clientId={clientId!}
+      authorizationParams={{
+        redirect_uri: redirectUri,
+        audience,
+      }}
+    >
+      <Router>
+        <div className="App">
           <Header />
           <main className="main-content">
-
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/search" element={<Search />} />
@@ -44,9 +41,9 @@ function App() {
               <Route path="/callback" element={<SpotifyCallback />} />
             </Routes>
           </main>
-        </Auth0Provider>
-      </div>
-    </Router >
+        </div>
+      </Router >
+    </Auth0Provider>
   );
 }
 

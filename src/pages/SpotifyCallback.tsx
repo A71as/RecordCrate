@@ -3,22 +3,15 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
 
 export const SpotifyCallback: React.FC = () => {
-  const { handleRedirectCallback } = useAuth0();
+  const { isLoading, error, user } = useAuth0();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuth0Callback = async () => {
-      try {
-        await handleRedirectCallback(); // Auth0 handles token exchange internally
-        navigate('/profile', { replace: true });
-      } catch (err) {
-        console.error('Auth0 callback error:', err);
-        navigate('/error', { state: { message: 'Login failed. Please try again.' } });
-      }
-    };
-
-    handleAuth0Callback();
-  }, [handleRedirectCallback, navigate]);
+    if (!isLoading) {
+      if (user) navigate('/', { replace: true });
+      else if (error) navigate('/', { state: { message: 'Login failed.' } });
+    }
+  }, [isLoading, error, user, navigate]);
 
   return (
     <div className="auth-callback">

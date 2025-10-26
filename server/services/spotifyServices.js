@@ -85,3 +85,5 @@ export class SpotifyService {
     return data.items;
   }
 }
+
+export default SpotifyService;
