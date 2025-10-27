@@ -39,8 +39,8 @@ router.post("/new-user", checkJwt, async (req, res) => {
 })
 
 // Delete user route
-router.delete("/user/:user_id", async (req, res) => {
-    const user_id = req.params.id;
+router.delete("/delete-user/:user_id", async (req, res) => {
+    const user_id = req.params.user_id;
     try {
         const deletedCount = (await User.deleteOne({ user_id })).deletedCount;
         if (deletedCount == 0)

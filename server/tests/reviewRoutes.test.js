@@ -3,11 +3,11 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import request from "supertest";
 
-const env = dotenv.config({ override: false, quiet: true }).parsed;
+dotenv.config();
 
 beforeAll(async () => {
     mongoose.
-        connect(env.MONGODB_TEST_URI)
+        connect(process.env.MONGODB_TEST_URI)
         .catch((err) => {
             console.error("MongoDB connection error:", err);
             process.exit(2);
