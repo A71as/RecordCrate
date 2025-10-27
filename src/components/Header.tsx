@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Search, User, Music, LogOut } from 'lucide-react';
 import { useAuth0 } from "@auth0/auth0-react";
 
+
 export const Header: React.FC = () => {
   const { user, isAuthenticated, getAccessTokenSilently, loginWithRedirect, isLoading, logout } = useAuth0();
 
@@ -19,7 +20,7 @@ export const Header: React.FC = () => {
           const accessToken = await memoizedGetAccessTokenSilently();
           const response = await axios.get(`http://localhost:8000/api/check-user/${user.sub}`, {
             headers: {
-              Authorization: `Bearer ${accessToken}`
+              Authorization: `Bearer ${accessToken}`,
             },
           });
           if (response.status == 204) {
@@ -47,6 +48,7 @@ export const Header: React.FC = () => {
 
     if (isAuthenticated && !isLoading) {
       checkUser();
+      console.log(user);
     }
   }, [
     isAuthenticated,
@@ -65,9 +67,10 @@ export const Header: React.FC = () => {
     })
   };
 
+
   const handleLogout = () => {
     logout({
-      logoutParams: { returnTo: window.location.origin } 
+      logoutParams: { returnTo: window.location.origin }
     });
   };
 

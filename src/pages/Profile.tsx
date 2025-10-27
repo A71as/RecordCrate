@@ -14,7 +14,13 @@ export const Profile: React.FC = () => {
 
   useEffect(() => {
     const loadProfile = async () => {
-      
+      setLoading(true);
+      setIsLoggedIn(spotifyService.isLoggedIn());
+
+      if (spotifyService.isLoggedIn()) {
+        const currentUser = await spotifyService.getCurrentUser();
+        setUser(currentUser);
+      }
 
       // Load reviews from localStorage
       const savedReviewsRaw = JSON.parse(localStorage.getItem('albumReviews') || '[]');

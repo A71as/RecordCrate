@@ -267,12 +267,11 @@ class SpotifyService {
     return response.data.tracks;
   }
 
-  // OAuth Authentication Methods
   getAuthUrl(): string {
     // Prefer the configured REDIRECT_URI, but at runtime fall back to the current origin
     // so local dev always uses the right host/port even if an env var was stale.
 
-    /*const runtimeRedirect = (typeof window !== 'undefined')
+    const runtimeRedirect = (typeof window !== 'undefined')
       ? (REDIRECT_URI || `${window.location.origin}/callback`)
       : (REDIRECT_URI || 'http://localhost:5173/callback');
 
@@ -293,22 +292,7 @@ class SpotifyService {
       console.debug('[spotify] auth url:', url);
     } catch (err) {}
 
-    return url;*/
-    let config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: 'https://dev-g3gfbaps5ypq871s.us.auth0.com/authorize?response_type=code&client_id=njJKNNpKXqX6DW0wOPAF3NkzwN0aED47&connection=spotify&redirect_uri=https%3A%2F%2Flocalhost%2F5179%2Fcallback',
-      headers: {}
-    };
-    axios.request(config)
-      .then((response) => {
-        return JSON.stringify(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    return "";
-
+    return url;
   }
 
   async exchangeCodeForToken(code: string): Promise<{ access_token: string, refresh_token: string }> {
