@@ -1806,3 +1806,158 @@ body {
     max-width: 250px;
   }
 }
+
+/* Profile Spotify Data Sections */
+.top-artists-section,
+.top-tracks-section,
+.followed-artists-section {
+  margin-top: 3rem;
+}
+
+.top-artists-section h2,
+.top-tracks-section h2,
+.followed-artists-section h2 {
+  color: var(--rc-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+/* Artists Grid */
+.artists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1.5rem;
+}
+
+.mini-artist-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: var(--rc-text);
+  transition: all 0.2s ease;
+  padding: 1rem;
+  background-color: var(--panel-bg);
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+}
+
+.mini-artist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(20, 184, 166, 0.1);
+  border-color: var(--rc-primary);
+}
+
+.artist-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  background-color: var(--rc-bg);
+}
+
+.artist-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artist-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Tracks List */
+.tracks-list {
+  background-color: var(--panel-bg);
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  overflow: hidden;
+}
+
+.track-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--panel-border);
+  transition: background-color 0.2s ease;
+}
+
+.track-item:last-child {
+  border-bottom: none;
+}
+
+.track-item:hover {
+  background-color: var(--rc-bg);
+}
+
+.track-number {
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 600;
+  min-width: 2rem;
+  margin-right: 1rem;
+}
+
+.track-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.track-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--rc-text);
+  margin-bottom: 0.25rem;
+}
+
+.track-artist {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.show-more {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .artists-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+  }
+  
+  .mini-artist-card {
+    padding: 0.75rem;
+  }
+  
+  .artist-image {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .track-item {
+    padding: 0.75rem 1rem;
+  }
+  
+  .track-name {
+    font-size: 0.9rem;
+  }
+  
+  .track-artist {
+    font-size: 0.8rem;
+  }
+}

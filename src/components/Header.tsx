@@ -63,6 +63,8 @@ export const Header: React.FC = () => {
   }, []);
 
   const handleLogin = () => {
+    // Store current page to redirect back after login
+    localStorage.setItem('spotify_redirect_after_login', window.location.pathname);
     window.location.href = spotifyService.getAuthUrl();
   };
 

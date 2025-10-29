@@ -60,8 +60,14 @@ export const SpotifyCallback: React.FC = () => {
         // Force a small delay to ensure localStorage is updated
         await new Promise(resolve => setTimeout(resolve, 100));
         
+        // Get the intended redirect path or fallback to profile
+        const redirectPath = localStorage.getItem('spotify_redirect_after_login') || '/profile';
+        
+        // Clean up the stored redirect path
+        localStorage.removeItem('spotify_redirect_after_login');
+        
         // Use window.location for a full page reload to ensure state is updated
-        window.location.href = '/';
+        window.location.href = redirectPath;
       } catch (err) {
         console.error('Token exchange failed:', err);
         setError({ 
@@ -77,18 +83,7 @@ export const SpotifyCallback: React.FC = () => {
   }, [location.search, navigate, processed]);
 
   if (loading) {
-    return (
-      <div className="spotify-callback">
-        <div className="container">
-          <div className="callback-content">
-            <div className="loading">
-              <h2>Connecting to Spotify...</h2>
-              <p>Please wait while we set up your account.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="loading">Loading...</div>;
   }
 
   if (error) {
@@ -100,7 +95,11 @@ export const SpotifyCallback: React.FC = () => {
           <div className="error-actions">
             <button 
               className="spotify-login-btn primary"
-              onClick={() => window.location.href = spotifyService.getAuthUrl()}
+              onClick={() => {
+                // Store profile as default redirect for retry
+                localStorage.setItem('spotify_redirect_after_login', '/profile');
+                window.location.href = spotifyService.getAuthUrl();
+              }}
             >
               Try Again
             </button>

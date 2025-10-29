@@ -558,6 +558,50 @@ class SpotifyService {
       return this.getTopArtists();
     }
   }
+
+  // Get user's top tracks
+  async getPersonalTopTracks(timeframe: 'short_term' | 'medium_term' | 'long_term' = 'medium_term'): Promise<SpotifyTrack[]> {
+    try {
+      const token = await this.getUserAccessToken();
+      if (!token) return [];
+
+      const response = await axios.get(
+        `https://api.spotify.com/v1/me/top/tracks?time_range=${timeframe}&limit=50`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data.items;
+    } catch (error) {
+      console.error('Failed to get personal top tracks:', error);
+      return [];
+    }
+  }
+
+  // Get user's followed artists
+  async getFollowedArtists(): Promise<SpotifyArtist[]> {
+    try {
+      const token = await this.getUserAccessToken();
+      if (!token) return [];
+
+      const response = await axios.get(
+        'https://api.spotify.com/v1/me/following?type=artist&limit=50',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data.artists.items;
+    } catch (error) {
+      console.error('Failed to get followed artists:', error);
+      return [];
+    }
+  }
 }
 
 export const spotifyService = new SpotifyService();

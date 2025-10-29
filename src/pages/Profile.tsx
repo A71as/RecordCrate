@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Music, Star, Calendar } from 'lucide-react';
 import { spotifyService } from '../services/spotify';
-import type { SpotifyUser, AlbumReview } from '../types';
+import type { SpotifyUser, AlbumReview, SpotifyArtist, SpotifyTrack } from '../types';
 
 export const Profile: React.FC = () => {
   const [user, setUser] = useState<SpotifyUser | null>(null);
@@ -10,6 +10,10 @@ export const Profile: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = checking, true/false = determined
   const [loading, setLoading] = useState(true);
   const [lastTokenCheck, setLastTokenCheck] = useState<string | null>(null);
+  
+  const [topArtists, setTopArtists] = useState<SpotifyArtist[]>([]);
+  const [topTracks, setTopTracks] = useState<SpotifyTrack[]>([]);
+  const [followedArtists, setFollowedArtists] = useState<SpotifyArtist[]>([]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -32,12 +36,26 @@ export const Profile: React.FC = () => {
           if (currentUser) {
             setUser(currentUser);
           }
+
+          const [artistsData, tracksData, followedData] = await Promise.all([
+            spotifyService.getPersonalTopArtists('6months'),
+            spotifyService.getPersonalTopTracks('medium_term'),
+            spotifyService.getFollowedArtists()
+          ]);
+
+          setTopArtists(artistsData);
+          setTopTracks(tracksData);
+          setFollowedArtists(followedData);
+          
         } catch (error) {
-          console.error('Profile: Error fetching user (token likely expired):', error);
+          console.error('Profile: Error fetching user data:', error);
         }
       } else {
         // Clear user data when not logged in
         setUser(null);
+        setTopArtists([]);
+        setTopTracks([]);
+        setFollowedArtists([]);
       }
 
       // Load reviews from localStorage
@@ -95,6 +113,9 @@ export const Profile: React.FC = () => {
     localStorage.removeItem('spotify_access_token');
     localStorage.removeItem('spotify_refresh_token');
     spotifyService.logout();
+    
+    // Store current page to redirect back after login
+    localStorage.setItem('spotify_redirect_after_login', window.location.pathname);
     window.location.href = spotifyService.getAuthUrl();
   };
 
@@ -290,6 +311,69 @@ export const Profile: React.FC = () => {
               </div>
             )}
           </section>
+
+          {/* Top Artists Section */}
+          {topArtists.length > 0 && (
+            <section className="top-artists-section">
+              <h2>Your Top Artists</h2>
+              <div className="artists-grid">
+                {topArtists.slice(0, 8).map((artist) => (
+                  <Link key={artist.id} to={`/artist/${artist.id}`} className="mini-artist-card">
+                    <div className="artist-image">
+                      {artist.images[0] && (
+                        <img src={artist.images[0].url} alt={artist.name} />
+                      )}
+                    </div>
+                    <span className="artist-name">{artist.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Top Tracks Section */}
+          {topTracks.length > 0 && (
+            <section className="top-tracks-section">
+              <h2>Your Top Tracks</h2>
+              <div className="tracks-list">
+                {topTracks.slice(0, 10).map((track, index) => (
+                  <div key={track.id} className="track-item">
+                    <span className="track-number">{index + 1}</span>
+                    <div className="track-info">
+                      <span className="track-name">{track.name}</span>
+                      <span className="track-artist">
+                        {track.artists.map(artist => artist.name).join(', ')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Followed Artists Section */}
+          {followedArtists.length > 0 && (
+            <section className="followed-artists-section">
+              <h2>Artists You Follow ({followedArtists.length})</h2>
+              <div className="artists-grid">
+                {followedArtists.slice(0, 12).map((artist) => (
+                  <Link key={artist.id} to={`/artist/${artist.id}`} className="mini-artist-card">
+                    <div className="artist-image">
+                      {artist.images[0] && (
+                        <img src={artist.images[0].url} alt={artist.name} />
+                      )}
+                    </div>
+                    <span className="artist-name">{artist.name}</span>
+                  </Link>
+                ))}
+              </div>
+              {followedArtists.length > 12 && (
+                <p className="show-more">
+                  And {followedArtists.length - 12} more artists...
+                </p>
+              )}
+            </section>
+          )}
         </div>
       </div>
     </div>
