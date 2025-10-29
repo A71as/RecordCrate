@@ -7,41 +7,100 @@ import type { SpotifyUser, AlbumReview } from '../types';
 export const Profile: React.FC = () => {
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [reviews, setReviews] = useState<AlbumReview[]>([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = checking, true/false = determined
   const [loading, setLoading] = useState(true);
+  const [lastTokenCheck, setLastTokenCheck] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
       setLoading(true);
-      setIsLoggedIn(spotifyService.isLoggedIn());
       
-      if (spotifyService.isLoggedIn()) {
-        const currentUser = await spotifyService.getCurrentUser();
-        setUser(currentUser);
+      // Check login status synchronously first to avoid flash
+      const loginStatus = spotifyService.isLoggedIn();
+      const currentToken = localStorage.getItem('spotify_access_token');
+      setIsLoggedIn(loginStatus);
+      
+      // Check if we have a new token (indicating fresh login)
+      if (currentToken && currentToken !== lastTokenCheck) {
+        setUser(null); // Clear old user data
+        setLastTokenCheck(currentToken);
+      }
+      
+      if (loginStatus) {
+        try {
+          const currentUser = await spotifyService.getCurrentUser();
+          if (currentUser) {
+            setUser(currentUser);
+          }
+        } catch (error) {
+          console.error('Profile: Error fetching user (token likely expired):', error);
+        }
+      } else {
+        // Clear user data when not logged in
+        setUser(null);
       }
 
       // Load reviews from localStorage
-      const savedReviewsRaw = JSON.parse(localStorage.getItem('albumReviews') || '[]');
-      // migrate any 0-5 overallRating to 0-100 percent
-      const savedReviewsArr = savedReviewsRaw as AlbumReview[];
-      const migrated: AlbumReview[] = (savedReviewsArr || []).map((r) => {
-        if (typeof r.overallRating === 'number' && r.overallRating <= 5) {
-          return { ...r, overallRating: Math.round(r.overallRating * 20) };
-        }
-        return { ...r, overallRating: Math.round(r.overallRating || 0) };
-      });
-      setReviews(migrated);
+      const savedReviewsRaw = localStorage.getItem('albumReviews') || '[]';
+      
+      try {
+        const savedReviewsArr = JSON.parse(savedReviewsRaw) as AlbumReview[];
+        
+        // migrate any 0-5 overallRating to 0-100 percent
+        const migrated: AlbumReview[] = (savedReviewsArr || []).map((r) => {
+          if (typeof r.overallRating === 'number' && r.overallRating <= 5) {
+            return { ...r, overallRating: Math.round(r.overallRating * 20) };
+          }
+          return { ...r, overallRating: Math.round(r.overallRating || 0) };
+        });
+        setReviews(migrated);
+      } catch (error) {
+        console.error('Profile: Error parsing reviews:', error);
+        setReviews([]);
+      }
+      
       setLoading(false);
     };
 
     loadProfile();
-  }, []);
+
+    // Listen for storage changes (when user logs out/in from other components)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'spotify_access_token') {
+        // Token was added or removed, reload profile
+        loadProfile();
+      }
+    };
+
+    // Check periodically for same-tab changes (like logout from header)
+    const checkAuthStatus = () => {
+      const currentLoginStatus = spotifyService.isLoggedIn();
+      if (currentLoginStatus !== isLoggedIn) {
+        // Auth status changed, reload profile
+        loadProfile();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    const interval = setInterval(checkAuthStatus, 1000); // Check every second
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [lastTokenCheck]); // Add lastTokenCheck as dependency
 
   const handleLogin = () => {
+    // Clear any existing expired tokens before redirecting
+    localStorage.removeItem('spotify_access_token');
+    localStorage.removeItem('spotify_refresh_token');
+    spotifyService.logout();
     window.location.href = spotifyService.getAuthUrl();
   };
 
-  if (loading) return <div className="loading">Loading profile...</div>;
+  if (loading || isLoggedIn === null) {
+    return <div className="loading">Loading profile...</div>;
+  }
 
   if (!isLoggedIn) {
     return (
@@ -49,13 +108,45 @@ export const Profile: React.FC = () => {
         <div className="container">
           <div className="profile-content">
             <div className="login-prompt">
-              <User size={64} className="login-icon" />
-              <h1>Connect Your Spotify Account</h1>
-              <p>Sign in with Spotify to access personalized features and sync your music preferences.</p>
-              <button className="spotify-login-btn large" onClick={handleLogin}>
-                <Music size={20} />
-                Login with Spotify
-              </button>
+              <div className="login-hero">
+                <div className="login-icon-stack">
+                  <Music size={48} className="login-icon primary" />
+                  <User size={32} className="login-icon secondary" />
+                </div>
+                <h1>Welcome to RecordCrate</h1>
+                <p className="hero-subtitle">Your personal music collection and review platform</p>
+              </div>
+              
+              <div className="login-features">
+                <div className="feature-list">
+                  <div className="feature-item">
+                    <Star size={20} className="feature-icon" />
+                    <span>Rate and review your favorite albums</span>
+                  </div>
+                  <div className="feature-item">
+                    <Music size={20} className="feature-icon" />
+                    <span>Discover new music from Spotify</span>
+                  </div>
+                  <div className="feature-item">
+                    <User size={20} className="feature-icon" />
+                    <span>Build your personal music profile</span>
+                  </div>
+                  <div className="feature-item">
+                    <Calendar size={20} className="feature-icon" />
+                    <span>Track your listening journey</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="login-action">
+                <button className="spotify-login-btn large primary" onClick={handleLogin}>
+                  <Music size={20} />
+                  Connect with Spotify
+                </button>
+                <p className="login-note">
+                  Connect your Spotify account to start building your music collection
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -79,7 +170,7 @@ export const Profile: React.FC = () => {
     <div className="profile-page">
       <div className="container">
         <div className="profile-header">
-          {user && (
+          {user ? (
             <div className="user-profile">
               {user.images && user.images[0] && (
                 <img 
@@ -103,8 +194,39 @@ export const Profile: React.FC = () => {
                   )}
                   <div className="stat">
                     <User size={16} />
-                    <span>{user.followers.total} Followers</span>
+                    <span>{user.followers?.total || 0} Followers</span>
                   </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="user-profile">
+              <div className="user-details">
+                <h1>Profile</h1>
+                <div className="user-stats">
+                  <div className="stat">
+                    <Music size={16} />
+                    <span>{reviews.length} Reviews</span>
+                  </div>
+                  {reviews.length > 0 && (
+                    <div className="stat">
+                      <Star size={16} />
+                      <span>Avg Rating: {averageRating.toFixed(1)}%</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--panel-bg)', borderRadius: '8px', border: '1px solid var(--panel-border)' }}>
+                  <p style={{ color: 'var(--muted)', marginBottom: '0.5rem' }}>
+                    Your Spotify session may have expired. Profile information is temporarily unavailable.
+                  </p>
+                  <button 
+                    className="spotify-login-btn" 
+                    onClick={handleLogin}
+                    style={{ fontSize: '14px', padding: '0.5rem 1rem' }}
+                  >
+                    <Music size={16} />
+                    Refresh Spotify Connection
+                  </button>
                 </div>
               </div>
             </div>
