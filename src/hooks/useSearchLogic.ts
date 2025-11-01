@@ -167,7 +167,7 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
                 clearTimeout(debounceTimeoutRef.current);
             }
         };
-    }, [query]); // Only depend on query, not the search functions
+    }, [query, searchAlbums, searchArtists, searchTracks]);
 
     const handleSearch = useCallback(async () => {
         if (!query.trim()) {

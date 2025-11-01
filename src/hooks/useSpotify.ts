@@ -19,7 +19,8 @@ export const useSpotify = () => {
     try {
       const results = await spotifyService.searchAlbums(query);
       return results;
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to search albums', error);
       setError('Failed to search albums');
       return [];
     } finally {
@@ -34,7 +35,8 @@ export const useSpotify = () => {
     try {
       const results = await spotifyService.searchArtists(query);
       return results;
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to search artists', error);
       setError('Failed to search artists');
       return [];
     } finally {
@@ -49,7 +51,8 @@ export const useSpotify = () => {
     try {
       const results = await spotifyService.searchTracks(query);
       return results;
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to search tracks', error);
       setError('Failed to search tracks');
       return [];
     } finally {
@@ -57,20 +60,21 @@ export const useSpotify = () => {
     }
   }, []);
 
-  const getAlbum = async (id: string): Promise<SpotifyAlbum | null> => {
+  const getAlbum = useCallback(async (id: string): Promise<SpotifyAlbum | null> => {
     setLoading(true);
     setError(null);
 
     try {
       const album = await spotifyService.getAlbum(id);
       return album;
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to fetch album', error);
       setError('Failed to fetch album');
       return null;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const getPopularTracks = useCallback(
     async (
@@ -85,7 +89,8 @@ export const useSpotify = () => {
       try {
         const result = await spotifyService.getPopularTracks(page, limit);
         return result;
-      } catch (err) {
+      } catch (error) {
+        console.error('Failed to fetch popular tracks', error);
         setError('Failed to fetch popular tracks');
         return { entries: [], hasMore: false };
       } finally {
@@ -107,7 +112,7 @@ export const useSpotify = () => {
     }
   }, []);
 
-  const getFilteredContent = async (filterType: FilterType): Promise<{
+  const getFilteredContent = useCallback(async (filterType: FilterType): Promise<{
     albums: SpotifyAlbum[];
     artists?: SpotifyArtist[];
   }> => {
@@ -150,13 +155,14 @@ export const useSpotify = () => {
       }
 
       return { albums, artists };
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to fetch filtered content', error);
       setError('Failed to fetch content');
       return { albums: [], artists: [] };
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return {
     loading,

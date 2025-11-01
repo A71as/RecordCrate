@@ -529,10 +529,14 @@ class SpotifyService {
         access_token: response.data.access_token,
         refresh_token: response.data.refresh_token
       };
-    } catch (error: any) {
-      console.error('Token exchange error:', error.response?.data || error.message);
-      if (error.response?.data?.error === 'invalid_grant') {
-        throw new Error('Invalid redirect URI or authorization code. Please check your Spotify app settings.');
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('Token exchange error:', error.response?.data ?? error.message);
+        if (error.response?.data?.error === 'invalid_grant') {
+          throw new Error('Invalid redirect URI or authorization code. Please check your Spotify app settings.');
+        }
+      } else {
+        console.error('Token exchange error:', error);
       }
       throw error;
     }
@@ -560,13 +564,23 @@ class SpotifyService {
         }
       );
 
-      this.userAccessToken = response.data.access_token;
-      if (this.userAccessToken) localStorage.setItem('spotify_access_token', this.userAccessToken);
+      if (response.data.access_token) {
+        this.userAccessToken = response.data.access_token;
+        localStorage.setItem('spotify_access_token', this.userAccessToken);
+      }
+
+      if (response.data.refresh_token) {
+        this.refreshToken = response.data.refresh_token;
+        localStorage.setItem('spotify_refresh_token', this.refreshToken);
+      }
 
       return this.userAccessToken;
     } catch (error) {
-      console.error('Failed to refresh token:', error);
-      this.logout();
+      if (axios.isAxiosError(error)) {
+        console.error('Failed to refresh access token:', error.response?.data ?? error.message);
+      } else {
+        console.error('Failed to refresh access token:', error);
+      }
       return null;
     }
   }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, User, Music, LogOut, PlugZap } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 export const Header: React.FC = () => {
   const {
@@ -33,6 +33,9 @@ export const Header: React.FC = () => {
         <nav className="nav">
           <Link to="/discography" className="nav-link">
             Discography
+          </Link>
+          <Link to="/about" className="nav-link">
+            About
           </Link>
           <button type="button" className="nav-link" onClick={handleSearchNavClick}>
             <Search size={18} />

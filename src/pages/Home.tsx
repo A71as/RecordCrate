@@ -1,15 +1,83 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AlbumCard } from '../components/AlbumCard';
 import { ArtistCard } from '../components/ArtistCard';
 import { FilterTabs } from '../components/FilterTabs';
+import AlbumStreakCalendar, { type AlbumStreakCalendarEntry } from '../components/AlbumStreakCalendar';
 import { useSpotify } from '../hooks/useSpotify';
-import type { SpotifyAlbum, SpotifyArtist, FilterType } from '../types';
+import { useAuth } from '../context/useAuth';
+import type { SpotifyAlbum, SpotifyArtist, FilterType, AlbumReview } from '../types';
 
 export const Home: React.FC = () => {
   const [albums, setAlbums] = useState<SpotifyAlbum[]>([]);
   const [artists, setArtists] = useState<SpotifyArtist[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterType>('new-releases-week');
   const { loading, error, getFilteredContent } = useSpotify();
+  const {
+    isSpotifyLinked,
+    linkSpotifyAccount,
+    loadingSpotify,
+  } = useAuth();
+  const [calendarMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [dailyEntries, setDailyEntries] = useState<AlbumStreakCalendarEntry[]>([]);
+  const canTrackStreak = isSpotifyLinked;
+
+  const loadStreakCalendar = useCallback(() => {
+    const now = calendarMonth;
+    const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    let aiLog: Record<string, unknown>;
+    try {
+      aiLog = JSON.parse(localStorage.getItem('aiDailyAlbumLog') ?? '{}') as Record<string, unknown>;
+    } catch {
+      aiLog = {};
+    }
+
+    let storedReviews: AlbumReview[];
+    try {
+      storedReviews = JSON.parse(localStorage.getItem('albumReviews') ?? '[]') as AlbumReview[];
+    } catch {
+      storedReviews = [];
+    }
+
+    const reviewDates = new Set(
+      storedReviews
+        .map((review) => review.createdAt?.split('T')[0])
+        .filter((date): date is string => Boolean(date) && date.startsWith(monthPrefix))
+    );
+
+    const logDates = Object.keys(aiLog).filter((date) => date.startsWith(monthPrefix));
+    const nextEntries: AlbumStreakCalendarEntry[] = [];
+
+    logDates.forEach((date) => {
+      const rated = reviewDates.has(date);
+      nextEntries.push({
+        date,
+        status: rated ? 'completed' : 'pending',
+      });
+      if (rated) {
+        reviewDates.delete(date);
+      }
+    });
+
+    reviewDates.forEach((date) => {
+      nextEntries.push({
+        date,
+        status: 'completed',
+      });
+    });
+
+    if (nextEntries.length === 0) {
+      nextEntries.push({
+        date: `${monthPrefix}-${String(new Date().getDate()).padStart(2, '0')}`,
+        status: 'pending',
+      });
+    }
+
+    setDailyEntries(nextEntries);
+  }, [calendarMonth]);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -20,7 +88,22 @@ export const Home: React.FC = () => {
     };
 
     fetchContent();
-  }, [activeFilter]);
+  }, [activeFilter, getFilteredContent]);
+
+  useEffect(() => {
+    loadStreakCalendar();
+  }, [loadStreakCalendar]);
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'aiDailyAlbumLog' || event.key === 'albumReviews') {
+        loadStreakCalendar();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [loadStreakCalendar]);
 
   const getContentTitle = () => {
     switch (activeFilter) {
@@ -58,6 +141,34 @@ export const Home: React.FC = () => {
         <section className="hero">
           <h1>Welcome to RecordCrate</h1>
           <p>Discover, review, and catalog your favorite albums</p>
+        </section>
+
+        <section className="streak-calendar-section">
+          <div className={`calendar-lock-wrapper ${!canTrackStreak ? 'locked' : ''}`}>
+            <AlbumStreakCalendar
+              month={calendarMonth}
+              entries={dailyEntries}
+              description="Log a rating for each AI pick to keep the streak alive. We'll fill in the green tiles once your teammates wire in the daily recommendations."
+            />
+            {!canTrackStreak && (
+              <div className="calendar-lock-overlay">
+                <p>Log in with Spotify to unlock your AI recommendation streak tracker.</p>
+                <button
+                  type="button"
+                  className="spotify-login-btn large"
+                  onClick={linkSpotifyAccount}
+                  disabled={loadingSpotify}
+                >
+                  {loadingSpotify ? 'Opening Spotify…' : 'Login with Spotify'}
+                </button>
+              </div>
+            )}
+          </div>
+          {!canTrackStreak && (
+            <p className="streak-login-note">
+              To track your rating streak for the daily AI recommendation, connect your Spotify account.
+            </p>
+          )}
         </section>
 
         <section className="content-filters">

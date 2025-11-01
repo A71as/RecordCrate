@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import './index.css';
 import App from './App.tsx';
-import { AuthProvider } from './context/AuthContext.tsx';
+import { AuthProvider } from './context/AuthProvider';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 

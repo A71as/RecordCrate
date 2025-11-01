@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { spotifyService } from '../services/spotify';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 export const SpotifyCallback: React.FC = () => {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ export const SpotifyCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, [location.search, navigate]);
+  }, [location.search, navigate, refreshSpotifyUser]);
 
   if (loading) {
     return (

@@ -1,7 +1,5 @@
 import React, {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -9,6 +7,9 @@ import React, {
 import { jwtDecode } from 'jwt-decode';
 import { spotifyService } from '../services/spotify';
 import type { GoogleUser, SpotifyUser } from '../types';
+import { AuthContext } from './AuthContext';
+import type { AuthContextValue } from './AuthContext';
+import { GOOGLE_USER_STORAGE_KEY } from './authConstants';
 
 interface GoogleCredentialPayload {
   sub: string;
@@ -16,23 +17,6 @@ interface GoogleCredentialPayload {
   name?: string;
   picture?: string;
 }
-
-interface AuthContextValue {
-  googleUser: GoogleUser | null;
-  spotifyUser: SpotifyUser | null;
-  isGoogleLoggedIn: boolean;
-  isSpotifyLinked: boolean;
-  loadingSpotify: boolean;
-  isGoogleConfigured: boolean;
-  loginWithGoogle: (credential: string) => void;
-  linkSpotifyAccount: () => void;
-  logout: () => void;
-  refreshSpotifyUser: () => Promise<void>;
-}
-
-const GOOGLE_USER_STORAGE_KEY = 'recordcrate_google_user';
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [googleUser, setGoogleUser] = useState<GoogleUser | null>(() => {
@@ -145,12 +129,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = (): AuthContextValue => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return ctx;
 };
