@@ -28,6 +28,7 @@ export interface SpotifyTrack {
   track_number: number;
   duration_ms: number;
   explicit: boolean;
+  popularity?: number;
   preview_url: string | null;
   external_urls: {
     spotify: string;
@@ -39,7 +40,31 @@ export interface SpotifyTrack {
   album?: {
     id: string;
     name: string;
+    images?: Array<{
+      url: string;
+      height: number;
+      width: number;
+    }>;
+    release_date?: string;
   };
+}
+
+export interface DiscographyEntry {
+  id: string;
+  type: 'album' | 'track';
+  name: string;
+  artists: Array<{
+    id: string;
+    name: string;
+  }>;
+  imageUrl: string | null;
+  releaseDate: string;
+  releaseYear: number;
+  popularity: number;
+  explicit: boolean;
+  albumName?: string;
+  genres: string[];
+  externalUrl: string;
 }
 
 export interface SpotifyArtist {
@@ -104,6 +129,13 @@ export interface SpotifyUser {
   external_urls: {
     spotify: string;
   };
+}
+
+export interface GoogleUser {
+  id: string;
+  name: string;
+  email: string;
+  picture?: string;
 }
 
 export interface UserProfile {
