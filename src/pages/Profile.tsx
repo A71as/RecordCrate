@@ -3,16 +3,17 @@ import { Link } from 'react-router-dom';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { User, Music, Star, Calendar, Plug } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
+import { useAuth0 } from '@auth0/auth0-react';
 import type { AlbumReview } from '../types';
 
 export const Profile: React.FC = () => {
   const [reviews, setReviews] = useState<AlbumReview[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
+  const { loginWithRedirect, isAuthenticated, user } = useAuth0();
   const [googleError, setGoogleError] = useState<string | null>(null);
   const {
     googleUser,
     spotifyUser,
-    isGoogleLoggedIn,
     isSpotifyLinked,
     loadingSpotify,
     isGoogleConfigured,
@@ -22,6 +23,7 @@ export const Profile: React.FC = () => {
 
   useEffect(() => {
     const loadProfile = async () => {
+      console.log(user);
       // Load reviews from localStorage
       const savedReviewsRaw = JSON.parse(localStorage.getItem('albumReviews') || '[]');
       // migrate any 0-5 overallRating to 0-100 percent
@@ -39,22 +41,19 @@ export const Profile: React.FC = () => {
     loadProfile();
   }, []);
 
-  const handleGoogleSuccess = (response: CredentialResponse) => {
-    setGoogleError(null);
-    if (response.credential) {
-      loginWithGoogle(response.credential);
-    } else {
-      setGoogleError('Google login failed. Please try again.');
-    }
+   const handleLogin = async () => {
+    await loginWithRedirect({
+      authorizationParams: {
+        redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI,
+        connection: "google-oauth2",
+      },
+      appState: { returnTo: '/' }
+    });
   };
-
-  const handleGoogleError = () => {
-    setGoogleError('Google login did not complete. Please try again.');
-  };
-
+  
   if (loadingReviews) return <div className="loading">Loading profile...</div>;
 
-  if (!isGoogleLoggedIn) {
+  if (!isAuthenticated) {
     return (
       <div className="profile-page">
         <div className="container">
@@ -65,7 +64,7 @@ export const Profile: React.FC = () => {
               <p>Use your Google account to access your RecordCrate profile.</p>
               {isGoogleConfigured ? (
                 <div className="google-login-btn">
-                  <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+                  <GoogleLogin onSuccess={handleLogin} />
                 </div>
               ) : (
                 <p className="error">
@@ -99,7 +98,7 @@ export const Profile: React.FC = () => {
               <Plug size={64} className="login-icon" />
               <h1>Link Your Spotify Account</h1>
               <p>
-                Hi {googleUser?.name?.split(' ')[0] || 'there'}! Connect Spotify to sync your music
+                Hi {user?.name?.split(' ')[0] || 'there'}! Connect Spotify to sync your music
                 tastes and pull in your listening data.
               </p>
               <button className="spotify-login-btn large" onClick={linkSpotifyAccount}>

@@ -3,9 +3,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
-const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-
 export class SpotifyService {
   constructor(user) {
     this.user = user; // MongoDB user document

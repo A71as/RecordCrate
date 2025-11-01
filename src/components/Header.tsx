@@ -1,26 +1,78 @@
-import React from 'react';
+import axios from "axios";
+import React, { useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, User, Music, LogOut, PlugZap } from 'lucide-react';
-import { useAuth } from '../context/useAuth';
+import { Search, User, Music, LogOut } from 'lucide-react';
+import { useAuth0 } from "@auth0/auth0-react";
 
 export const Header: React.FC = () => {
-  const {
-    googleUser,
-    spotifyUser,
-    isGoogleLoggedIn,
-    isSpotifyLinked,
-    loadingSpotify,
-    linkSpotifyAccount,
-    logout,
-  } = useAuth();
+  const { user, isAuthenticated, getAccessTokenSilently, loginWithRedirect, isLoading, logout } = useAuth0();
+
+  const memoizedGetAccessTokenSilently = useCallback(
+    () => getAccessTokenSilently(),
+    [getAccessTokenSilently]
+  );
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        if (isAuthenticated && user) {
+          const accessToken = await memoizedGetAccessTokenSilently();
+          const response = await axios.get(`http://localhost:8000/api/check-user/${user.sub}`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          if (response.status == 204) {
+            const createResponse = await axios.post(`http://localhost:8000/api/new-user`, {
+              user_id: user.sub,
+              email: user.email,
+              name: user.name,
+              username: user.nickname,
+              picture: user.picture
+            }, {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json"
+              },
+            });
+            if (createResponse.status == 500)
+              console.error("Failed to create user in database");
+          } else if (response.status == 500)
+            console.error("Failed to check user in database");
+        }
+      } catch (error) {
+        console.error("Error during user check:", error);
+      }
+    };
+
+    if (isAuthenticated && !isLoading) {
+      checkUser();
+    }
+  }, [
+    isAuthenticated,
+    memoizedGetAccessTokenSilently,
+    user,
+    isLoading,
+  ]);
+
+  const handleLogin = async () => {
+    await loginWithRedirect({
+      authorizationParams: {
+        redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI,
+        connection: "google-oauth2",
+      },
+      appState: { returnTo: '/' }
+    });
+  };
+
   const navigate = useNavigate();
 
   const handleSearchNavClick = () => {
     navigate('/search', { state: { resetSearch: Date.now() } });
   };
 
-  const displayName = spotifyUser?.display_name ?? googleUser?.name ?? 'Guest';
-  const avatarUrl = spotifyUser?.images?.[0]?.url ?? googleUser?.picture;
+  const displayName = user?.given_name ?? 'Guest';
+  const avatarUrl = user?.picture;
 
   return (
     <header className="header">
@@ -45,43 +97,31 @@ export const Header: React.FC = () => {
             <User size={18} />
             Profile
           </Link>
-          
-          {isGoogleLoggedIn ? (
+
+          {isAuthenticated ? (
             <div className="user-section">
               <div className="user-info">
                 {avatarUrl && (
-                  <img 
-                    src={avatarUrl} 
+                  <img
+                    src={avatarUrl}
                     alt={displayName}
-                    className="user-avatar" 
+                    className="user-avatar"
                   />
                 )}
                 <span className="user-name">{displayName}</span>
               </div>
-              {!isSpotifyLinked ? (
-                <button
-                  className="spotify-login-btn"
-                  onClick={linkSpotifyAccount}
-                  disabled={loadingSpotify}
-                >
-                  <PlugZap size={16} />
-                  {loadingSpotify ? 'Linking...' : 'Link Spotify'}
-                </button>
-              ) : (
-                <button className="logout-btn" onClick={logout}>
-                  <LogOut size={16} />
-                  Logout
-                </button>
-              )}
+              <button className="logout-btn" onClick={logout}>
+                <LogOut size={16} />
+                Logout
+              </button>
             </div>
           ) : (
             <button
               className="spotify-login-btn"
-              onClick={linkSpotifyAccount}
-              disabled={loadingSpotify}
+              onClick={handleLogin}
             >
               <Music size={16} />
-              Login with Spotify
+              Login to RecordCrate
             </button>
           )}
         </nav>

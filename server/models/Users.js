@@ -8,16 +8,27 @@ const userSchema = new Schema(
             required: true,
             unique: true
         },
-        username: {
-            type: String,
-            required: true
-        },
-        email: {
+        name: {
             type: String,
             required: false
         },
+        username: {
+            type: String,
+            required: false
+        },
+        email: {
+            type: String,
+            required: true,
+            unique: true
+        },
         picture: {
-            type: String
+            type: String,
+            required: false
+        },
+        spotify: {
+            type: Map,
+            of: String,
+            required: false
         },
         createdAt: { 
             type: Date, 
