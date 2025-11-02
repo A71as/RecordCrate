@@ -1,225 +1,135 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { AlbumCard } from '../components/AlbumCard';
-import { ArtistCard } from '../components/ArtistCard';
-import { FilterTabs } from '../components/FilterTabs';
-import AlbumStreakCalendar, { type AlbumStreakCalendarEntry } from '../components/AlbumStreakCalendar';
-import { useSpotify } from '../hooks/useSpotify';
-import { useAuth } from '../context/useAuth';
-import type { SpotifyAlbum, SpotifyArtist, FilterType, AlbumReview } from '../types';
+import React from 'react';
+import {
+  Disc3,
+  Heart,
+  PenSquare,
+  Star,
+  CalendarDays,
+  ListMusic,
+  Gauge,
+  Sparkles,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+type FeatureCard = {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+};
+
+const featureCards: FeatureCard[] = [
+  {
+    icon: Disc3,
+    title: 'Catalog every record',
+    description:
+      'Log the albums you love, revisit, and discover—RecordCrate keeps your listening history together in one timeline.',
+  },
+  {
+    icon: Heart,
+    title: 'Highlight your standouts',
+    description:
+      'Save favorite releases to a personal showcase so friends can instantly see what you have on repeat.',
+  },
+  {
+    icon: PenSquare,
+    title: 'Write thoughtful reviews',
+    description:
+      'Craft long-form reflections or quick impressions for any album, then revisit your notes as your taste evolves.',
+  },
+  {
+    icon: Star,
+    title: 'Score every track',
+    description:
+      'Use half-star precision to celebrate flawless cuts and flag the skips—each song rating rolls into your album score.',
+  },
+  {
+    icon: CalendarDays,
+    title: 'Track release journeys',
+    description:
+      'Follow artists across eras with timeline views that surface reissues, deluxe editions, and regional pressings.',
+  },
+  {
+    icon: ListMusic,
+    title: 'Build shareable lists',
+    description:
+      'Curate themed crates, seasonal rotations, or essential discographies and publish them in seconds.',
+  },
+];
 
 export const Home: React.FC = () => {
-  const [albums, setAlbums] = useState<SpotifyAlbum[]>([]);
-  const [artists, setArtists] = useState<SpotifyArtist[]>([]);
-  const [activeFilter, setActiveFilter] = useState<FilterType>('new-releases-week');
-  const { loading, error, getFilteredContent } = useSpotify();
-  const {
-    isSpotifyLinked,
-    linkSpotifyAccount,
-    loadingSpotify,
-  } = useAuth();
-  const [calendarMonth] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  });
-  const [dailyEntries, setDailyEntries] = useState<AlbumStreakCalendarEntry[]>([]);
-  const canTrackStreak = isSpotifyLinked;
-
-  const loadStreakCalendar = useCallback(() => {
-    const now = calendarMonth;
-    const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-    let aiLog: Record<string, unknown>;
-    try {
-      aiLog = JSON.parse(localStorage.getItem('aiDailyAlbumLog') ?? '{}') as Record<string, unknown>;
-    } catch {
-      aiLog = {};
-    }
-
-    let storedReviews: AlbumReview[];
-    try {
-      storedReviews = JSON.parse(localStorage.getItem('albumReviews') ?? '[]') as AlbumReview[];
-    } catch {
-      storedReviews = [];
-    }
-
-    const reviewDates = new Set(
-      storedReviews
-        .map((review) => review.createdAt?.split('T')[0])
-        .filter((date): date is string => Boolean(date) && date.startsWith(monthPrefix))
-    );
-
-    const logDates = Object.keys(aiLog).filter((date) => date.startsWith(monthPrefix));
-    const nextEntries: AlbumStreakCalendarEntry[] = [];
-
-    logDates.forEach((date) => {
-      const rated = reviewDates.has(date);
-      nextEntries.push({
-        date,
-        status: rated ? 'completed' : 'pending',
-      });
-      if (rated) {
-        reviewDates.delete(date);
-      }
-    });
-
-    reviewDates.forEach((date) => {
-      nextEntries.push({
-        date,
-        status: 'completed',
-      });
-    });
-
-    if (nextEntries.length === 0) {
-      nextEntries.push({
-        date: `${monthPrefix}-${String(new Date().getDate()).padStart(2, '0')}`,
-        status: 'pending',
-      });
-    }
-
-    setDailyEntries(nextEntries);
-  }, [calendarMonth]);
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      const { albums: fetchedAlbums, artists: fetchedArtists } = 
-        await getFilteredContent(activeFilter);
-      setAlbums(fetchedAlbums);
-      setArtists(fetchedArtists || []);
-    };
-
-    fetchContent();
-  }, [activeFilter, getFilteredContent]);
-
-  useEffect(() => {
-    loadStreakCalendar();
-  }, [loadStreakCalendar]);
-
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === 'aiDailyAlbumLog' || event.key === 'albumReviews') {
-        loadStreakCalendar();
-      }
-    };
-
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, [loadStreakCalendar]);
-
-  const getContentTitle = () => {
-    switch (activeFilter) {
-      case 'new-releases-week':
-        return 'New Releases This Week';
-      case 'new-releases-month':
-        return 'New Releases This Month';
-      case 'new-releases-year':
-        return 'New Releases This Year';
-      case 'popular-week':
-        return 'Most Popular This Week';
-      case 'popular-month':
-        return 'Most Popular This Month';
-      case 'popular-year':
-        return 'Most Popular This Year';
-      case 'personal-week':
-        return 'Your Top Music This Week';
-      case 'personal-6months':
-        return 'Your Top Music (6 Months)';
-      case 'personal-alltime':
-        return 'Your All-Time Favorites';
-      default:
-        return 'Featured Albums';
-    }
-  };
-
-  const showPersonalNote = activeFilter.startsWith('personal');
-
-  if (loading) return <div className="loading">Loading content...</div>;
-  if (error) return <div className="error">Error: {error}</div>;
-
   return (
-    <div className="home">
-      <div className="container">
-        <section className="hero">
-          <h1>Welcome to RecordCrate</h1>
-          <p>Discover, review, and catalog your favorite albums</p>
-        </section>
+    <div className="about-page">
+      <section className="about-hero">
+        <span className="eyebrow">About RecordCrate</span>
+        <h1>We're building the home for serious listeners.</h1>
+        <p>
+          RecordCrate blends deep catalog data with tools built for collectors, DJs, and casual crate diggers alike.
+          From the first listen to the hundredth, keep every spin organized and every insight close at hand.
+        </p>
+      </section>
 
-        <section className="streak-calendar-section">
-          <div className={`calendar-lock-wrapper ${!canTrackStreak ? 'locked' : ''}`}>
-            <AlbumStreakCalendar
-              month={calendarMonth}
-              entries={dailyEntries}
-              description="Log a rating for each AI pick to keep the streak alive. We'll fill in the green tiles once your teammates wire in the daily recommendations."
-            />
-            {!canTrackStreak && (
-              <div className="calendar-lock-overlay">
-                <p>Log in with Spotify to unlock your AI recommendation streak tracker.</p>
-                <button
-                  type="button"
-                  className="spotify-login-btn large"
-                  onClick={linkSpotifyAccount}
-                  disabled={loadingSpotify}
-                >
-                  {loadingSpotify ? 'Opening Spotify…' : 'Login with Spotify'}
-                </button>
+      <section className="about-cards-section">
+        <h2>RecordCrate lets you…</h2>
+        <div className="about-card-grid">
+          {featureCards.map(({ icon: Icon, title, description }) => (
+            <article key={title} className="about-card">
+              <div className="about-card-icon" aria-hidden="true">
+                <Icon size={28} />
               </div>
-            )}
-          </div>
-          {!canTrackStreak && (
-            <p className="streak-login-note">
-              To track your rating streak for the daily AI recommendation, connect your Spotify account.
-            </p>
-          )}
-        </section>
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
-        <section className="content-filters">
-          <FilterTabs 
-            activeFilter={activeFilter} 
-            onFilterChange={setActiveFilter} 
-          />
-        </section>
-
-        {showPersonalNote && (
-          <div className="personal-note">
+      <section className="about-rating-section">
+        <div className="rating-section-header">
+          <h2>How rating works</h2>
+          <p>
+            Albums and tracks use connected scales so you can move easily from individual impressions to a holistic score.
+          </p>
+        </div>
+        <div className="rating-grid">
+          <article className="rating-card">
+            <div className="rating-card-icon" aria-hidden="true">
+              <Gauge size={28} />
+            </div>
+            <h3>Album score (0–100%)</h3>
             <p>
-              <strong>Note:</strong> Personal listening data requires Spotify account 
-              connection. Currently showing popular content as placeholder.
+              Dial in a precise percentage with the slider. We color-code each badge so you can spot standouts at a glance.
             </p>
-          </div>
-        )}
+            <ul>
+              <li>Move the slider or type to lock in your exact sentiment.</li>
+              <li>The percent badge mirrors what you&apos;ll see across the app.</li>
+              <li>Revisit and adjust anytime—your notes stay right beside the score.</li>
+            </ul>
+          </article>
 
-        <section className="filtered-content">
-          <h2>{getContentTitle()}</h2>
-          
-          {albums.length > 0 && (
-            <div className="content-section">
-              <h3>Albums</h3>
-              <div className="album-grid">
-                {albums.map((album) => (
-                  <AlbumCard
-                    key={album.id}
-                    album={album}
-                  />
-                ))}
-              </div>
+          <article className="rating-card">
+            <div className="rating-card-icon" aria-hidden="true">
+              <Star size={28} />
             </div>
-          )}
-
-          {artists.length > 0 && (
-            <div className="content-section">
-              <h3>Artists</h3>
-              <div className="artist-grid">
-                {artists.map((artist) => (
-                  <ArtistCard
-                    key={artist.id}
-                    artist={artist}
-                    onClick={() => console.log('Navigate to artist:', artist.id)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
-      </div>
+            <h3>Track ratings (0–5 stars)</h3>
+            <p>
+              Give each song a rating with half-star precision. It&apos;s perfect for spotlighting deep cuts or calling out
+              skippable tracks.
+            </p>
+            <ul>
+              <li>Click or tap for half-star increments when you need nuance.</li>
+              <li>Keyboard access lets you keep rating while crate-digging hands-free.</li>
+              <li>We average your starred tracks into the album score so both views stay in sync.</li>
+            </ul>
+          </article>
+        </div>
+        <div className="rating-note">
+          <Sparkles size={18} aria-hidden="true" />
+          <p>
+            Prefer to start with track ratings? We instantly translate the average into a percent so your album score inherits
+            the detail you put into each song—tweak the slider afterward if you want to emphasize vibe over math.
+          </p>
+        </div>
+      </section>
     </div>
   );
 };

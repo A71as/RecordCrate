@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Star, ArrowLeft, Clock } from "lucide-react";
+import { Star, ArrowLeft, Clock, Trash2 } from "lucide-react";
 import { spotifyService } from "../services/spotify";
 import { backend } from "../services/backend";
 import { StarRating } from "../components/StarRating";
@@ -389,6 +389,52 @@ export const AlbumDetail: React.FC = () => {
     }
   };
 
+  const handleDeleteReview = async () => {
+    if (!album || !existingReview) return;
+    
+    const confirmDelete = window.confirm("Are you sure you want to delete this review? This action cannot be undone.");
+    if (!confirmDelete) return;
+
+    try {
+      // Delete from backend if user is logged in
+      if (currentUserId) {
+        await backend.deleteReview(currentUserId, album.id);
+        // Refresh review count from server
+        try {
+          const list = await backend.getAlbumReviews(album.id);
+          setReviewCount(Array.isArray(list) ? list.length : 0);
+        } catch {
+          setReviewCount(0);
+        }
+      }
+
+      // Delete from localStorage
+      const savedReviews = JSON.parse(localStorage.getItem("albumReviews") || "[]");
+      const filtered = savedReviews.filter((r: AlbumReview) => r.albumId !== album.id);
+      localStorage.setItem("albumReviews", JSON.stringify(filtered));
+      
+      if (!currentUserId) {
+        setReviewCount(filtered.filter((r: AlbumReview) => r.albumId === album.id).length);
+      }
+
+      // Reset state
+      setExistingReview(null);
+      setSongRatings({});
+      setOverallRating(0);
+      setWriteup("");
+      setModifiers({
+        emotionalStoryConnection: 0,
+        cohesionAndFlow: 0,
+        artistIdentityOriginality: 0,
+        visualAestheticEcosystem: 0,
+      });
+      setIsReviewing(false);
+    } catch (error) {
+      console.error("Failed to delete review:", error);
+      alert("Failed to delete review. Please try again.");
+    }
+  };
+
   if (loading) return <div className="loading">Loading album...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!album) return <div className="error">Album not found</div>;
@@ -676,7 +722,17 @@ export const AlbumDetail: React.FC = () => {
 
         {existingReview && !isReviewing && (
           <div className="existing-review">
-            <h2>Your Review</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2>Your Review</h2>
+              <button 
+                className="delete-review-btn"
+                onClick={handleDeleteReview}
+                title="Delete this review"
+              >
+                <Trash2 size={16} />
+                Delete Review
+              </button>
+            </div>
             <div className="review-content">
               <div className="review-rating">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

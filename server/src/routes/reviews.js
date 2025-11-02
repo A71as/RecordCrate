@@ -82,4 +82,26 @@ router.get('/', async (_req, res) => {
   }
 });
 
+// Delete a review
+router.delete('/:userSpotifyId/:albumId', async (req, res) => {
+  try {
+    const { userSpotifyId, albumId } = req.params;
+    
+    if (!userSpotifyId || !albumId) {
+      return res.status(400).json({ error: 'userSpotifyId and albumId required' });
+    }
+
+    const result = await AlbumReview.findOneAndDelete({ userSpotifyId, albumId });
+    
+    if (!result) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    res.json({ message: 'Review deleted successfully', deletedReview: result });
+  } catch (e) {
+    console.error('delete review error', e);
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
 export default router;

@@ -30,13 +30,13 @@ export const Header: React.FC = () => {
         </Link>
 
         <nav className="nav">
+          <NavLink to="/discover" className="nav-link">
+            Discover
+          </NavLink>
           <NavLink to="/discography" className="nav-link">
             Discography
           </NavLink>
-          <NavLink to="/about" className="nav-link">
-            About
-          </NavLink>
-          <button type="button" className="nav-link" onClick={handleSearchNavClick}>
+          <button type="button" className="nav-link nav-link-button" onClick={handleSearchNavClick}>
             <Search size={18} />
             Search
           </button>
@@ -44,6 +44,7 @@ export const Header: React.FC = () => {
             <User size={18} />
             Profile
           </NavLink>
+          <div className="nav-divider"></div>
           {spotifyUser ? (
             <div className="user-section">
               <div className="user-info">
@@ -67,7 +68,7 @@ export const Header: React.FC = () => {
               onClick={handleLogin}
             >
               <Music size={16} />
-              Login to RecordCrate
+              Login
             </button>
           )}
         </nav>

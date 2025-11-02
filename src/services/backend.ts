@@ -33,6 +33,9 @@ export const backend = {
   async saveReview(payload: SaveReviewPayload) {
     return jsonFetch('/api/reviews', { method: 'POST', body: JSON.stringify(payload) });
   },
+  async deleteReview(userSpotifyId: string, albumId: string) {
+    return jsonFetch(`/api/reviews/${userSpotifyId}/${albumId}`, { method: 'DELETE' });
+  },
   async getAlbumReviews(albumId: string) {
     return jsonFetch(`/api/reviews/album/${albumId}`);
   },
