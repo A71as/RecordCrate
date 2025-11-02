@@ -86,6 +86,12 @@ body {
   background-size: 40px 40px;
 }
 
+/* Loading spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 #root {
   min-height: 100vh;
   width: 100%;
@@ -992,7 +998,7 @@ body {
 /* Profile Page */
 .profile-page {
   width: 100%;
-  padding: 2rem 0;
+  padding: 0.5rem 0;
 }
 
 .profile-header {
@@ -1039,31 +1045,169 @@ body {
 
 .login-prompt {
   text-align: center;
-  padding: 3rem;
+  padding: 3rem 3rem;
   background-color: var(--panel-bg);
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid var(--panel-border);
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.login-icon {
-  color: var(--muted);
-  margin-bottom: 1rem;
+.login-hero {
+  margin-bottom: 2.5rem;
+}
+
+.login-icon-stack {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  height: 80px;
+}
+
+.login-icon.primary {
+  color: var(--rc-primary);
+  z-index: 2;
+}
+
+.login-icon.secondary {
+  color: var(--rc-accent);
+  position: absolute;
+  top: 16px;
+  right: -8px;
+  z-index: 1;
+  opacity: 0.8;
 }
 
 .login-prompt h1 {
   color: var(--rc-text);
   margin-bottom: 1rem;
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 900;
+  background: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.login-prompt p {
+.hero-subtitle {
   color: var(--muted);
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 0;
+}
+
+.login-features {
+  margin-bottom: 2.5rem;
+}
+
+.feature-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+  padding: 0.75rem;
+  background-color: var(--rc-bg);
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  transition: all 0.2s ease;
+}
+
+.feature-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(20, 184, 166, 0.1);
+  border-color: var(--rc-primary);
+}
+
+.feature-icon {
+  color: var(--rc-primary);
+  flex-shrink: 0;
+}
+
+.feature-item span {
+  color: var(--rc-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.login-action {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.spotify-login-btn.primary {
+  background: linear-gradient(135deg, var(--rc-primary), var(--rc-green-1));
+  color: white;
+  padding: 1rem 2.5rem;
   font-size: 1.1rem;
-  margin-bottom: 2rem;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(20, 184, 166, 0.3);
+  transition: all 0.3s ease;
+}
+
+.spotify-login-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(20, 184, 166, 0.4);
+  background: linear-gradient(135deg, var(--rc-green-1), var(--rc-primary));
+}
+
+.login-note {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .login-prompt {
+    padding: 2.5rem 2rem;
+    margin: 0.5rem;
+  }
+  
+  .login-prompt h1 {
+    font-size: 2rem;
+  }
+  
+  .feature-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .feature-item {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-prompt {
+    padding: 3rem 2rem;
+    margin: 1rem;
+  }
+  
+  .login-prompt h1 {
+    font-size: 2rem;
+  }
+  
+  .feature-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .feature-item {
+    padding: 0.75rem;
+  }
 }
 
 .login-divider {
@@ -2054,7 +2198,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 50vh;
+  min-height: 80vh;
+  padding: 2rem 0;
 }
 
 .callback-content {
@@ -2248,6 +2393,135 @@ body {
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
 }
 
+
+/* Friendly Error Styles */
+.error-friendly {
+  text-align: center;
+  padding: 3rem;
+  background-color: var(--panel-bg);
+  border-radius: 16px;
+  border: 1px solid var(--panel-border);
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.error-friendly h2 {
+  color: var(--rc-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  line-height: 1.3;
+}
+
+.error-suggestion {
+  color: var(--muted);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.secondary-button {
+  background-color: var(--rc-gray);
+  color: var(--panel-bg);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.secondary-button:hover {
+  background-color: color-mix(in srgb, var(--rc-gray) 70%, black);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .error-friendly {
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .error-actions button {
+    width: 100%;
+    max-width: 250px;
+  }
+}
+
+/* Profile Spotify Data Sections */
+.top-artists-section,
+.top-tracks-section,
+.followed-artists-section {
+  margin-top: 3rem;
+}
+
+.top-artists-section h2,
+.top-tracks-section h2,
+.followed-artists-section h2 {
+  color: var(--rc-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+/* Artists Grid */
+.artists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1.5rem;
+}
+
+.mini-artist-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: var(--rc-text);
+  transition: all 0.2s ease;
+  padding: 1rem;
+  background-color: var(--panel-bg);
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+}
+
+.mini-artist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(20, 184, 166, 0.1);
+  border-color: var(--rc-primary);
+}
+
+.artist-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  background-color: var(--rc-bg);
+}
+
+.artist-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+ 
 .discography-card-media {
   position: relative;
   width: 100%;
@@ -2576,3 +2850,101 @@ body {
     padding: 1.75rem 1.5rem;
   }
 }
+.artist-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Tracks List */
+.tracks-list {
+  background-color: var(--panel-bg);
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  overflow: hidden;
+}
+
+.tracks-list .track-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--panel-border);
+  transition: background-color 0.2s ease;
+}
+
+.tracks-list .track-item:last-child {
+  border-bottom: none;
+}
+
+.tracks-list .track-item:hover {
+  background-color: var(--rc-bg);
+}
+
+.tracks-list .track-number {
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 600;
+  min-width: 2rem;
+  margin-right: 1rem;
+}
+
+.tracks-list .track-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.tracks-list .track-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--rc-text);
+  margin-bottom: 0.25rem;
+}
+
+.tracks-list .track-artist {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.show-more {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .artists-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+  }
+  
+  .mini-artist-card {
+    padding: 0.75rem;
+  }
+  
+  .artist-image {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .tracks-list .track-item {
+    padding: 0.75rem 1rem;
+  }
+  
+  .tracks-list .track-name {
+    font-size: 0.9rem;
+  }
+  
+  .tracks-list .track-artist {
+    font-size: 0.8rem;
+  }
+}
+

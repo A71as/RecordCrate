@@ -1,85 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Music, Star, Calendar, Plug } from 'lucide-react';
+import { User, Music, Star, Calendar } from 'lucide-react';
+import { spotifyService } from '../services/spotify';
 import { useAuth } from '../context/useAuth';
-import { useAuth0 } from '@auth0/auth0-react';
-import type { AlbumReview } from '../types';
+import type { AlbumReview, SpotifyArtist, SpotifyTrack } from '../types';
 
 export const Profile: React.FC = () => {
   const [reviews, setReviews] = useState<AlbumReview[]>([]);
-  const [loadingReviews, setLoadingReviews] = useState(true);
-  const googleError: string | null = null;
-  const { loginWithRedirect, isAuthenticated, user } = useAuth0();
-  const {
-    googleUser,
-    spotifyUser,
-    isSpotifyLinked,
-    loadingSpotify,
-    linkSpotifyAccount,
-  } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [topArtists, setTopArtists] = useState<SpotifyArtist[]>([]);
+  const [topTracks, setTopTracks] = useState<SpotifyTrack[]>([]);
+  const [followedArtists, setFollowedArtists] = useState<SpotifyArtist[]>([]);
+
+  const { spotifyUser, isSpotifyLinked, linkSpotifyAccount, googleUser } = useAuth();
 
   useEffect(() => {
-    const loadProfile = async () => {
-      console.log(user);
-      // Load reviews from localStorage
-      const savedReviewsRaw = JSON.parse(localStorage.getItem('albumReviews') || '[]');
-      // migrate any 0-5 overallRating to 0-100 percent
-      const savedReviewsArr = savedReviewsRaw as AlbumReview[];
-      const migrated: AlbumReview[] = (savedReviewsArr || []).map((r) => {
-        if (typeof r.overallRating === 'number' && r.overallRating <= 5) {
-          return { ...r, overallRating: Math.round(r.overallRating * 20) };
-        }
-        return { ...r, overallRating: Math.round(r.overallRating || 0) };
-      });
-      setReviews(migrated);
-      setLoadingReviews(false);
+    const loadReviews = () => {
+      const savedReviewsRaw = localStorage.getItem('albumReviews') || '[]';
+      try {
+        const savedReviewsArr = JSON.parse(savedReviewsRaw) as AlbumReview[];
+        const migrated: AlbumReview[] = (savedReviewsArr || []).map((r) => {
+          if (typeof r.overallRating === 'number' && r.overallRating <= 5) {
+            return { ...r, overallRating: Math.round(r.overallRating * 20) };
+          }
+          return { ...r, overallRating: Math.round(r.overallRating || 0) };
+        });
+        setReviews(migrated);
+      } catch (err) {
+        console.error('Profile: Error parsing reviews:', err);
+        setReviews([]);
+      }
     };
 
-    loadProfile();
-  }, []);
+    const loadSpotifyData = async () => {
+      setLoading(true);
+      try {
+        if (isSpotifyLinked) {
+          const [artistsData, tracksData, followedData] = await Promise.all([
+            spotifyService.getPersonalTopArtists('6months'),
+            spotifyService.getPersonalTopTracks('medium_term'),
+            spotifyService.getFollowedArtists(),
+          ]);
+          setTopArtists(artistsData);
+          setTopTracks(tracksData);
+          setFollowedArtists(followedData);
+        } else {
+          setTopArtists([]);
+          setTopTracks([]);
+          setFollowedArtists([]);
+        }
+      } catch (err) {
+        console.error('Profile: Error fetching Spotify data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleLogin = async () => {
-    await loginWithRedirect({
-      authorizationParams: {
-        redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI,
-        connection: "google-oauth2",
-      },
-      appState: { returnTo: '/' }
-    });
+    loadReviews();
+    void loadSpotifyData();
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'spotify_access_token') {
+        void loadSpotifyData();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [isSpotifyLinked]);
+
+  const handleLogin = () => {
+    // Clear any existing expired tokens before redirecting
+    localStorage.removeItem('spotify_access_token');
+    localStorage.removeItem('spotify_refresh_token');
+    // Store current page to redirect back after login
+    localStorage.setItem('spotify_redirect_after_login', window.location.pathname);
+    linkSpotifyAccount();
   };
 
-  if (loadingReviews) return <div className="loading">Loading profile...</div>;
-
-  if (!isAuthenticated) {
-    return (
-      <div className="profile-page">
-        <div className="container">
-          <div className="profile-content">
-            <div className="login-prompt">
-              <User size={64} className="login-icon" />
-              <h1>Sign in to RecordCrate</h1>
-              <p>Use your Google account to access your RecordCrate profile.</p>
-              <button className="spotify-login-btn"
-                onClick={handleLogin}
-              >
-                <Star size={16} />
-                Login to Google
-              </button>
-              {googleError && <p className="error">{googleError}</p>}
-              <div className="login-divider">or</div>
-              <button className="spotify-login-btn large" onClick={linkSpotifyAccount}>
-                <Music size={20} />
-                Login with Spotify
-              </button>
-              <p className="login-note">
-                After connecting Spotify you&apos;ll be redirected back here to finish signing in with
-                Google.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div >
-    );
+  if (loading) {
+    return <div className="loading">Loading profile...</div>;
   }
 
   if (!isSpotifyLinked) {
@@ -88,17 +87,45 @@ export const Profile: React.FC = () => {
         <div className="container">
           <div className="profile-content">
             <div className="login-prompt">
-              <Plug size={64} className="login-icon" />
-              <h1>Link Your Spotify Account</h1>
-              <p>
-                Hi {user?.name?.split(' ')[0] || 'there'}! Connect Spotify to sync your music
-                tastes and pull in your listening data.
-              </p>
-              <button className="spotify-login-btn large" onClick={linkSpotifyAccount}>
-                <Music size={20} />
-                Link Spotify Account
-              </button>
-              {loadingSpotify && <p className="loading">Checking Spotify connection...</p>}
+              <div className="login-hero">
+                <div className="login-icon-stack">
+                  <Music size={48} className="login-icon primary" />
+                  <User size={32} className="login-icon secondary" />
+                </div>
+                <h1>Welcome to RecordCrate</h1>
+                <p className="hero-subtitle">Your personal music collection and review platform</p>
+              </div>
+              
+              <div className="login-features">
+                <div className="feature-list">
+                  <div className="feature-item">
+                    <Star size={20} className="feature-icon" />
+                    <span>Rate and review your favorite albums</span>
+                  </div>
+                  <div className="feature-item">
+                    <Music size={20} className="feature-icon" />
+                    <span>Discover new music from Spotify</span>
+                  </div>
+                  <div className="feature-item">
+                    <User size={20} className="feature-icon" />
+                    <span>Build your personal music profile</span>
+                  </div>
+                  <div className="feature-item">
+                    <Calendar size={20} className="feature-icon" />
+                    <span>Track your listening journey</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="login-action">
+                <button className="spotify-login-btn large primary" onClick={handleLogin}>
+                  <Music size={20} />
+                  Connect with Spotify
+                </button>
+                <p className="login-note">
+                  Connect your Spotify account to start building your music collection
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -122,7 +149,7 @@ export const Profile: React.FC = () => {
     <div className="profile-page">
       <div className="container">
         <div className="profile-header">
-          {spotifyUser && (
+          {spotifyUser ? (
             <div className="user-profile">
               {spotifyUser.images && spotifyUser.images[0] && (
                 <img
@@ -149,8 +176,39 @@ export const Profile: React.FC = () => {
                   )}
                   <div className="stat">
                     <User size={16} />
-                    <span>{spotifyUser.followers.total} Followers</span>
+                    <span>{spotifyUser.followers?.total || 0} Followers</span>
                   </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="user-profile">
+              <div className="user-details">
+                <h1>Profile</h1>
+                <div className="user-stats">
+                  <div className="stat">
+                    <Music size={16} />
+                    <span>{reviews.length} Reviews</span>
+                  </div>
+                  {reviews.length > 0 && (
+                    <div className="stat">
+                      <Star size={16} />
+                      <span>Avg Rating: {averageRating.toFixed(1)}%</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--panel-bg)', borderRadius: '8px', border: '1px solid var(--panel-border)' }}>
+                  <p style={{ color: 'var(--muted)', marginBottom: '0.5rem' }}>
+                    Your Spotify session may have expired. Profile information is temporarily unavailable.
+                  </p>
+                  <button 
+                    className="spotify-login-btn" 
+                    onClick={handleLogin}
+                    style={{ fontSize: '14px', padding: '0.5rem 1rem' }}
+                  >
+                    <Music size={16} />
+                    Refresh Spotify Connection
+                  </button>
                 </div>
               </div>
             </div>
@@ -214,6 +272,69 @@ export const Profile: React.FC = () => {
               </div>
             )}
           </section>
+
+          {/* Top Artists Section */}
+          {topArtists.length > 0 && (
+            <section className="top-artists-section">
+              <h2>Your Top Artists</h2>
+              <div className="artists-grid">
+                {topArtists.slice(0, 8).map((artist) => (
+                  <Link key={artist.id} to={`/artist/${artist.id}`} className="mini-artist-card">
+                    <div className="artist-image">
+                      {artist.images[0] && (
+                        <img src={artist.images[0].url} alt={artist.name} />
+                      )}
+                    </div>
+                    <span className="artist-name">{artist.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Top Tracks Section */}
+          {topTracks.length > 0 && (
+            <section className="top-tracks-section">
+              <h2>Your Top Tracks</h2>
+              <div className="tracks-list">
+                {topTracks.slice(0, 10).map((track, index) => (
+                  <div key={track.id} className="track-item">
+                    <span className="track-number">{index + 1}</span>
+                    <div className="track-info">
+                      <span className="track-name">{track.name}</span>
+                      <span className="track-artist">
+                        {track.artists.map(artist => artist.name).join(', ')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Followed Artists Section */}
+          {followedArtists.length > 0 && (
+            <section className="followed-artists-section">
+              <h2>Artists You Follow ({followedArtists.length})</h2>
+              <div className="artists-grid">
+                {followedArtists.slice(0, 12).map((artist) => (
+                  <Link key={artist.id} to={`/artist/${artist.id}`} className="mini-artist-card">
+                    <div className="artist-image">
+                      {artist.images[0] && (
+                        <img src={artist.images[0].url} alt={artist.name} />
+                      )}
+                    </div>
+                    <span className="artist-name">{artist.name}</span>
+                  </Link>
+                ))}
+              </div>
+              {followedArtists.length > 12 && (
+                <p className="show-more">
+                  And {followedArtists.length - 12} more artists...
+                </p>
+              )}
+            </section>
+          )}
         </div>
       </div>
     </div>

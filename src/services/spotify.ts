@@ -26,6 +26,7 @@ class SpotifyService {
   private tokenExpiry: number = 0;
   private userAccessToken: string | null = null;
   private refreshToken: string | null = null;
+  private pendingTokenExchange: Promise<any> | null = null;
 
   async getAccessToken(): Promise<string> {
     if (this.accessToken && Date.now() < this.tokenExpiry) {
@@ -490,25 +491,39 @@ class SpotifyService {
 
   // OAuth Authentication Methods
   getAuthUrl(): string {
+    // Prefer the configured REDIRECT_URI, but at runtime fall back to the current origin
+    // Use 127.0.0.1 instead of localhost per Spotify requirements
+    const runtimeRedirect = (typeof window !== 'undefined')
+      ? (REDIRECT_URI || `${window.location.origin}/callback`)
+      : (REDIRECT_URI || 'http://127.0.0.1:5173/callback');
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: CLIENT_ID,
       scope: SCOPES,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: runtimeRedirect,
       show_dialog: 'true'
     });
-
     return `https://accounts.spotify.com/authorize?${params.toString()}`;
   }
 
   async exchangeCodeForToken(code: string): Promise<{ access_token: string, refresh_token: string }> {
-    try {
+    // Prevent duplicate token exchange attempts with the same code
+    if (this.pendingTokenExchange) {
+      return this.pendingTokenExchange;
+    }
+    // Use the configured REDIRECT_URI, but fall back to the current origin at runtime
+    // Use 127.0.0.1 instead of localhost per Spotify requirements
+    const effectiveRedirect = (typeof window !== 'undefined')
+      ? (REDIRECT_URI || `${window.location.origin}/callback`)
+      : (REDIRECT_URI || 'http://127.0.0.1:5173/callback');
+    this.pendingTokenExchange = (async () => {
+      try {
       const response = await axios.post(
         'https://accounts.spotify.com/api/token',
         new URLSearchParams({
           grant_type: 'authorization_code',
           code,
-          redirect_uri: REDIRECT_URI,
+          redirect_uri: effectiveRedirect,
         }),
         {
           headers: {
@@ -522,23 +537,32 @@ class SpotifyService {
       this.refreshToken = response.data.refresh_token;
 
       // Store tokens in localStorage for persistence
-      if (this.userAccessToken) localStorage.setItem('spotify_access_token', this.userAccessToken);
-      if (this.refreshToken) localStorage.setItem('spotify_refresh_token', this.refreshToken);
+      if (this.userAccessToken) {
+        localStorage.setItem('spotify_access_token', this.userAccessToken);
+      }
+      if (this.refreshToken) {
+        localStorage.setItem('spotify_refresh_token', this.refreshToken);
+      }
 
       return {
         access_token: response.data.access_token,
         refresh_token: response.data.refresh_token
       };
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Token exchange error:', error.response?.data ?? error.message);
-        if (error.response?.data?.error === 'invalid_grant') {
+      } catch (error: any) {
+        // Log the full response body when available to help debugging
+        console.error('Token exchange error:', error.response?.data || error.message || error);
+        const respData = error?.response?.data;
+        if (respData?.error === 'invalid_grant' || respData?.error_description?.toLowerCase?.().includes('redirect')) {
           throw new Error('Invalid redirect URI or authorization code. Please check your Spotify app settings.');
         }
-      } else {
-        console.error('Token exchange error:', error);
+        throw error;
       }
-      throw error;
+    })();
+    try {
+      const result = await this.pendingTokenExchange;
+      return result;
+    } finally {
+      this.pendingTokenExchange = null;
     }
   }
 
@@ -587,7 +611,6 @@ class SpotifyService {
 
   async getUserAccessToken(): Promise<string | null> {
     if (this.userAccessToken) return this.userAccessToken;
-
     const storedToken = localStorage.getItem('spotify_access_token');
     if (storedToken) {
       this.userAccessToken = storedToken;
@@ -595,6 +618,21 @@ class SpotifyService {
     }
 
     return await this.refreshAccessToken();
+  }
+
+  // Test if the current token is valid
+  async validateToken(): Promise<boolean> {
+    const token = await this.getUserAccessToken();
+    if (!token) return false;
+
+    try {
+      await axios.get('https://api.spotify.com/v1/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return true;
+    } catch (error: any) {
+      return false;
+    }
   }
 
   isLoggedIn(): boolean {
@@ -736,6 +774,50 @@ class SpotifyService {
     } catch (error) {
       console.error('Failed to get personal top artists:', error);
       return this.getTopArtists();
+    }
+  }
+
+  // Get user's top tracks
+  async getPersonalTopTracks(timeframe: 'short_term' | 'medium_term' | 'long_term' = 'medium_term'): Promise<SpotifyTrack[]> {
+    try {
+      const token = await this.getUserAccessToken();
+      if (!token) return [];
+
+      const response = await axios.get(
+        `https://api.spotify.com/v1/me/top/tracks?time_range=${timeframe}&limit=50`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data.items;
+    } catch (error) {
+      console.error('Failed to get personal top tracks:', error);
+      return [];
+    }
+  }
+
+  // Get user's followed artists
+  async getFollowedArtists(): Promise<SpotifyArtist[]> {
+    try {
+      const token = await this.getUserAccessToken();
+      if (!token) return [];
+
+      const response = await axios.get(
+        'https://api.spotify.com/v1/me/following?type=artist&limit=50',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data.artists.items;
+    } catch (error) {
+      console.error('Failed to get followed artists:', error);
+      return [];
     }
   }
 }
