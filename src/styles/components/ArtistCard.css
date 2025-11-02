@@ -47,16 +47,17 @@
 }
 
 .artist-name {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.35rem;
     color: var(--rc-text);
     font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 .artist-genres {
     color: var(--muted);
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
+    margin-bottom: 0.85rem;
+    font-size: 0.85rem;
 }
 
 .artist-popularity {

@@ -1,3 +1,4 @@
+const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:4000';
 import axios from 'axios';
 import type {
   DiscographyEntry,
@@ -19,14 +20,14 @@ const SCOPES = [
   'user-read-recently-played'
 ].join(' ');
 
-const DEFAULT_MARKET = 'US';
+// DEFAULT_MARKET removed; no longer required in no-auth discography flow.
 
 class SpotifyService {
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
   private userAccessToken: string | null = null;
   private refreshToken: string | null = null;
-  private pendingTokenExchange: Promise<any> | null = null;
+  private pendingTokenExchange: Promise<{ access_token: string; refresh_token: string }> | null = null;
 
   async getAccessToken(): Promise<string> {
     if (this.accessToken && Date.now() < this.tokenExpiry) {
@@ -51,15 +52,26 @@ class SpotifyService {
   }
 
   async getAvailableGenres(): Promise<string[]> {
-    const token = await this.getAccessToken();
+    // Prefer backend to avoid exposing secrets in the client
+    try {
+      const resp = await axios.get(`${API_BASE}/api/discography/genres`);
+      const genres = resp.data?.genres ?? [];
+      if (Array.isArray(genres) && genres.length > 0) return genres;
+    } catch (err) {
+      console.debug('Backend genre fetch failed, falling back to client credentials (if available):', err);
+    }
 
-    const response = await axios.get('https://api.spotify.com/v1/recommendations/available-genre-seeds', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return response.data.genres ?? [];
+    // Fallback (dev-only): direct Spotify call using client credentials
+    try {
+      const token = await this.getAccessToken();
+      const response = await axios.get('https://api.spotify.com/v1/recommendations/available-genre-seeds', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data.genres ?? [];
+    } catch (err) {
+      console.debug('Direct Spotify genre fetch failed (likely no creds). Returning empty genres.', err);
+      return [];
+    }
   }
 
   async searchAlbums(query: string): Promise<SpotifyAlbum[]> {
@@ -301,155 +313,175 @@ class SpotifyService {
     return values.map((value) => value.trim());
   }
 
-  private extractTrackIdsFromCsv(csv: string, limit: number): string[] {
-    const lines = csv
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
+  // Removed legacy CSV ID extraction; replaced by a no-auth pipeline below.
 
-    if (lines.length === 0) {
-      return [];
+  // Lightweight no-auth enrichment via Spotify oEmbed
+  private async fetchOEmbed(url: string): Promise<{ title?: string; author_name?: string; thumbnail_url?: string } | null> {
+    try {
+      const resp = await axios.get('https://open.spotify.com/oembed', { params: { url } });
+      return resp.data ?? null;
+    } catch {
+      return null;
     }
-
-    const dataLines = lines.filter((line) => !line.toLowerCase().startsWith('"position"')).slice(0, limit);
-    const trackIds: string[] = [];
-
-    for (const line of dataLines) {
-      const columns = this.parseCsvLine(line);
-      if (columns.length < 5) {
-        continue;
-      }
-
-      const url = columns[4];
-      const match = url.match(/track\/([a-zA-Z0-9]+)/);
-      if (match && match[1]) {
-        trackIds.push(match[1]);
-      }
-
-      if (trackIds.length >= limit) {
-        break;
-      }
-    }
-
-    return trackIds;
   }
 
-  private async fetchTrackDetails(trackIds: string[]): Promise<SpotifyTrack[]> {
-    const token = await this.getAccessToken();
-    const tracks: SpotifyTrack[] = [];
-
-    for (let i = 0; i < trackIds.length; i += 50) {
-      const chunk = trackIds.slice(i, i + 50);
-      const response = await axios.get('https://api.spotify.com/v1/tracks', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: {
-          ids: chunk.join(','),
-          market: DEFAULT_MARKET,
-        },
-      });
-
-      tracks.push(...(response.data?.tracks ?? []).filter((track: SpotifyTrack | null): track is SpotifyTrack => Boolean(track && track.id)));
+  private normalizePopularityFromStreams(
+    streams: Array<number | null>,
+    fallbackFromPosition: (idx: number) => number
+  ): number[] {
+    const valid = streams.filter((v): v is number => typeof v === 'number' && !Number.isNaN(v));
+    if (valid.length === 0) {
+      return streams.map((_, idx) => fallbackFromPosition(idx));
     }
-
-    return tracks;
+    const max = Math.max(...valid);
+    const min = Math.min(...valid);
+    if (max === min) {
+      return streams.map(() => 90);
+    }
+    return streams.map((s, idx) => {
+      if (typeof s !== 'number' || Number.isNaN(s)) return fallbackFromPosition(idx);
+      const score = 60 + 40 * ((s - min) / (max - min));
+      return Math.max(55, Math.min(100, Math.round(score)));
+    });
   }
+
+  // Removed legacy track details fetch; not used in no-auth flow.
 
   async getPopularTracks(
     page: number,
     limit: number = 50
   ): Promise<{ entries: DiscographyEntry[]; hasMore: boolean }> {
-    if (page > 0) {
-      return { entries: [], hasMore: false };
+    // Prefer backend (production-safe)
+    try {
+      const resp = await axios.get(`${API_BASE}/api/discography/top-tracks`, { params: { page, limit } });
+      if (resp.data && Array.isArray(resp.data.entries)) {
+        return { entries: resp.data.entries, hasMore: !!resp.data.hasMore };
+      }
+    } catch (err) {
+      console.debug('Backend top-tracks fetch failed, attempting client fallback:', err);
     }
 
+    // Fallback path (no-login, no secrets): Spotify Charts CSV + oEmbed thumbnails
     try {
       const csvResponse = await axios.get(
         'https://spotifycharts.com/regional/global/daily/latest/download',
         { responseType: 'text' }
       );
 
-      const trackIds = this.extractTrackIdsFromCsv(csvResponse.data, limit);
+      const lines: string[] = csvResponse.data
+        .split('\n')
+        .map((l: string) => l.trim())
+        .filter((l: string) => l.length > 0 && !l.toLowerCase().startsWith('"position"'));
 
-      if (trackIds.length === 0) {
-        console.warn('No track IDs were extracted from the Spotify Charts CSV');
-        return { entries: [], hasMore: false };
-      }
+      if (lines.length === 0) return { entries: [], hasMore: false };
 
-      const tracks = await this.fetchTrackDetails(trackIds);
-      if (tracks.length === 0) {
-        return { entries: [], hasMore: false };
-      }
+      const start = page * limit;
+      const end = Math.min(start + limit, lines.length);
+  const slice: string[] = lines.slice(start, end);
+      const hasMore = end < lines.length;
 
-      const token = await this.getAccessToken();
-
-      const artistIds = Array.from(
-        new Set(
-          tracks.flatMap((track) =>
-            track.artists.map((artist) => artist.id).filter((id): id is string => Boolean(id))
-          )
-        )
-      );
-
-      const artistGenres = new Map<string, string[]>();
-
-      for (let i = 0; i < artistIds.length; i += 50) {
-        const chunk = artistIds.slice(i, i + 50);
-
-        try {
-          const artistsResponse = await axios.get('https://api.spotify.com/v1/artists', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            params: {
-              ids: chunk.join(','),
-            },
-          });
-
-          artistsResponse.data.artists.forEach((artist: SpotifyArtist) => {
-            if (artist?.id) {
-              artistGenres.set(artist.id, artist.genres ?? []);
-            }
-          });
-        } catch (genreError) {
-          console.warn('Failed to fetch artist genres chunk:', genreError);
-        }
-      }
-
-      const entries: DiscographyEntry[] = tracks.map((track) => {
-        const releaseDate = track.album?.release_date ?? '';
-        const releaseYear = releaseDate ? Number(releaseDate.slice(0, 4)) || 0 : 0;
-        const genres = Array.from(
-          new Set(track.artists.flatMap((artist) => artistGenres.get(artist.id) ?? []))
-        ).slice(0, 6);
-
-        return {
-          id: track.id,
-          type: 'track',
-          name: track.name,
-          artists: track.artists.map((artist) => ({
-            id: artist.id,
-            name: artist.name,
-          })),
-          imageUrl: track.album?.images?.[0]?.url ?? null,
-          releaseDate,
-          releaseYear,
-          popularity: track.popularity ?? 0,
-          explicit: track.explicit,
-          albumName: track.album?.name ?? undefined,
-          genres,
-          externalUrl: track.external_urls?.spotify ?? '',
-        };
+      // Pre-parse streams to normalize popularity across the window
+      const streamsForWindow: Array<number | null> = slice.map((line: string) => {
+        const cols = this.parseCsvLine(line);
+        const raw = cols[3] ?? '';
+        const numeric = Number(String(raw).replace(/[,\s]/g, ''));
+        return Number.isFinite(numeric) ? numeric : null;
+      });
+      const popularityScaled = this.normalizePopularityFromStreams(streamsForWindow, (idx) => {
+        const position = start + idx + 1;
+        const approx = 100 - (position - 1);
+        return Math.max(55, Math.min(100, approx));
       });
 
-      return {
-        entries,
-        hasMore: false,
-      };
+      const entries: DiscographyEntry[] = [];
+      for (let i = 0; i < slice.length; i += 1) {
+        const line = slice[i];
+        const cols = this.parseCsvLine(line);
+        // Expected columns: Position, Track Name, Artist, Streams, URL
+        if (cols.length < 5) continue;
+        const trackName = cols[1] ?? '';
+        const artistName = cols[2] ?? '';
+        const url = cols[4] ?? '';
+        const idMatch = url.match(/track\/([a-zA-Z0-9]+)/);
+        const trackId = idMatch?.[1] ?? `${start + i}`;
+
+        // oEmbed thumbnail/title, no auth
+        const oembed = await this.fetchOEmbed(url);
+        const imageUrl = oembed?.thumbnail_url ?? null;
+
+        entries.push({
+          id: trackId,
+          type: 'track',
+          name: trackName || oembed?.title || 'Unknown',
+          artists: [{ id: '', name: artistName || oembed?.author_name || 'Unknown' }],
+          imageUrl,
+          releaseDate: '',
+          releaseYear: 0,
+          popularity: popularityScaled[i] ?? 60,
+          explicit: false,
+          albumName: undefined,
+          genres: [],
+          externalUrl: url,
+        });
+      }
+
+      return { entries, hasMore };
     } catch (error) {
-      console.error('Failed to assemble global top tracks:', error);
-      return { entries: [], hasMore: false };
+      console.error('Failed to assemble global top tracks (no-auth CSV path). Trying curated samples...', error);
+
+      // Final fallback: curated static samples (minimal, no auth, no external CSV needed)
+      const samples: Array<{ name: string; artist: string; url: string }> = [
+        {
+          name: 'Blinding Lights',
+          artist: 'The Weeknd',
+          url: 'https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b',
+        },
+        {
+          name: 'Levitating',
+          artist: 'Dua Lipa',
+          url: 'https://open.spotify.com/track/463CkQjx2Zk1yXoBuierM9',
+        },
+        {
+          name: 'As It Was',
+          artist: 'Harry Styles',
+          url: 'https://open.spotify.com/track/4LRPiXqCikLlN15c3yImP7',
+        },
+        {
+          name: 'Watermelon Sugar',
+          artist: 'Harry Styles',
+          url: 'https://open.spotify.com/track/6UelLqGlWMcVH1E5c4H7lY',
+        },
+        {
+          name: 'drivers license',
+          artist: 'Olivia Rodrigo',
+          url: 'https://open.spotify.com/track/5wANPM4fQCJwkGd4rN57mH',
+        },
+      ];
+
+      const entries: DiscographyEntry[] = [];
+      for (let i = 0; i < samples.length; i += 1) {
+        const { name, artist, url } = samples[i];
+        const idMatch = url.match(/track\/([a-zA-Z0-9]+)/);
+        const trackId = idMatch?.[1] ?? String(i);
+        const oembed = await this.fetchOEmbed(url);
+        const imageUrl = oembed?.thumbnail_url ?? null;
+        entries.push({
+          id: trackId,
+          type: 'track',
+          name,
+          artists: [{ id: '', name: artist }],
+          imageUrl,
+          releaseDate: '',
+          releaseYear: 0,
+          popularity: Math.max(55, 100 - i * 3),
+          explicit: false,
+          albumName: undefined,
+          genres: [],
+          externalUrl: url,
+        });
+      }
+
+      return { entries, hasMore: false };
     }
   }
 
@@ -548,14 +580,19 @@ class SpotifyService {
         access_token: response.data.access_token,
         refresh_token: response.data.refresh_token
       };
-      } catch (error: any) {
+      } catch (err: unknown) {
         // Log the full response body when available to help debugging
-        console.error('Token exchange error:', error.response?.data || error.message || error);
-        const respData = error?.response?.data;
-        if (respData?.error === 'invalid_grant' || respData?.error_description?.toLowerCase?.().includes('redirect')) {
-          throw new Error('Invalid redirect URI or authorization code. Please check your Spotify app settings.');
+        if (axios.isAxiosError(err)) {
+          const data = err.response?.data as { error?: string; error_description?: string } | undefined;
+          console.error('Token exchange error:', data ?? err.message);
+          const desc = data?.error_description;
+          if (data?.error === 'invalid_grant' || (typeof desc === 'string' && desc.toLowerCase().includes('redirect'))) {
+            throw new Error('Invalid redirect URI or authorization code. Please check your Spotify app settings.');
+          }
+        } else {
+          console.error('Token exchange error:', err);
         }
-        throw error;
+        throw err;
       }
     })();
     try {
@@ -630,7 +667,7 @@ class SpotifyService {
         headers: { Authorization: `Bearer ${token}` },
       });
       return true;
-    } catch (error: any) {
+    } catch {
       return false;
     }
   }

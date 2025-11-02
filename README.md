@@ -40,6 +40,18 @@ Set the following Netlify environment variables:
 - `VITE_SPOTIFY_REDIRECT_URI` (e.g., `https://<site>/callback`)
 - `VITE_API_BASE_URL` (point to the backend URL)
 
+### Discography API (production path)
+
+To avoid client-side rate limits and CORS issues, the frontend now prefers calling the backend for Discography data.
+
+Endpoints exposed by the backend:
+
+- `GET /api/discography/top-tracks?page=0&limit=50` → returns `{ entries: DiscographyEntry[], hasMore: boolean }`
+- `GET /api/discography/genres` → returns `{ genres: string[] }`
+
+Frontend base URL is controlled by `VITE_API_BASE_URL` (defaults to `http://localhost:4000` in dev if not set).
+The client will gracefully fall back to a dev-only direct Spotify flow if the backend endpoints are unavailable.
+
 ### Backend on AWS App Runner (recommended)
 
 See `server/README.md` for step-by-step instructions. High level:

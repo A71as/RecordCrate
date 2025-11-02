@@ -33,6 +33,11 @@ Health check:
 - `MONGODB_URI` (required): MongoDB connection string
 - `PORT` (optional): Port to listen on (default 4000)
 - `CORS_ORIGIN` (optional): Allowed origin for CORS (default `http://localhost:5173`)
+- `SPOTIFY_CLIENT_ID` (required for discography endpoints): Spotify app client ID
+- `SPOTIFY_CLIENT_SECRET` (required for discography endpoints): Spotify app client secret
+
+Notes:
+- If Spotify credentials are NOT set, `/api/discography/top-tracks` will still return a minimal CSV-only list (names + links, no genres/images). For full data and filters, add credentials.
 
 ## Frontend configuration
 
@@ -40,6 +45,11 @@ In the frontend (Vite), set `VITE_API_BASE_URL` to the backend base URL.
 
 - Local development: `VITE_API_BASE_URL=http://localhost:4000`
 - Production (Netlify, etc.): set the env var to your deployed API URL
+
+Also set these frontend variables for auth/user features as needed:
+
+- `VITE_SPOTIFY_CLIENT_ID`
+- `VITE_SPOTIFY_REDIRECT_URI` (e.g., `https://<site>/callback`)
 
 ## API overview
 
@@ -125,6 +135,8 @@ You can also connect App Runner directly to this GitHub repo and let it build fr
   - `MONGODB_URI` = your Atlas connection string
   - `PORT` = `4000`
   - `CORS_ORIGIN` = your frontend origin (e.g., `https://<your-site>`)
+  - `SPOTIFY_CLIENT_ID` = your Spotify app client id
+  - `SPOTIFY_CLIENT_SECRET` = your Spotify app client secret
 - Auto deploy: enable so pushes to `main` redeploy automatically
 
 ### Option C: ECS Fargate (containerized)

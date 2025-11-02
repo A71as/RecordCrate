@@ -4,7 +4,12 @@ export type SaveReviewPayload = {
   overallRating: number;
   baseOverallRating?: number;
   adjustedOverallRating?: number;
-  scoreModifiers?: any;
+  scoreModifiers?: {
+    emotionalStoryConnection?: number;
+    cohesionAndFlow?: number;
+    artistIdentityOriginality?: number;
+    visualAestheticEcosystem?: number;
+  };
   songRatings?: Array<{ trackId: string; trackName: string; rating: number }>;
   writeup?: string;
   albumMeta?: { name?: string; artists?: string[]; image?: string };
@@ -12,7 +17,7 @@ export type SaveReviewPayload = {
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:4000';
 
-async function jsonFetch<T = any>(path: string, init?: RequestInit): Promise<T> {
+async function jsonFetch<T = unknown>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) },
     ...init,

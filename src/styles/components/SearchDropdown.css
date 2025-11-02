@@ -31,7 +31,7 @@
 
 .search-dropdown-item:hover,
 .search-dropdown-item.selected {
-    background-color: rgba(123, 168, 106, 0.3);
+    background: color-mix(in srgb, var(--spotify-green) 14%, transparent);
     color: var(--rc-text);
 }
 
@@ -107,6 +107,13 @@
 .search-dropdown-item:hover .dropdown-item-subtitle,
 .search-dropdown-item.selected .dropdown-item-subtitle {
     color: var(--muted);
+}
+
+/* Focus state for keyboard navigation */
+.search-dropdown-item:focus-visible {
+    outline: 2px solid var(--spotify-green);
+    outline-offset: -2px;
+    background: color-mix(in srgb, var(--spotify-green) 12%, transparent);
 }
 
 @media (max-width: 768px) {

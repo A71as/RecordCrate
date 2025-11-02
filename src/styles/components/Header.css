@@ -1,8 +1,12 @@
 /* Header Component Styles */
 .header {
-    background-color: var(--panel-bg);
+    background: linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--panel-bg) 92%, transparent),
+        color-mix(in srgb, var(--panel-bg) 86%, transparent)
+    );
     border-bottom: 1px solid var(--panel-border);
-    padding: 1rem 0;
+    padding: 0.75rem 0;
     position: fixed;
     top: 0;
     left: 0;
@@ -12,8 +16,8 @@
     height: var(--header-height);
     display: flex;
     align-items: center;
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
 }
 
 .header-content {
@@ -31,10 +35,11 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--rc-red);
+    color: var(--rc-text);
     text-decoration: none;
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
 }
 
 .nav {
@@ -43,20 +48,29 @@
 }
 
 .nav-link {
-    color: var(--rc-text);
+    color: color-mix(in srgb, var(--muted) 85%, white 15%);
     text-decoration: none;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    transition: background-color 0.2s, color 0.2s;
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
 }
 
 .nav-link:hover {
-    background-color: color-mix(in srgb, var(--panel-bg) 88%, transparent);
+    color: #0a2513;
+    background: color-mix(in srgb, var(--spotify-green) 18%, white 2%);
+    box-shadow: 0 6px 20px rgba(29, 185, 84, 0.12);
+    transform: translateY(-1px);
 }
 
+
+/* Accessible focus ring */
+.nav-link:focus-visible {
+    outline: 2px solid var(--spotify-green);
+    outline-offset: 2px;
+}
 @media (max-width: 768px) {
     .header-content {
         padding: 0 1rem;

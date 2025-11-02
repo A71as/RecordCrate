@@ -113,7 +113,7 @@ const explicitOptions: DropdownOption[] = [
   { value: 'clean', label: 'Non-explicit' },
 ];
 
-const DEFAULT_DECADES = ['2020s', '2010s', '2000s', '1990s', '1980s', '1970s', '1960s', '1950s', '1940s'];
+// Intentionally avoid default decades in UI when no release years are available.
 
 export const MusicFilterBar: React.FC<MusicFilterBarProps> = ({
   filters,
@@ -141,7 +141,8 @@ export const MusicFilterBar: React.FC<MusicFilterBarProps> = ({
   }, [genres]);
 
   const decadeDropdownOptions = useMemo<DropdownOption[]>(() => {
-    const source = decades.length > 0 ? decades : DEFAULT_DECADES;
+    // Do not invent decades when none are provided; show only "Any Decade"
+    const source = decades.length > 0 ? decades : [];
 
     const normalized = Array.from(
       new Set(

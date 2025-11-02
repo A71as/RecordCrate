@@ -90,24 +90,26 @@
 }
 
 .preview-button:hover {
-    background-color: var(--rc-green-1);
+    background-color: color-mix(in srgb, var(--spotify-green) 14%, transparent);
 }
 
 .spotify-link {
-    color: var(--rc-green-1);
+    color: var(--spotify-green);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 0.9rem;
     padding: 0.5rem 1rem;
-    border: 1px solid var(--rc-green-1);
-    border-radius: 20px;
+    border: 1px solid var(--spotify-green);
+    border-radius: 999px;
     transition: all 0.2s ease;
     flex-shrink: 0;
 }
 
-.spotify-link:hover {
-    background-color: var(--rc-green-1);
-    color: white;
+.spotify-link:hover,
+.spotify-link:focus-visible {
+    background-color: var(--spotify-green);
+    color: #0a2513;
+    box-shadow: 0 6px 20px rgba(29, 185, 84, 0.18);
 }
 
 @media (max-width: 768px) {

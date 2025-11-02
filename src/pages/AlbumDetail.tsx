@@ -14,6 +14,30 @@ type ModifierState = {
   visualAestheticEcosystem: number;
 };
 
+// Backend review response shapes
+type BackendScoreModifiers = {
+  emotionalStoryConnection?: number;
+  cohesionAndFlow?: number;
+  artistIdentityOriginality?: number;
+  visualAestheticEcosystem?: number;
+};
+
+type BackendSongRating = { trackId: string; trackName?: string; rating: number };
+
+type BackendAlbumReview = {
+  _id?: string;
+  albumId: string;
+  userSpotifyId: string;
+  overallRating: number;
+  baseOverallRating?: number;
+  adjustedOverallRating?: number;
+  scoreModifiers?: BackendScoreModifiers;
+  songRatings?: BackendSongRating[];
+  writeup?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export const AlbumDetail: React.FC = () => {
   const { albumId } = useParams<{ albumId: string }>();
   const navigate = useNavigate();
@@ -74,14 +98,14 @@ export const AlbumDetail: React.FC = () => {
           } else {
             setCurrentUserId(null);
           }
-        } catch (e) {
+        } catch {
           setCurrentUserId(null);
         }
 
         // Backend-first load if we have a user; otherwise fallback to localStorage
         if (userId) {
           try {
-            const serverReviews: any[] = await backend.getAlbumReviews(albumId);
+            const serverReviews = (await backend.getAlbumReviews(albumId)) as BackendAlbumReview[];
             setReviewCount(Array.isArray(serverReviews) ? serverReviews.length : 0);
             const my = Array.isArray(serverReviews)
               ? serverReviews.find((r) => r.userSpotifyId === userId)
@@ -103,7 +127,7 @@ export const AlbumDetail: React.FC = () => {
                 baseOverallRating: baseOverall,
                 adjustedOverallRating: typeof my.adjustedOverallRating === 'number' ? Math.round(my.adjustedOverallRating) : migratedOverall,
                 scoreModifiers: my.scoreModifiers || {},
-                songRatings: (my.songRatings || []).map((sr: any) => ({
+                songRatings: (my.songRatings || []).map((sr: BackendSongRating) => ({
                   trackId: sr.trackId,
                   trackName: sr.trackName || '',
                   rating: sr.rating,
@@ -127,7 +151,7 @@ export const AlbumDetail: React.FC = () => {
               setSongRatings(ratingsMap);
               return; // done
             }
-          } catch (e) {
+          } catch {
             // fall through to local storage
           }
         }
@@ -296,9 +320,11 @@ export const AlbumDetail: React.FC = () => {
         });
         // refresh count from server
         try {
-          const list: any[] = await backend.getAlbumReviews(album.id);
+          const list = (await backend.getAlbumReviews(album.id)) as BackendAlbumReview[];
           setReviewCount(Array.isArray(list) ? list.length : 0);
-        } catch {}
+        } catch {
+          // ignore refresh count errors
+        }
       } catch (e) {
         console.warn('Backend save failed, falling back to localStorage', e);
       }

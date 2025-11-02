@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Search, User, Music, LogOut } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 
@@ -30,20 +30,20 @@ export const Header: React.FC = () => {
         </Link>
 
         <nav className="nav">
-          <Link to="/discography" className="nav-link">
+          <NavLink to="/discography" className="nav-link">
             Discography
-          </Link>
-          <Link to="/about" className="nav-link">
+          </NavLink>
+          <NavLink to="/about" className="nav-link">
             About
-          </Link>
+          </NavLink>
           <button type="button" className="nav-link" onClick={handleSearchNavClick}>
             <Search size={18} />
             Search
           </button>
-          <Link to="/profile" className="nav-link">
+          <NavLink to="/profile" className="nav-link">
             <User size={18} />
             Profile
-          </Link>
+          </NavLink>
           {spotifyUser ? (
             <div className="user-section">
               <div className="user-info">

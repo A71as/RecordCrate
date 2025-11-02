@@ -1,23 +1,7 @@
-:root {
-  --header-height: 80px;
-
-  /* RecordCrate palette */
-  --rc-bg: #052713;      /* off‑white background */
-  --rc-grid: #0c430a;    /* grid lines */
-  --rc-text: #9e7431;    /* primary text */
-  --rc-red: #EE5C5C;     /* red accent */
-  --rc-green-1: #7BA86A; /* olive green */
-  --rc-green-2: #66C0B8; /* teal green */
-  --rc-gray: #3D4042;    /* dark gray */
-  --spotify-green: #1db954; /* Spotify brand green */
-  --spotify-green-light: #7ee2ad; /* lighter Spotify green */
-
-  /* Derived tokens */
-  --panel-bg: #233643;
-  --panel-border: var(--rc-grid);
-  --muted: #35cf35;
-  --muted-2: #f2f9f2;
-}
+/*
+  NOTE: Legacy root tokens removed to avoid conflicts.
+  The canonical palette is defined below in the second :root block.
+*/
 
 * {
   margin: 0;
@@ -64,6 +48,13 @@
   --header-height: 80px;
   /* Backwards-compatible red alias used across the app */
   --rc-red: var(--rc-accent);
+
+  /* Spotify / compatibility aliases */
+  --spotify-green: #1DB954;
+  --primary-color: var(--rc-text);
+  --text-primary: var(--rc-text);
+  --text-muted: var(--muted);
+  --text-secondary: var(--muted-2);
 }
 
 html,
@@ -104,74 +95,14 @@ body {
   flex-direction: column;
 }
 
-/* Header */
-.header {
-  background-color: #216209;
-  border-bottom: 1px solid var(--panel-border);
-  padding: 1rem 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  width: 100%;
-  height: var(--header-height);
-  display: flex;
-  align-items: center;
-  backdrop-filter: blur(4px);
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #ffffff;
-  text-decoration: none;
-  font-size: 1.5rem;
-  font-weight: bold;
-  transition: color 0.2s ease;
-}
-
-.logo:hover {
-  color: var(--spotify-green);
-}
-
-.nav {
-  display: flex;
-  gap: 2rem;
-}
-
-.nav-link {
-  color: #ffffff;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.nav-link:hover {
-  background-color: #ffffffa8;
-  color: #216209;
-}
+/* Header styles are defined in styles/components/Header.css to keep concerns separated. */
 
 /* Keep header sticky; push all content below it */
 .main-content {
   flex: 1;
   width: 100%;
   background: transparent;
-  padding-top: calc(var(--header-height)- 2rem);
+  padding-top: calc(var(--header-height) - 2rem);
 }
 
 /* Page containers don't need additional padding since they're wrapped in .main-content */
@@ -998,7 +929,7 @@ body {
 /* Profile Page */
 .profile-page {
   width: 100%;
-  padding: 0.5rem 0;
+  padding: 1rem 0; /* give consistent breathing room regardless of auth state */
 }
 
 .profile-header {
@@ -1007,6 +938,13 @@ body {
   padding: 2rem;
   border: 1px solid var(--panel-border);
   margin-bottom: 3rem;
+}
+
+/* Ensure consistent vertical rhythm between sections within the profile page */
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .user-profile {
@@ -1054,6 +992,25 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
+/* Session warning when Spotify is disconnected/expired */
+.session-warning {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--panel-bg);
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+}
+
+.session-warning p {
+  color: var(--muted);
+  margin: 0 0 0.5rem 0;
+}
+
+.session-warning .spotify-login-btn {
+  font-size: 14px;
+  padding: 0.5rem 1rem;
+}
+
 .login-hero {
   margin-bottom: 2.5rem;
 }
@@ -1064,7 +1021,8 @@ body {
   align-items: center;
   justify-content: center;
   margin-bottom: 1.5rem;
-  height: 80px;
+  height: 88px; /* give a bit more room so icons don't collide */
+  gap: 8px;     /* small gap for non-overlap when secondary becomes static */
 }
 
 .login-icon.primary {
@@ -1075,10 +1033,24 @@ body {
 .login-icon.secondary {
   color: var(--rc-accent);
   position: absolute;
-  top: 16px;
-  right: -8px;
+  top: 24px;   /* soften overlap */
+  right: -2px; /* reduce horizontal collision */
   z-index: 1;
   opacity: 0.8;
+}
+
+/* On small screens, avoid overlap entirely by laying icons side-by-side */
+@media (max-width: 480px) {
+  .login-icon-stack {
+    height: auto;
+    gap: 12px;
+  }
+  .login-icon.secondary {
+    position: static;
+    top: auto;
+    right: auto;
+    opacity: 1;
+  }
 }
 
 .login-prompt h1 {

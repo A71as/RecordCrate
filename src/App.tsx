@@ -1,4 +1,3 @@
-import { Auth0Provider } from "@auth0/auth0-react";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Home } from './pages/Home';
@@ -15,20 +14,7 @@ import './App.css';
 
 
 function App() {
-  const env = import.meta.env;
-  const domain = env.VITE_AUTH0_DOMAIN;
-  const clientId = env.VITE_AUTH0_CLIENT_ID;
-  const redirectUri = env.VITE_AUTH0_REDIRECT_URI;
-  const audience = env.VITE_AUTH0_AUDIENCE;
   return (
-    <Auth0Provider
-      domain={domain!}
-      clientId={clientId!}
-      authorizationParams={{
-        redirect_uri: redirectUri,
-        audience,
-      }}
-    >
       <Router>
         <div className="App">
           <Header />
@@ -46,7 +32,6 @@ function App() {
           </main>
         </div>
       </Router>
-    </Auth0Provider>
   );
 }
 

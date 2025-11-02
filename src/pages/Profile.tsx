@@ -197,14 +197,13 @@ export const Profile: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--panel-bg)', borderRadius: '8px', border: '1px solid var(--panel-border)' }}>
-                  <p style={{ color: 'var(--muted)', marginBottom: '0.5rem' }}>
+                <div className="session-warning">
+                  <p>
                     Your Spotify session may have expired. Profile information is temporarily unavailable.
                   </p>
                   <button 
                     className="spotify-login-btn" 
                     onClick={handleLogin}
-                    style={{ fontSize: '14px', padding: '0.5rem 1rem' }}
                   >
                     <Music size={16} />
                     Refresh Spotify Connection

@@ -34,7 +34,7 @@ const formatReleaseDate = (dateString: string) => {
   });
 };
 
-const DEFAULT_DECADES = ['2020s', '2010s', '2000s', '1990s', '1980s', '1970s', '1960s', '1950s', '1940s'];
+// We compute decades dynamically from entries only (no defaults) so the UI won't offer filters that empty the list.
 const PAGE_SIZE = 50;
 
 export const Discography: React.FC = () => {
@@ -169,15 +169,13 @@ export const Discography: React.FC = () => {
   }, [availableGenres, entries]);
 
   const decadeOptions = useMemo<string[]>(() => {
-    const decades = new Set<string>(DEFAULT_DECADES);
-
+    const decades = new Set<string>();
     entries.forEach((entry) => {
       if (entry.releaseYear > 0) {
         const decade = Math.floor(entry.releaseYear / 10) * 10;
         decades.add(`${decade}s`);
       }
     });
-
     return Array.from(decades).sort((a, b) => b.localeCompare(a));
   }, [entries]);
 
