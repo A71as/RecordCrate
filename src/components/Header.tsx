@@ -1,34 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import axios from "axios";
+import React, { useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, User, Music, LogOut } from 'lucide-react';
-import { spotifyService } from '../services/spotify';
-import type { SpotifyUser } from '../types';
+import { useAuth0 } from "@auth0/auth0-react";
 
 export const Header: React.FC = () => {
-  const [user, setUser] = useState<SpotifyUser | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, isAuthenticated, getAccessTokenSilently, loginWithRedirect, isLoading, logout } = useAuth0();
+
+  const memoizedGetAccessTokenSilently = useCallback(
+    () => getAccessTokenSilently(),
+    [getAccessTokenSilently]
+  );
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      setIsLoggedIn(spotifyService.isLoggedIn());
-      if (spotifyService.isLoggedIn()) {
-        const currentUser = await spotifyService.getCurrentUser();
-        setUser(currentUser);
+    const checkUser = async () => {
+      try {
+        if (isAuthenticated && user) {
+          const accessToken = await memoizedGetAccessTokenSilently();
+          const response = await axios.get(`http://localhost:8000/api/check-user/${user.sub}`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          if (response.status == 204) {
+            const createResponse = await axios.post(`http://localhost:8000/api/new-user`, {
+              user_id: user.sub,
+              email: user.email,
+              name: user.name,
+              username: user.nickname,
+              picture: user.picture
+            }, {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json"
+              },
+            });
+            if (createResponse.status == 500)
+              console.error("Failed to create user in database");
+          } else if (response.status == 500)
+            console.error("Failed to check user in database");
+        }
+      } catch (error) {
+        console.error("Error during user check:", error);
       }
     };
 
-    checkAuthStatus();
-  }, []);
+    if (isAuthenticated && !isLoading) {
+      checkUser();
+    }
+  }, [
+    isAuthenticated,
+    memoizedGetAccessTokenSilently,
+    user,
+    isLoading,
+  ]);
 
-  const handleLogin = () => {
-    window.location.href = spotifyService.getAuthUrl();
+  const handleLogin = async () => {
+    await loginWithRedirect({
+      authorizationParams: {
+        redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI,
+        connection: "google-oauth2",
+      },
+      appState: { returnTo: '/' }
+    });
   };
 
-  const handleLogout = () => {
-    spotifyService.logout();
-    setUser(null);
-    setIsLoggedIn(false);
+  const navigate = useNavigate();
+
+  const handleSearchNavClick = () => {
+    navigate('/search', { state: { resetSearch: Date.now() } });
   };
+
+  const displayName = user?.given_name ?? 'Guest';
+  const avatarUrl = user?.picture;
 
   return (
     <header className="header">
@@ -39,41 +83,45 @@ export const Header: React.FC = () => {
         </Link>
 
         <nav className="nav">
-          <Link to="/" className="nav-link">
-            Home
+          <Link to="/discography" className="nav-link">
+            Discography
           </Link>
-          <Link to="/search" className="nav-link">
+          <Link to="/about" className="nav-link">
+            About
+          </Link>
+          <button type="button" className="nav-link" onClick={handleSearchNavClick}>
             <Search size={18} />
             Search
-          </Link>
+          </button>
           <Link to="/profile" className="nav-link">
             <User size={18} />
             Profile
           </Link>
-          
-          {isLoggedIn ? (
+
+          {isAuthenticated ? (
             <div className="user-section">
-              {user && (
-                <div className="user-info">
-                  {user.images && user.images[0] && (
-                    <img 
-                      src={user.images[0].url} 
-                      alt={user.display_name}
-                      className="user-avatar" 
-                    />
-                  )}
-                  <span className="user-name">{user.display_name}</span>
-                </div>
-              )}
-              <button className="logout-btn" onClick={handleLogout}>
+              <div className="user-info">
+                {avatarUrl && (
+                  <img
+                    src={avatarUrl}
+                    alt={displayName}
+                    className="user-avatar"
+                  />
+                )}
+                <span className="user-name">{displayName}</span>
+              </div>
+              <button className="logout-btn" onClick={logout}>
                 <LogOut size={16} />
                 Logout
               </button>
             </div>
           ) : (
-            <button className="spotify-login-btn" onClick={handleLogin}>
+            <button
+              className="spotify-login-btn"
+              onClick={handleLogin}
+            >
               <Music size={16} />
-              Login with Spotify
+              Login to RecordCrate
             </button>
           )}
         </nav>

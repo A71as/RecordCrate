@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { spotifyService } from '../services/spotify';
+import { useAuth } from '../context/useAuth';
 
 export const SpotifyCallback: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { refreshSpotifyUser } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -28,7 +30,8 @@ export const SpotifyCallback: React.FC = () => {
 
       try {
         await spotifyService.exchangeCodeForToken(code);
-        navigate('/', { replace: true });
+        await refreshSpotifyUser();
+        navigate('/profile', { replace: true });
       } catch (err) {
         console.error('Token exchange failed:', err);
         setError('Failed to authenticate with Spotify. Please try again.');
@@ -37,7 +40,7 @@ export const SpotifyCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, [location.search, navigate]);
+  }, [location.search, navigate, refreshSpotifyUser]);
 
   if (loading) {
     return (

@@ -5,6 +5,7 @@ import { spotifyService } from "../services/spotify";
 import { backend } from "../services/backend";
 import { StarRating } from "../components/StarRating";
 import type { SpotifyAlbum, SongRating, AlbumReview } from "../types";
+import { useAuth } from "../context/useAuth";
 
 type ModifierState = {
   emotionalStoryConnection: number;
@@ -27,9 +28,7 @@ export const AlbumDetail: React.FC = () => {
   const [overallRating, setOverallRating] = useState(0);
   const [writeup, setWriteup] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
-  const [existingReview, setExistingReview] = useState<AlbumReview | null>(
-    null
-  );
+  const [existingReview, setExistingReview] = useState<AlbumReview | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
   // Score modifiers: signed percentages (-10..+10) per category
   const [modifiers, setModifiers] = useState<ModifierState>({
@@ -38,6 +37,14 @@ export const AlbumDetail: React.FC = () => {
     artistIdentityOriginality: 0,
     visualAestheticEcosystem: 0,
   });
+  const { isSpotifyLinked, linkSpotifyAccount, loadingSpotify } = useAuth();
+  const canRate = isSpotifyLinked;
+
+  useEffect(() => {
+    if (!canRate && isReviewing) {
+      setIsReviewing(false);
+    }
+  }, [canRate, isReviewing]);
 
   useEffect(() => {
     const fetchAlbum = async () => {
@@ -187,12 +194,14 @@ export const AlbumDetail: React.FC = () => {
   };
 
   const handleSongRatingChange = (trackId: string, rating: number) => {
+    if (!canRate) return;
     const newRatings = { ...songRatings, [trackId]: rating };
     setSongRatings(newRatings);
     setOverallRating(calculateOverallRating(newRatings));
   };
 
   const handleOverallRatingChange = (rating: number) => {
+    if (!canRate) return;
     // clamp to 0-100 percent
     const snapped = Math.max(0, Math.min(100, Math.round(rating)));
     setOverallRating(snapped);
@@ -237,6 +246,7 @@ export const AlbumDetail: React.FC = () => {
   };
 
   const handleSaveReview = async () => {
+    if (!canRate) return;
     if (!album) return;
 
     const songRatingsArray: SongRating[] = Object.entries(songRatings).map(
@@ -315,6 +325,11 @@ export const AlbumDetail: React.FC = () => {
     // keep saturation and lightness consistent
     return `hsl(${hue}, 100%, 45%)`;
   };
+  const reviewButtonLabel = canRate
+    ? existingReview
+      ? "Edit Review"
+      : "Write Review"
+    : "Login to Rate";
 
   const handleCancelReview = () => {
     setIsReviewing(false);
@@ -381,16 +396,21 @@ export const AlbumDetail: React.FC = () => {
             {albumImage && <img src={albumImage} alt={album.name} />}
           </div>
 
-          <div className="album-info">
-            <h1 className="album-title">{album.name}</h1>
-            <div className="album-artists">
-              {album.artists.map((artist, index) => (
-                <span key={artist.id}>
-                  {artist.name}
-                  {index < album.artists.length - 1 && ", "}
-                </span>
-              ))}
-            </div>
+            <div className="album-info">
+              <h1 className="album-title">{album.name}</h1>
+              <div className="album-artists">
+                {album.artists.map((artist, index) => (
+                  <button
+                    key={artist.id}
+                    type="button"
+                    className="artist-link"
+                    onClick={() => navigate(`/artist/${artist.id}`)}
+                  >
+                    {artist.name}
+                    {index < album.artists.length - 1 ? ", " : ""}
+                  </button>
+                ))}
+              </div>
             <div className="album-meta">
               <span className="release-date">
                 {new Date(album.release_date).getFullYear()}
@@ -398,6 +418,20 @@ export const AlbumDetail: React.FC = () => {
               <span className="track-count">{album.total_tracks} tracks</span>
               <span className="duration">{getTotalDuration()}</span>
             </div>
+
+            {!canRate && (
+              <div className="rating-lockout">
+                <p>Log in with Spotify to rate this album.</p>
+                <button
+                  type="button"
+                  className="spotify-login-btn"
+                  onClick={linkSpotifyAccount}
+                  disabled={loadingSpotify}
+                >
+                  {loadingSpotify ? "Opening Spotify..." : "Login with Spotify"}
+                </button>
+              </div>
+            )}
 
             {existingReview && !isReviewing && (
               <div className="existing-review-summary">
@@ -421,10 +455,11 @@ export const AlbumDetail: React.FC = () => {
             <div className="album-actions">
               <button
                 className="review-button"
-                onClick={() => setIsReviewing(!isReviewing)}
+                onClick={() => canRate && setIsReviewing(!isReviewing)}
+                disabled={!canRate}
               >
                 <Star size={20} />
-                {existingReview ? "Edit Review" : "Write Review"}
+                {reviewButtonLabel}
               </button>
             </div>
           </div>
@@ -456,7 +491,7 @@ export const AlbumDetail: React.FC = () => {
                         onRatingChange={(rating) =>
                           handleSongRatingChange(track.id, rating)
                         }
-                        readonly={false}
+                        readonly={!canRate}
                         size={14}
                       />
                     </div>
@@ -486,6 +521,7 @@ export const AlbumDetail: React.FC = () => {
                       max={100}
                       value={overallRating}
                       onChange={(e) => handleOverallRatingChange(Number(e.target.value))}
+                      disabled={!canRate}
                     />
                     <div className="percent-badge">{overallRating}%</div>
                   </div>
@@ -587,6 +623,7 @@ export const AlbumDetail: React.FC = () => {
                     onChange={(e) => setWriteup(e.target.value.slice(0, 1400))}
                     placeholder="Share your thoughts about this album..."
                     rows={6}
+                    disabled={!canRate}
                   />
                   <div className="character-count">
                     {writeup.length}/1400 characters (~{Math.ceil(writeup.split(' ').length)} words)
@@ -602,7 +639,7 @@ export const AlbumDetail: React.FC = () => {
                 <button
                   className="save-btn"
                   onClick={handleSaveReview}
-                  disabled={overallRating === 0}
+                  disabled={!canRate || overallRating === 0}
                 >
                   Save Review
                 </button>
@@ -704,3 +741,5 @@ export const AlbumDetail: React.FC = () => {
     </div>
   );
 };
+
+
