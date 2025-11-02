@@ -1,144 +1,352 @@
-# RecordCrate
+# 🎵 RecordCrate
 
-React + TypeScript + Vite frontend with an Express + MongoDB backend.
+**The home for serious listeners.** RecordCrate is a modern music discovery and cataloging platform that blends deep catalog data with tools built for collectors, DJs, and casual crate diggers alike. Track your listening journey, write thoughtful reviews, and explore music with precision rating systems.
 
-Frontend lives at the repo root; backend is in `server/`.
+## 🎨 Design Philosophy
 
-## Quickstart (local)
+RecordCrate features a **vintage vinyl + wooden crate aesthetic** with a carefully curated color palette:
+- **Vinyl Black** (#1a1a1d) - Deep, rich backgrounds
+- **Warm Wood** (#8b6f47) - Crate-inspired accents
+- **Amber Gold** (#d4a574) - Warm highlights and interactive elements
+- **Cream** (#f4ece1) - Soft text and contrast
 
-Frontend
+## ✨ Key Features
 
-```powershell
-npm install
-npm run dev
+### 📀 Music Discovery
+- **Discover Page** - Explore new releases, popular albums, and personalized recommendations with dynamic filters
+- **Discography Browser** - Genre-based exploration of popular music with no login required
+- **Advanced Search** - Find specific albums, artists, and tracks across the Spotify catalog
+
+### ⭐ Rating & Review System
+- **Dual Rating Scale**
+  - Album scores: 0-100% with precise slider control
+  - Track ratings: 0-5 stars with half-star precision
+- **Score Modifiers** - Fine-tune album ratings with ±5% adjustments across four categories:
+  - Emotional/story connection
+  - Cohesion and flow
+  - Artist identity and originality
+  - Visual/aesthetic ecosystem
+- **Track-to-Album Integration** - Track ratings automatically contribute to overall album scores
+- **Rich Reviews** - Write detailed thoughts (up to 350 words) with metadata tracking
+
+### 📊 Personal Features
+- **Streak Calendar** - Track your daily album rating habits (AI recommendations coming soon)
+- **Review Management** - Edit or delete reviews with confirmation safeguards
+- **Profile Dashboard** - View your listening history and review collection
+- **Offline-First** - LocalStorage fallback ensures your data is never lost
+
+## 🏗️ Technical Architecture
+
+### Frontend Stack
+- **React 18** + **TypeScript** - Type-safe component architecture
+- **Vite** - Lightning-fast dev server and optimized production builds
+- **React Router** - Client-side routing with state management
+- **Lucide Icons** - Beautiful, consistent iconography
+- **CSS Custom Properties** - Theme-driven styling with gradients, shadows, and smooth transitions
+
+### Backend Stack
+- **Node.js** + **Express** - RESTful API server
+- **MongoDB** + **Mongoose** - Document database with schema validation
+- **Spotify Web API** - Music catalog integration with client credentials flow
+- **CORS** - Multi-origin support for flexible deployments
+
+### Data Flow
+1. **Primary Path**: Backend-first architecture with server-side Spotify API calls
+2. **Fallback Path**: Client-side CSV + oEmbed enrichment for no-auth browsing
+3. **Final Fallback**: Curated sample data when external services unavailable
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ and npm
+- MongoDB (optional - discography works without it)
+- Spotify API credentials (optional - fallbacks enabled)
+
+### Local Development
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/A71as/RecordCrate.git
+   cd RecordCrate
+   ```
+
+2. **Frontend Setup**
+   ```bash
+   npm install
+   npm run dev
+   ```
+   Frontend runs at `http://localhost:5173`
+
+3. **Backend Setup**
+   ```bash
+   cd server
+   cp .env.example .env
+   # Edit .env with your configuration (see below)
+   npm install
+   npm run dev
+   ```
+   Backend runs at `http://localhost:4000`
+
+4. **Environment Variables**
+
+   **Frontend** (`.env` in root):
+   ```env
+   VITE_API_BASE_URL=http://localhost:4000
+   VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id
+   VITE_SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+   VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/callback
+   ```
+
+   **Backend** (`server/.env`):
+   ```env
+   MONGODB_URI=mongodb://localhost:27017/recordcrate  # Optional
+   PORT=4000
+   CORS_ORIGIN=http://localhost:5173
+   SPOTIFY_CLIENT_ID=your_spotify_client_id
+   SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+   ```
+
+5. **Optional: Spotify API Credentials**
+   - Visit [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+   - Create an app and add `http://localhost:5173/callback` as a redirect URI
+   - Copy Client ID and Client Secret to your `.env` files
+   - **Note**: The app works without credentials using fallback data sources
+
+## 📁 Project Structure
+
+```
+RecordCrate/
+├── src/                          # Frontend source
+│   ├── components/              # Reusable React components
+│   │   ├── AlbumCard.tsx       # Album display card
+│   │   ├── ArtistCard.tsx      # Artist display card
+│   │   ├── FilterTabs.tsx      # Content filter UI
+│   │   ├── Header.tsx          # Navigation header
+│   │   ├── ReviewForm.tsx      # Review creation/editing
+│   │   ├── SearchInput.tsx     # Search interface
+│   │   └── StarRating.tsx      # 5-star rating component
+│   ├── pages/                   # Route pages
+│   │   ├── Home.tsx            # Landing page (About content)
+│   │   ├── Discover.tsx        # Content discovery with filters
+│   │   ├── Discography.tsx     # Genre-based browsing
+│   │   ├── Search.tsx          # Album/artist search
+│   │   ├── Profile.tsx         # User profile
+│   │   ├── AlbumDetail.tsx     # Album details + reviews
+│   │   └── ArtistDetail.tsx    # Artist discography
+│   ├── services/                # API integrations
+│   │   ├── spotify.ts          # Spotify API service
+│   │   └── backend.ts          # Backend API client
+│   ├── hooks/                   # Custom React hooks
+│   │   ├── useSpotify.ts       # Spotify data fetching
+│   │   ├── useSearchLogic.ts   # Search state management
+│   │   └── useClickOutside.ts  # UI interaction helper
+│   ├── context/                 # React Context providers
+│   │   └── useAuth.ts          # Authentication state
+│   ├── types/                   # TypeScript definitions
+│   │   └── index.ts            # Shared type definitions
+│   └── styles/                  # CSS styling
+│       ├── App.css             # Main application styles
+│       ├── global.css          # Global resets and utilities
+│       ├── index.css           # Root styles
+│       └── components/         # Component-specific styles
+├── server/                      # Backend source
+│   ├── src/
+│   │   ├── index.js            # Server entry point
+│   │   ├── models/             # MongoDB schemas
+│   │   │   ├── AlbumReview.js  # Review model
+│   │   │   └── User.js         # User model
+│   │   └── routes/             # API endpoints
+│   │       ├── reviews.js      # Review CRUD operations
+│   │       ├── users.js        # User management
+│   │       └── discography.js  # Music catalog endpoints
+│   └── Dockerfile              # Container configuration
+├── public/                      # Static assets
+├── .github/workflows/          # CI/CD automation
+└── package.json                # Dependencies and scripts
 ```
 
-Backend
+## 🔌 API Endpoints
 
-```powershell
-cd server
-cp .env.example .env
-# Edit .env: set MONGODB_URI, PORT=4000, CORS_ORIGIN=http://localhost:5173
-npm install
-npm run dev
+### Reviews
+- `POST /api/reviews` - Create/update a review
+- `GET /api/reviews/album/:albumId` - Get all reviews for an album
+- `GET /api/reviews/user/:spotifyId` - Get user's reviews
+- `DELETE /api/reviews/:userSpotifyId/:albumId` - Delete a review
+
+### Discography (No-Login Browsing)
+- `GET /api/discography/top-tracks?page=0&limit=50` - Get popular tracks
+- `GET /api/discography/genres` - Get available genres
+
+### Users
+- `POST /api/users/sync` - Sync user data from Spotify
+
+### Health Check
+- `GET /api/health` - Server status
+
+## 🌐 Deployment
+
+### Frontend Deployment (Netlify)
+
+RecordCrate is configured for seamless Netlify deployment with SPA routing via `public/_redirects`.
+
+1. **Connect GitHub repository to Netlify**
+2. **Build settings**:
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+3. **Environment variables**:
+   ```
+   VITE_API_BASE_URL=https://your-backend-url.com
+   VITE_SPOTIFY_CLIENT_ID=your_client_id
+   VITE_SPOTIFY_CLIENT_SECRET=your_client_secret
+   VITE_SPOTIFY_REDIRECT_URI=https://your-site.netlify.app/callback
+   ```
+
+### Backend Deployment (AWS App Runner)
+
+**Option 1: Direct GitHub Connection** (Recommended)
+1. Create App Runner service from GitHub
+2. Configure source:
+   - Repository: `A71as/RecordCrate`
+   - Branch: `main`
+   - Source directory: `server/`
+   - Runtime: Node.js 20
+3. Build settings:
+   - Build command: `npm ci`
+   - Start command: `npm start`
+   - Port: `4000`
+   - Health check: `/api/health`
+4. Environment variables:
+   ```
+   MONGODB_URI=your_mongodb_connection_string
+   PORT=4000
+   CORS_ORIGIN=https://your-frontend-url.netlify.app
+   SPOTIFY_CLIENT_ID=your_client_id
+   SPOTIFY_CLIENT_SECRET=your_client_secret
+   ```
+5. Enable auto-deploy for hands-free updates on push to `main`
+
+**Option 2: ECR + GitHub Actions**
+1. Build and push Docker image to ECR
+2. Create App Runner service from ECR image
+3. Configure GitHub secrets:
+   - `AWS_ROLE_ARN` - OIDC IAM role
+   - `AWS_APPRUNNER_ACCESS_ROLE_ARN` - ECR access role
+4. Workflow at `.github/workflows/deploy-apprunner.yml` handles automated deployments
+
+**MongoDB Setup**:
+- **MongoDB Atlas** (recommended): Free tier available, easy connection string
+- **Self-hosted**: Update `MONGODB_URI` accordingly
+- **Optional**: Server runs in discography-only mode without MongoDB
+
+### Environment Variables Summary
+
+| Variable | Frontend | Backend | Required | Description |
+|----------|----------|---------|----------|-------------|
+| `VITE_API_BASE_URL` | ✅ | ❌ | No | Backend API URL (defaults to localhost:4000) |
+| `VITE_SPOTIFY_CLIENT_ID` | ✅ | ❌ | No | Spotify OAuth client ID |
+| `VITE_SPOTIFY_CLIENT_SECRET` | ✅ | ❌ | No | Spotify OAuth secret |
+| `VITE_SPOTIFY_REDIRECT_URI` | ✅ | ❌ | No | OAuth callback URL |
+| `MONGODB_URI` | ❌ | ✅ | No | MongoDB connection string |
+| `PORT` | ❌ | ✅ | Yes | Server port (typically 4000) |
+| `CORS_ORIGIN` | ❌ | ✅ | Yes | Allowed frontend origin |
+| `SPOTIFY_CLIENT_ID` | ❌ | ✅ | No | Backend Spotify API access |
+| `SPOTIFY_CLIENT_SECRET` | ❌ | ✅ | No | Backend Spotify API secret |
+
+## 🛠️ Development Scripts
+
+### Frontend
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix ESLint issues
 ```
 
-Optional: set the frontend API base URL for local dev
-
-```powershell
-$env:VITE_API_BASE_URL="http://localhost:4000"
+### Backend
+```bash
+npm run dev          # Start with hot-reload (nodemon)
+npm start            # Start production server
+npm run lint         # Check code style
 ```
 
-## Production
+## 🎯 Key Features in Detail
 
-The frontend can be deployed to Netlify (already configured for SPA routing via `public/_redirects`).
+### No-Login Music Discovery
+RecordCrate provides a full music browsing experience without requiring Spotify authentication:
+1. **Backend-first**: Server fetches Spotify data using client credentials
+2. **CSV + oEmbed fallback**: Parses Spotify Charts CSV and enriches with oEmbed thumbnails
+3. **Curated samples**: Static fallback data when external services unavailable
+4. **Popularity normalization**: Converts streams/chart position to 0-100 scale for filtering
 
-Set the following Netlify environment variables:
+### Advanced Rating System
+- **Base Score**: Manual slider (0-100%) or auto-calculated from track ratings
+- **Score Modifiers**: Four categories with ±5% range each (±2.5% increments)
+  - Total modifier range: -20% to +20%
+  - Final score clamped to 0-100%
+- **Visual Feedback**: Color-coded badges (red → yellow → green gradient)
+- **Persistence**: Backend-first with localStorage fallback for offline resilience
 
-- `VITE_SPOTIFY_CLIENT_ID`
-- `VITE_SPOTIFY_CLIENT_SECRET`
-- `VITE_SPOTIFY_REDIRECT_URI` (e.g., `https://<site>/callback`)
-- `VITE_API_BASE_URL` (point to the backend URL)
+### Responsive Design
+- **Mobile-optimized**: Header condenses, user names hide, nav wraps
+- **Tablet-friendly**: Grid layouts adapt to available space
+- **Desktop-enhanced**: Full feature set with optimal spacing
 
-### Discography API (production path)
+### Performance Optimizations
+- **Code splitting**: Route-based lazy loading
+- **Image optimization**: Multiple Spotify image sizes, lazy loading
+- **API caching**: Client-side request deduplication
+- **Debounced search**: 300ms delay reduces API calls
 
-To avoid client-side rate limits and CORS issues, the frontend now prefers calling the backend for Discography data.
+## 🧪 Testing & Quality
 
-Endpoints exposed by the backend:
-
-- `GET /api/discography/top-tracks?page=0&limit=50` → returns `{ entries: DiscographyEntry[], hasMore: boolean }`
-- `GET /api/discography/genres` → returns `{ genres: string[] }`
-
-Frontend base URL is controlled by `VITE_API_BASE_URL` (defaults to `http://localhost:4000` in dev if not set).
-The client will gracefully fall back to a dev-only direct Spotify flow if the backend endpoints are unavailable.
-
-### Backend on AWS App Runner (recommended)
-
-See `server/README.md` for step-by-step instructions. High level:
-
-1. Build and push the Docker image for `server/` to ECR.
-2. Create an App Runner service from that image.
-3. Configure env vars: `MONGODB_URI`, `PORT=4000`, `CORS_ORIGIN=https://<your-frontend-domain>`.
-4. Use the App Runner HTTPS URL for `VITE_API_BASE_URL` in the frontend.
-
-This repository includes a GitHub Actions workflow at `.github/workflows/deploy-apprunner.yml` that can:
-- Build and push the `server/` image to ECR on push to `main`
-- Update your App Runner service image
-
-Required GitHub secrets:
-
-- `AWS_ROLE_ARN`: OIDC-enabled IAM role the workflow can assume
-- `AWS_APPRUNNER_ACCESS_ROLE_ARN`: App Runner ECR access role (or use an existing service access role)
-
-You can adjust region, repo name, and service name inside the workflow file.
-
-Alternatively, you can configure App Runner to build directly from this GitHub repository (no separate ECR required):
-
-- Source directory (monorepo): `server/`
-- Runtime: Node.js 20
-- Build command: `npm ci`
-- Start command: `npm start`
-- Port: `4000`, Health check: `/api/health`
-- Env vars: `MONGODB_URI`, `PORT=4000`, `CORS_ORIGIN=https://<your-frontend-domain>`
-- Enable auto deploy from `main` for hands-free updates
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Linting
+```bash
+npm run lint         # Check for code issues
+npm run lint:fix     # Auto-fix linting problems
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Type Safety
+- Full TypeScript coverage across frontend
+- Shared type definitions in `src/types/index.ts`
+- Strict mode enabled for maximum safety
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Code Quality Standards
+- ESLint configuration with React and TypeScript rules
+- Consistent code formatting across the project
+- Type-aware lint rules for production-grade code
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to get started:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+- Follow existing code style and conventions
+- Add TypeScript types for new features
+- Test changes locally before submitting
+- Update documentation for significant changes
+
+## 📝 License
+
+This project is open source and available under the MIT License.
+
+## 🙏 Acknowledgments
+
+- **Spotify Web API** - Music catalog and metadata
+- **Lucide Icons** - Beautiful icon set
+- **Vite** - Lightning-fast build tool
+- **MongoDB** - Flexible document database
+
+## 📧 Contact
+
+Project maintained by [A71as](https://github.com/A71as)
+
+---
+
+**Built with ❤️ for music lovers, by music lovers.**
