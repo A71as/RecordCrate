@@ -110,7 +110,7 @@ export const Header: React.FC = () => {
                 )}
                 <span className="user-name">{displayName}</span>
               </div>
-              <button className="logout-btn" onClick={logout}>
+              <button className="logout-btn" onClick={() => logout()}>
                 <LogOut size={16} />
                 Logout
               </button>

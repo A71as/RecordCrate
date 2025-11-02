@@ -85,7 +85,7 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
     // Debounced search for dropdown suggestions with caching
     useEffect(() => {
         if (debounceTimeoutRef.current) {
-            clearTimeout(debounceTimeoutRef.current);
+            window.clearTimeout(debounceTimeoutRef.current);
         }
 
         // Update current query ref
@@ -164,7 +164,7 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
 
         return () => {
             if (debounceTimeoutRef.current) {
-                clearTimeout(debounceTimeoutRef.current);
+                window.clearTimeout(debounceTimeoutRef.current);
             }
         };
     }, [query, searchAlbums, searchArtists, searchTracks]);
@@ -298,7 +298,7 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
     const handleInputBlur = useCallback(() => {
         // Clear any existing timeout
         if (blurTimeoutRef.current) {
-            clearTimeout(blurTimeoutRef.current);
+            window.clearTimeout(blurTimeoutRef.current);
         }
         
         // If this blur was caused by a keyboard action (like Enter), don't delay
@@ -309,7 +309,7 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
         }
         
         // Use a delay for mouse actions to prevent flickering when clicking on dropdown items
-        blurTimeoutRef.current = setTimeout(() => {
+        blurTimeoutRef.current = window.setTimeout(() => {
             setShowDropdown(false);
             blurTimeoutRef.current = undefined;
         }, 200);

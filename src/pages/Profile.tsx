@@ -8,6 +8,7 @@ import type { AlbumReview } from '../types';
 export const Profile: React.FC = () => {
   const [reviews, setReviews] = useState<AlbumReview[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
+  const googleError: string | null = null;
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
   const {
     googleUser,
