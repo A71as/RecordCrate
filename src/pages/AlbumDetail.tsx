@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Star, ArrowLeft, Clock } from "lucide-react";
 import { spotifyService } from "../services/spotify";
+import { backend } from "../services/backend";
 import { StarRating } from "../components/StarRating";
 import type { SpotifyAlbum, SongRating, AlbumReview } from "../types";
 
@@ -19,6 +20,7 @@ export const AlbumDetail: React.FC = () => {
   const [album, setAlbum] = useState<SpotifyAlbum | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [songRatings, setSongRatings] = useState<{ [trackId: string]: number }>(
     {}
   );
@@ -47,39 +49,106 @@ export const AlbumDetail: React.FC = () => {
         const albumData = await spotifyService.getAlbumWithTracks(albumId);
         setAlbum(albumData);
 
-        // Load existing review if any
-        const savedReviews = JSON.parse(
-          localStorage.getItem("albumReviews") || "[]"
-        );
-        const albumReviews = savedReviews.filter(
-          (r: AlbumReview) => r.albumId === albumId
-        );
-        setReviewCount(albumReviews.length);
+        // Try to identify current user (Spotify login), sync to backend
+        let userId: string | null = null;
+        try {
+          const user = await spotifyService.getCurrentUser();
+          if (user) {
+            userId = user.id;
+            setCurrentUserId(user.id);
+            // best-effort sync
+            backend
+              .syncUser({
+                spotifyId: user.id,
+                displayName: user.display_name,
+                avatarUrl: user.images?.[0]?.url,
+              })
+              .catch(() => {});
+          } else {
+            setCurrentUserId(null);
+          }
+        } catch (e) {
+          setCurrentUserId(null);
+        }
 
+        // Backend-first load if we have a user; otherwise fallback to localStorage
+        if (userId) {
+          try {
+            const serverReviews: any[] = await backend.getAlbumReviews(albumId);
+            setReviewCount(Array.isArray(serverReviews) ? serverReviews.length : 0);
+            const my = Array.isArray(serverReviews)
+              ? serverReviews.find((r) => r.userSpotifyId === userId)
+              : null;
+            if (my) {
+              const migratedOverall =
+                typeof my.overallRating === 'number' && my.overallRating <= 5
+                  ? Math.round(my.overallRating * 20)
+                  : Math.round(my.overallRating || 0);
+              const baseOverall =
+                typeof my.baseOverallRating === 'number'
+                  ? Math.round(my.baseOverallRating)
+                  : migratedOverall;
+              const mapped: AlbumReview = {
+                id: my._id || `${my.userSpotifyId}:${my.albumId}`,
+                albumId: my.albumId,
+                userId: my.userSpotifyId,
+                overallRating: migratedOverall,
+                baseOverallRating: baseOverall,
+                adjustedOverallRating: typeof my.adjustedOverallRating === 'number' ? Math.round(my.adjustedOverallRating) : migratedOverall,
+                scoreModifiers: my.scoreModifiers || {},
+                songRatings: (my.songRatings || []).map((sr: any) => ({
+                  trackId: sr.trackId,
+                  trackName: sr.trackName || '',
+                  rating: sr.rating,
+                })),
+                writeup: my.writeup || '',
+                createdAt: my.createdAt || new Date().toISOString(),
+                updatedAt: my.updatedAt || my.createdAt || new Date().toISOString(),
+                album: albumData,
+              };
+              setExistingReview(mapped);
+              setOverallRating(baseOverall);
+              setWriteup(mapped.writeup);
+              setModifiers({
+                emotionalStoryConnection: Math.max(-5, Math.min(5, mapped.scoreModifiers?.emotionalStoryConnection ?? 0)),
+                cohesionAndFlow: Math.max(-5, Math.min(5, mapped.scoreModifiers?.cohesionAndFlow ?? 0)),
+                artistIdentityOriginality: Math.max(-5, Math.min(5, mapped.scoreModifiers?.artistIdentityOriginality ?? 0)),
+                visualAestheticEcosystem: Math.max(-5, Math.min(5, mapped.scoreModifiers?.visualAestheticEcosystem ?? 0)),
+              });
+              const ratingsMap: { [trackId: string]: number } = {};
+              mapped.songRatings.forEach((sr: SongRating) => (ratingsMap[sr.trackId] = sr.rating));
+              setSongRatings(ratingsMap);
+              return; // done
+            }
+          } catch (e) {
+            // fall through to local storage
+          }
+        }
+
+        // LocalStorage fallback
+        const savedReviews = JSON.parse(localStorage.getItem("albumReviews") || "[]");
+        const albumReviews = savedReviews.filter((r: AlbumReview) => r.albumId === albumId);
+        setReviewCount(albumReviews.length);
         const review = albumReviews[0];
         if (review) {
-          // migrate older 0-5 scale to 0-100% if necessary
           const migratedOverall =
             typeof review.overallRating === 'number' && review.overallRating <= 5
               ? Math.round(review.overallRating * 20)
               : Math.round(review.overallRating || 0);
           review.overallRating = migratedOverall;
-          // prefer base overall if stored
-          const baseOverall = typeof (review as AlbumReview).baseOverallRating === 'number'
-            ? Math.round((review as AlbumReview).baseOverallRating as number)
-            : migratedOverall;
+          const baseOverall =
+            typeof (review as AlbumReview).baseOverallRating === 'number'
+              ? Math.round((review as AlbumReview).baseOverallRating as number)
+              : migratedOverall;
           setExistingReview(review);
           setOverallRating(baseOverall);
           setWriteup(review.writeup);
-
-          // restore modifiers (optional in legacy reviews) with clamping to ±5
           setModifiers({
             emotionalStoryConnection: Math.max(-5, Math.min(5, review.scoreModifiers?.emotionalStoryConnection ?? 0)),
             cohesionAndFlow: Math.max(-5, Math.min(5, review.scoreModifiers?.cohesionAndFlow ?? 0)),
             artistIdentityOriginality: Math.max(-5, Math.min(5, review.scoreModifiers?.artistIdentityOriginality ?? 0)),
             visualAestheticEcosystem: Math.max(-5, Math.min(5, review.scoreModifiers?.visualAestheticEcosystem ?? 0)),
           });
-
           const ratingsMap: { [trackId: string]: number } = {};
           review.songRatings.forEach((sr: SongRating) => {
             ratingsMap[sr.trackId] = sr.rating;
@@ -167,7 +236,7 @@ export const AlbumDetail: React.FC = () => {
     return `${totalMinutes}:${totalSeconds.toString().padStart(2, "0")}`;
   };
 
-  const handleSaveReview = () => {
+  const handleSaveReview = async () => {
     if (!album) return;
 
     const songRatingsArray: SongRating[] = Object.entries(songRatings).map(
@@ -197,24 +266,42 @@ export const AlbumDetail: React.FC = () => {
       album,
     };
 
-    // Save to localStorage (in real app, this would go to a backend)
-    const savedReviews = JSON.parse(
-      localStorage.getItem("albumReviews") || "[]"
-    );
-    const existingIndex = savedReviews.findIndex(
-      (r: AlbumReview) => r.albumId === album.id
-    );
-
-    if (existingIndex >= 0) {
-      savedReviews[existingIndex] = review;
-    } else {
-      savedReviews.push(review);
+    // If logged-in user, persist to backend as source of truth
+    if (currentUserId) {
+      try {
+        await backend.saveReview({
+          userSpotifyId: currentUserId,
+          albumId: album.id,
+          overallRating: finalAdjusted,
+          baseOverallRating: overallRating,
+          adjustedOverallRating: finalAdjusted,
+          scoreModifiers: { ...modifiers },
+          songRatings: songRatingsArray,
+          writeup,
+          albumMeta: {
+            name: album.name,
+            artists: album.artists?.map((a) => a.name) || [],
+            image: album.images?.[0]?.url || album.images?.[1]?.url,
+          },
+        });
+        // refresh count from server
+        try {
+          const list: any[] = await backend.getAlbumReviews(album.id);
+          setReviewCount(Array.isArray(list) ? list.length : 0);
+        } catch {}
+      } catch (e) {
+        console.warn('Backend save failed, falling back to localStorage', e);
+      }
     }
 
+    // Save a local copy as offline fallback
+    const savedReviews = JSON.parse(localStorage.getItem("albumReviews") || "[]");
+    const existingIndex = savedReviews.findIndex((r: AlbumReview) => r.albumId === album.id);
+    if (existingIndex >= 0) savedReviews[existingIndex] = review; else savedReviews.push(review);
     localStorage.setItem("albumReviews", JSON.stringify(savedReviews));
-    setReviewCount(
-      savedReviews.filter((r: AlbumReview) => r.albumId === album.id).length
-    );
+    if (!currentUserId) {
+      setReviewCount(savedReviews.filter((r: AlbumReview) => r.albumId === album.id).length);
+    }
     setExistingReview(review);
     setIsReviewing(false);
   };

@@ -1,0 +1,52 @@
+name: Deploy API to AWS App Runner
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'server/**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      AWS_REGION: us-east-1
+      ECR_REPO: recordcrate-api
+      IMAGE_TAG: latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to ECR
+        working-directory: server
+        run: |
+          docker build -t $ECR_REPO:$IMAGE_TAG .
+          docker tag $ECR_REPO:$IMAGE_TAG ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:$IMAGE_TAG
+          docker push ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:$IMAGE_TAG
+
+      - name: Update App Runner service
+        uses: awslabs/amazon-app-runner-deploy@v1
+        with:
+          service: recordcrate-api
+          image: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ env.IMAGE_TAG }}
+          access-role-arn: ${{ secrets.AWS_APPRUNNER_ACCESS_ROLE_ARN }}
+          region: ${{ env.AWS_REGION }}
+          cpu: '1 vCPU'
+          memory: '2 GB'
+          port: '4000'
+          health-check-path: '/api/health'
+          wait-for-service-stability: true

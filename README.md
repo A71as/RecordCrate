@@ -1,11 +1,74 @@
-# React + TypeScript + Vite
+# RecordCrate
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite frontend with an Express + MongoDB backend.
 
-Currently, two official plugins are available:
+Frontend lives at the repo root; backend is in `server/`.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Quickstart (local)
+
+Frontend
+
+```powershell
+npm install
+npm run dev
+```
+
+Backend
+
+```powershell
+cd server
+cp .env.example .env
+# Edit .env: set MONGODB_URI, PORT=4000, CORS_ORIGIN=http://localhost:5173
+npm install
+npm run dev
+```
+
+Optional: set the frontend API base URL for local dev
+
+```powershell
+$env:VITE_API_BASE_URL="http://localhost:4000"
+```
+
+## Production
+
+The frontend can be deployed to Netlify (already configured for SPA routing via `public/_redirects`).
+
+Set the following Netlify environment variables:
+
+- `VITE_SPOTIFY_CLIENT_ID`
+- `VITE_SPOTIFY_CLIENT_SECRET`
+- `VITE_SPOTIFY_REDIRECT_URI` (e.g., `https://<site>/callback`)
+- `VITE_API_BASE_URL` (point to the backend URL)
+
+### Backend on AWS App Runner (recommended)
+
+See `server/README.md` for step-by-step instructions. High level:
+
+1. Build and push the Docker image for `server/` to ECR.
+2. Create an App Runner service from that image.
+3. Configure env vars: `MONGODB_URI`, `PORT=4000`, `CORS_ORIGIN=https://<your-frontend-domain>`.
+4. Use the App Runner HTTPS URL for `VITE_API_BASE_URL` in the frontend.
+
+This repository includes a GitHub Actions workflow at `.github/workflows/deploy-apprunner.yml` that can:
+- Build and push the `server/` image to ECR on push to `main`
+- Update your App Runner service image
+
+Required GitHub secrets:
+
+- `AWS_ROLE_ARN`: OIDC-enabled IAM role the workflow can assume
+- `AWS_APPRUNNER_ACCESS_ROLE_ARN`: App Runner ECR access role (or use an existing service access role)
+
+You can adjust region, repo name, and service name inside the workflow file.
+
+Alternatively, you can configure App Runner to build directly from this GitHub repository (no separate ECR required):
+
+- Source directory (monorepo): `server/`
+- Runtime: Node.js 20
+- Build command: `npm ci`
+- Start command: `npm start`
+- Port: `4000`, Health check: `/api/health`
+- Env vars: `MONGODB_URI`, `PORT=4000`, `CORS_ORIGIN=https://<your-frontend-domain>`
+- Enable auto deploy from `main` for hands-free updates
 
 ## Expanding the ESLint configuration
 
