@@ -25,12 +25,15 @@ const userSchema = new Schema(
             type: String,
             required: false
         },
-        spotify: {
-            type: Map,
-            of: String,
+        spotify_token: {
+            type: String,
             required: false
         },
-        createdAt: { 
+        spotify_refresh: {
+            type: String,
+            required: false
+        },
+        created_at: { 
             type: Date, 
             default: Date.now 
         }

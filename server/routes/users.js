@@ -1,16 +1,27 @@
 import checkJwt from "../middleware/checkJwt.js";
 import express from "express";
+import management from "../middleware/management.js";
 import Users from "../models/Users.js";
 
 const router = express.Router();
 
-// Checks if user already exists in database. Used to check for new users
+// Adds creation date to Auth0's user database
+// This is used as a check for front-end to know user has been created in MongoDB
+async function addCreatedDate(user_id, created_date) {
+    await management.users.update(
+        user_id,
+        { app_metadata: { created: created_date } }
+    );
+}
+
+// Checks if user already exists in database
 router.get("/check-user/:user_id", checkJwt, async (req, res) => {
     try {
         const user = await Users.findOne({ user_id: req.params.user_id });
         if (!user)
             res.status(204).json({ message: "User doesn't exist" });
-        res.json({ message: "User exists" });
+        else
+            res.status(200).json({ message: "User exists" });
     } catch {
         res.status(500).json({ message: "Search Failed" });
     }
@@ -20,18 +31,20 @@ router.get("/check-user/:user_id", checkJwt, async (req, res) => {
 router.post("/new-user", checkJwt, async (req, res) => {
     try {
         const { user_id, name, username, email, picture } = req.body;
+        const created_at = Date.now();
         // Create new user
         const newUser = new Users({
             user_id,
             name,
             username,
             email,
-            picture
+            picture,
+            created_at
         });
-
         // Save new user
         await newUser.save();
-        res.status(201).json({ message: "New user saved" });
+        addCreatedDate(user_id, (new Date(created_at)).toISOString());
+        res.status(201).json(newUser);
     } catch (error) {
         console.error("Database connection error:", error);
         res.status(500).json({ message: "Save failed" });

@@ -15,30 +15,20 @@ export const Header: React.FC = () => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        if (isAuthenticated && user) {
+        if (user && !user.created_at) {
           const accessToken = await memoizedGetAccessTokenSilently();
-          const response = await axios.get(`http://localhost:8000/api/check-user/${user.sub}`, {
+          await axios.post(`http://localhost:8000/api/new-user`, {
+            user_id: user.sub,
+            email: user.email,
+            name: user.name,
+            username: user.nickname,
+            picture: user.picture
+          }, {
             headers: {
               Authorization: `Bearer ${accessToken}`,
-            },
+              "Content-Type": "application/json"
+            }
           });
-          if (response.status == 204) {
-            const createResponse = await axios.post(`http://localhost:8000/api/new-user`, {
-              user_id: user.sub,
-              email: user.email,
-              name: user.name,
-              username: user.nickname,
-              picture: user.picture
-            }, {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Content-Type": "application/json"
-              },
-            });
-            if (createResponse.status == 500)
-              console.error("Failed to create user in database");
-          } else if (response.status == 500)
-            console.error("Failed to check user in database");
         }
       } catch (error) {
         console.error("Error during user check:", error);
@@ -55,6 +45,7 @@ export const Header: React.FC = () => {
     isLoading,
   ]);
 
+  // Google Login
   const handleLogin = async () => {
     await loginWithRedirect({
       authorizationParams: {
@@ -110,7 +101,7 @@ export const Header: React.FC = () => {
                 )}
                 <span className="user-name">{displayName}</span>
               </div>
-              <button className="logout-btn" onClick={logout}>
+              <button className="logout-btn" onClick={() => logout()}>
                 <LogOut size={16} />
                 Logout
               </button>

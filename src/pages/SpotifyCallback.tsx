@@ -31,7 +31,7 @@ export const SpotifyCallback: React.FC = () => {
       try {
         await spotifyService.exchangeCodeForToken(code);
         await refreshSpotifyUser();
-        navigate('/profile', { replace: true });
+        window.location.href = "http://localhost:5173";
       } catch (err) {
         console.error('Token exchange failed:', err);
         setError('Failed to authenticate with Spotify. Please try again.');

@@ -41,6 +41,7 @@ function App() {
               <Route path="/album/:albumId" element={<AlbumDetail />} />
               <Route path="/artist/:id" element={<ArtistDetail />} />
               <Route path="/callback" element={<SpotifyCallback />} />
+              <Route path="/authCallback" element={<Home />} />
               <Route path="/about" element={<AboutUs />} />
             </Routes>
           </main>

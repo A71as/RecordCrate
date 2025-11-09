@@ -10,9 +10,7 @@ export const Profile: React.FC = () => {
   const [loadingReviews, setLoadingReviews] = useState(true);
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
   const {
-    googleUser,
     spotifyUser,
-    isSpotifyLinked,
     loadingSpotify,
     linkSpotifyAccount,
   } = useAuth();
@@ -64,15 +62,9 @@ export const Profile: React.FC = () => {
                 <Star size={16} />
                 Login to Google
               </button>
-              {googleError && <p className="error">{googleError}</p>}
-              <div className="login-divider">or</div>
-              <button className="spotify-login-btn large" onClick={linkSpotifyAccount}>
-                <Music size={20} />
-                Login with Spotify
-              </button>
               <p className="login-note">
-                After connecting Spotify you&apos;ll be redirected back here to finish signing in with
-                Google.
+                After connecting with Google you&apos;ll be redirected back here to finish signing in with
+                Spotify.
               </p>
             </div>
           </div>
@@ -80,8 +72,8 @@ export const Profile: React.FC = () => {
       </div >
     );
   }
-
-  if (!isSpotifyLinked) {
+  
+  if (!user?.spotify) {
     return (
       <div className="profile-page">
         <div className="container">
@@ -121,19 +113,19 @@ export const Profile: React.FC = () => {
     <div className="profile-page">
       <div className="container">
         <div className="profile-header">
-          {spotifyUser && (
+          {user && spotifyUser  && (
             <div className="user-profile">
-              {spotifyUser.images && spotifyUser.images[0] && (
+              {user.images && user.images[0] && (
                 <img
-                  src={spotifyUser.images[0].url}
-                  alt={spotifyUser.display_name}
+                  src={user.images[0].url}
+                  alt={user.display_name}
                   className="profile-avatar"
                 />
               )}
               <div className="user-details">
-                <h1>{spotifyUser.display_name}</h1>
-                {googleUser && (
-                  <p className="linked-account">Signed in as {googleUser.email}</p>
+                <h1>{user.display_name}</h1>
+                {user && (
+                  <p className="linked-account">Signed in as {user.email}</p>
                 )}
                 <div className="user-stats">
                   <div className="stat">
