@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import reviewsRouter from './routes/reviews.js';
 import usersRouter from './routes/users.js';
 import discographyRouter from './routes/discography.js';
+import billboardRouter from './routes/billboard.js';
 
 const app = express();
 
@@ -24,8 +25,9 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'recordcrate-api', time: new Date().toISOString() });
 });
 
-// Always mount discography; it does not require DB
+// Always mount discography and billboard; they do not require DB
 app.use('/api/discography', discographyRouter);
+app.use('/api/billboard', billboardRouter);
 
 // Mount DB-backed routes only when Mongo is configured
 function mountDbRoutes() {

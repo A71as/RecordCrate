@@ -125,8 +125,6 @@ export const Discover: React.FC = () => {
         return 'Your Top Music (6 Months)';
       case 'personal-alltime':
         return 'Your All-Time Favorites';
-      case 'billboard-hot-100':
-        return 'Billboard Hot 100 Albums';
       default:
         return 'Featured Albums';
     }

@@ -12,9 +12,6 @@ const filterOptions: FilterOption[] = [
   { id: 'new-releases-week', label: 'This Week', category: 'releases' },
   { id: 'new-releases-month', label: 'This Month', category: 'releases' },
   { id: 'new-releases-year', label: 'This Year', category: 'releases' },
-  
-  // Billboard Charts
-  { id: 'billboard-hot-100', label: 'Hot 100', category: 'charts' },
 ];
 
 export const FilterTabs: React.FC<FilterTabsProps> = ({

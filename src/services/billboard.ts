@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { spotifyService } from './spotify';
-import type { SpotifyAlbum } from '../types';
+import type { SpotifyAlbum, SpotifyTrack } from '../types';
 
 interface BillboardTrack {
   rank: number;
@@ -14,88 +14,34 @@ class BillboardService {
     timestamp: number;
   } | null = null;
 
-  private readonly CACHE_DURATION = 1000 * 60 * 60 * 24; // 24 hours
+  private readonly CACHE_DURATION = 1000 * 60 * 60 * 6; // 6 hours - refresh more often for current chart
 
   /**
-   * Scrape Billboard Hot 100 from the HTML page
-   * Note: This is a fallback approach. Ideally use a paid API or server-side scraping.
+   * Fetch Billboard Hot 100 from backend API (bypasses CORS issues)
    */
   private async scrapeBillboardHot100(): Promise<BillboardTrack[]> {
     try {
-      // Try to use a CORS proxy for development
-      const proxyUrl = 'https://api.allorigins.win/raw?url=';
-      const billboardUrl = encodeURIComponent('https://www.billboard.com/charts/hot-100/');
+      // Use our backend API to fetch Billboard data (bypasses CORS)
+      const apiUrl = 'http://127.0.0.1:4000/api/billboard/hot-100';
       
-      const response = await axios.get(proxyUrl + billboardUrl, {
-        timeout: 10000,
+      console.log('Fetching current Billboard Hot 100 from backend API...');
+      const response = await axios.get(apiUrl, {
+        timeout: 30000, // Longer timeout since backend needs to scrape
       });
 
-      const html = response.data;
-      const tracks: BillboardTrack[] = [];
-
-      // Parse the HTML to extract track information
-      // Billboard uses a specific structure - this is fragile and may break
-      const titleRegex = /<h3[^>]*id="title-of-a-story"[^>]*>([^<]+)<\/h3>/gi;
-      const artistRegex = /<span[^>]*class="[^"]*c-label[^"]*a-no-trucate[^"]*"[^>]*>([^<]+)<\/span>/gi;
-
-      const titles: string[] = [];
-      const artists: string[] = [];
-
-      let match;
-      while ((match = titleRegex.exec(html)) !== null && titles.length < 100) {
-        titles.push(match[1].trim());
+      if (response.data.success && Array.isArray(response.data.tracks)) {
+        const tracks = response.data.tracks;
+        console.log(`✅ Successfully fetched ${tracks.length} current Billboard tracks (source: ${response.data.source})`);
+        console.log('Top 5 tracks:', tracks.slice(0, 5));
+        return tracks;
       }
 
-      while ((match = artistRegex.exec(html)) !== null && artists.length < 100) {
-        const artist = match[1].trim();
-        if (artist && !artist.toLowerCase().includes('new') && !artist.toLowerCase().includes('last week')) {
-          artists.push(artist);
-        }
-      }
-
-      // Combine titles and artists
-      for (let i = 0; i < Math.min(titles.length, artists.length, 100); i++) {
-        tracks.push({
-          rank: i + 1,
-          title: titles[i],
-          artist: artists[i],
-        });
-      }
-
-      return tracks.length > 0 ? tracks : this.getFallbackTracks();
+      throw new Error('Invalid response from Billboard API');
+      
     } catch (error) {
-      console.warn('Failed to scrape Billboard Hot 100, using fallback data:', error);
-      return this.getFallbackTracks();
+      console.error('❌ Failed to fetch Billboard Hot 100:', error);
+      throw new Error('Unable to fetch current Billboard Hot 100. Backend API error.');
     }
-  }
-
-  /**
-   * Fallback track list with popular songs
-   * Use this when scraping fails or for development
-   */
-  private getFallbackTracks(): BillboardTrack[] {
-    return [
-      { rank: 1, title: 'Flowers', artist: 'Miley Cyrus' },
-      { rank: 2, title: 'Kill Bill', artist: 'SZA' },
-      { rank: 3, title: 'Anti-Hero', artist: 'Taylor Swift' },
-      { rank: 4, title: 'Creepin\'', artist: 'Metro Boomin, The Weeknd & 21 Savage' },
-      { rank: 5, title: 'Unholy', artist: 'Sam Smith & Kim Petras' },
-      { rank: 6, title: 'Rich Flex', artist: 'Drake & 21 Savage' },
-      { rank: 7, title: 'Die For You', artist: 'The Weeknd' },
-      { rank: 8, title: 'Superhero', artist: 'Metro Boomin, Future & Chris Brown' },
-      { rank: 9, title: 'Just Wanna Rock', artist: 'Lil Uzi Vert' },
-      { rank: 10, title: 'Allegedly', artist: 'Megan Thee Stallion' },
-      { rank: 11, title: 'I\'m Good (Blue)', artist: 'David Guetta & Bebe Rexha' },
-      { rank: 12, title: 'Shirt', artist: 'SZA' },
-      { rank: 13, title: 'As It Was', artist: 'Harry Styles' },
-      { rank: 14, title: 'You Proof', artist: 'Morgan Wallen' },
-      { rank: 15, title: 'Calm Down', artist: 'Rema & Selena Gomez' },
-      { rank: 16, title: 'Used to This', artist: 'Future' },
-      { rank: 17, title: 'Spin Bout U', artist: 'Drake & 21 Savage' },
-      { rank: 18, title: 'blind', artist: 'SZA' },
-      { rank: 19, title: 'Lavender Haze', artist: 'Taylor Swift' },
-      { rank: 20, title: 'Escapism', artist: 'RAYE & 070 Shake' },
-    ];
   }
 
   /**
@@ -104,11 +50,17 @@ class BillboardService {
   async getBillboardHot100(): Promise<BillboardTrack[]> {
     // Check cache
     if (this.cache && Date.now() - this.cache.timestamp < this.CACHE_DURATION) {
+      console.log('Using cached Billboard data');
       return this.cache.tracks;
     }
 
     // Fetch new data
+    console.log('Fetching fresh Billboard Hot 100 data...');
     const tracks = await this.scrapeBillboardHot100();
+    
+    if (tracks.length === 0) {
+      throw new Error('Failed to fetch Billboard Hot 100 - no tracks returned');
+    }
     
     // Update cache
     this.cache = {
@@ -120,7 +72,83 @@ class BillboardService {
   }
 
   /**
-   * Match Billboard tracks to Spotify albums
+   * Get Billboard Hot 100 tracks with Spotify data (paginated for infinite scroll)
+   */
+  async getBillboardTracksWithSpotifyData(
+    page: number = 0,
+    limit: number = 20
+  ): Promise<{ tracks: SpotifyTrack[]; hasMore: boolean; total: number }> {
+    try {
+      // Get all 100 tracks from Billboard
+      const billboardTracks = await this.getBillboardHot100();
+      const total = billboardTracks.length;
+      
+      // Calculate pagination
+      const startIndex = page * limit;
+      const endIndex = Math.min(startIndex + limit, total);
+      const hasMore = endIndex < total;
+      
+      // Get the tracks for this page
+      const tracksToMatch = billboardTracks.slice(startIndex, endIndex);
+      
+      const spotifyTracks: SpotifyTrack[] = [];
+      const skippedTracks: string[] = [];
+      
+      // Match each Billboard track to Spotify
+      for (const track of tracksToMatch) {
+        try {
+          const query = `track:${track.title} artist:${track.artist}`;
+          const searchResults = await spotifyService.searchTracks(query);
+          
+          if (searchResults.length > 0) {
+            const spotifyTrack = searchResults[0];
+            // Add the Billboard rank and any skipped tracks before this one
+            (spotifyTrack as any).billboardRank = track.rank;
+            if (skippedTracks.length > 0) {
+              (spotifyTrack as any).skippedBefore = [...skippedTracks];
+              skippedTracks.length = 0; // Clear the array
+            }
+            spotifyTracks.push(spotifyTrack);
+          } else {
+            // No match found - track this as skipped
+            const skippedInfo = `#${track.rank}: ${track.title} by ${track.artist}`;
+            skippedTracks.push(skippedInfo);
+            console.log(`No Spotify match for: ${skippedInfo}`);
+          }
+          
+          // Small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+          const skippedInfo = `#${track.rank}: ${track.title} by ${track.artist}`;
+          skippedTracks.push(skippedInfo);
+          console.warn(`Failed to match track: ${skippedInfo}`, error);
+        }
+      }
+      
+      // If there are trailing skipped tracks, attach them to the last track
+      if (skippedTracks.length > 0 && spotifyTracks.length > 0) {
+        const lastTrack = spotifyTracks[spotifyTracks.length - 1];
+        const existing = (lastTrack as any).skippedBefore || [];
+        (lastTrack as any).skippedBefore = [...existing, ...skippedTracks];
+      }
+      
+      return {
+        tracks: spotifyTracks,
+        hasMore,
+        total,
+      };
+    } catch (error) {
+      console.error('Failed to get Billboard tracks with Spotify data:', error);
+      return {
+        tracks: [],
+        hasMore: false,
+        total: 0,
+      };
+    }
+  }
+
+  /**
+   * Match Billboard tracks to Spotify albums (legacy - only shows first 20)
    */
   async getBillboardAlbumsFromSpotify(): Promise<SpotifyAlbum[]> {
     const billboardTracks = await this.getBillboardHot100();

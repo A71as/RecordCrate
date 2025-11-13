@@ -1,0 +1,323 @@
+/* Billboard Track List Styles */
+.billboard-track-list {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.billboard-header {
+    margin-bottom: var(--space-4);
+    text-align: center;
+}
+
+.billboard-header h2 {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--rc-text);
+    margin-bottom: var(--space-2);
+    background: linear-gradient(135deg, var(--rc-amber-glow) 0%, var(--rc-crate-wood) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.track-count {
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.tracks-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.billboard-track-item {
+    display: grid;
+    grid-template-columns: 50px 60px 1fr 200px 60px 40px 40px;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.billboard-track-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border-color: var(--rc-amber-glow);
+    background: color-mix(in srgb, var(--panel-bg) 95%, var(--rc-amber-glow) 5%);
+}
+
+.track-rank {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--rc-amber-glow);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    position: relative;
+}
+
+.skipped-indicator {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 1.2rem;
+    color: var(--rc-red);
+    font-weight: 900;
+    cursor: help;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.skipped-indicator:hover {
+    transform: scale(1.2);
+}
+
+.skipped-tooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 8px;
+    background: var(--rc-vinyl-black);
+    color: var(--rc-cream);
+    padding: var(--space-3);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    min-width: 250px;
+    max-width: 400px;
+    font-size: 0.85rem;
+    font-weight: 400;
+    text-align: left;
+    white-space: normal;
+    line-height: 1.4;
+    pointer-events: none;
+}
+
+.skipped-tooltip strong {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--rc-amber-glow);
+    font-size: 0.9rem;
+}
+
+.skipped-track {
+    padding: var(--space-1) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.skipped-track:last-child {
+    border-bottom: none;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.track-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.track-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.track-image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--rc-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--panel-bg);
+    font-size: 1.5rem;
+}
+
+.track-info {
+    min-width: 0;
+}
+
+.track-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--rc-text);
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.track-artist {
+    font-size: 0.9rem;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.track-album {
+    font-size: 0.9rem;
+    color: var(--muted-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.track-duration {
+    font-size: 0.9rem;
+    color: var(--muted-2);
+    font-weight: 600;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.explicit-badge {
+    width: 24px;
+    height: 24px;
+    background: var(--muted-2);
+    color: var(--panel-bg);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 900;
+}
+
+.spotify-link-icon {
+    color: var(--spotify-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.spotify-link-icon:hover {
+    background: color-mix(in srgb, var(--spotify-green) 15%, transparent);
+    transform: scale(1.1);
+}
+
+.loading-more {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-5) 0;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--panel-border);
+    border-top-color: var(--rc-amber-glow);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-more p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.load-sentinel {
+    height: 20px;
+}
+
+.all-loaded {
+    text-align: center;
+    padding: var(--space-5);
+    color: var(--muted);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.all-loaded p {
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .billboard-track-item {
+        grid-template-columns: 40px 50px 1fr 150px 50px 30px 35px;
+        gap: var(--space-2);
+        padding: var(--space-2);
+    }
+
+    .track-rank {
+        font-size: 1.2rem;
+    }
+
+    .track-image {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+@media (max-width: 768px) {
+    .billboard-track-item {
+        grid-template-columns: 35px 50px 1fr 50px 35px;
+        gap: var(--space-2);
+    }
+
+    .track-album {
+        display: none;
+    }
+
+    .explicit-badge {
+        display: none;
+    }
+
+    .track-rank {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .billboard-track-item {
+        grid-template-columns: 30px 45px 1fr 35px;
+        padding: var(--space-2);
+    }
+
+    .track-duration {
+        display: none;
+    }
+
+    .track-image {
+        width: 45px;
+        height: 45px;
+    }
+
+    .track-name {
+        font-size: 0.9rem;
+    }
+
+    .track-artist {
+        font-size: 0.8rem;
+    }
+}
