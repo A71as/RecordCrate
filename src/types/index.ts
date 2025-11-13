@@ -174,10 +174,11 @@ export type FilterType =
   | 'popular-year'
   | 'personal-week'
   | 'personal-6months'
-  | 'personal-alltime';
+  | 'personal-alltime'
+  | 'billboard-hot-100';
 
 export interface FilterOption {
   id: FilterType;
   label: string;
-  category: 'releases' | 'popular' | 'personal';
+  category: 'releases' | 'popular' | 'personal' | 'charts';
 }

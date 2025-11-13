@@ -4,6 +4,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import './index.css';
 import App from './App.tsx';
 import { AuthProvider } from './context/AuthProvider';
+import { ThemeProvider } from './context/ThemeContext';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -15,9 +16,11 @@ const root = createRoot(document.getElementById('root')!);
 
 const appTree = (
   <StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </ThemeProvider>
   </StrictMode>
 );
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, TrendingUp, User } from 'lucide-react';
+import { Calendar, TrendingUp, User, Trophy } from 'lucide-react';
 import type { FilterType, FilterOption } from '../types';
 
 interface FilterTabsProps {
@@ -13,6 +13,8 @@ const filterOptions: FilterOption[] = [
   { id: 'new-releases-month', label: 'This Month', category: 'releases' },
   { id: 'new-releases-year', label: 'This Year', category: 'releases' },
   
+  // Billboard Charts
+  { id: 'billboard-hot-100', label: 'Hot 100', category: 'charts' },
 ];
 
 export const FilterTabs: React.FC<FilterTabsProps> = ({
@@ -27,6 +29,8 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({
         return <TrendingUp size={16} />;
       case 'personal':
         return <User size={16} />;
+      case 'charts':
+        return <Trophy size={16} />;
       default:
         return null;
     }
@@ -40,6 +44,8 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({
         return 'Most Popular';
       case 'personal':
         return 'Your Music';
+      case 'charts':
+        return 'Billboard Charts';
       default:
         return '';
     }

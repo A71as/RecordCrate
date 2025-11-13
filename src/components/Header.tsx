@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Search, User, Music, LogOut } from 'lucide-react';
+import { Search, User, Music, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
+import { useTheme } from '../context/ThemeContext';
 
 export const Header: React.FC = () => {
   const { googleUser, spotifyUser, linkSpotifyAccount, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogin = () => {
     // Store current page to redirect back after login
@@ -44,6 +46,14 @@ export const Header: React.FC = () => {
             <User size={18} />
             Profile
           </NavLink>
+          <button 
+            type="button" 
+            className="nav-link nav-link-button" 
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
           <div className="nav-divider"></div>
           {spotifyUser ? (
             <div className="user-section">

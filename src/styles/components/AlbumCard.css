@@ -2,8 +2,8 @@
 .album-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
-    padding: 0.5rem 0;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
     width: 100%;
 }
 
@@ -57,7 +57,7 @@
 }
 
 .album-info {
-    padding: 1.5rem;
+    padding: var(--space-4);
 }
 
 .album-title {
@@ -97,7 +97,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 1rem;
+    gap: var(--space-3);
 }
 
 .album-detail .album-title {
@@ -118,7 +118,7 @@
 @media (max-width: 768px) {
     .album-grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 1rem;
+        gap: var(--space-3);
     }
 }
 
@@ -128,7 +128,7 @@
     }
 
     .album-info {
-        padding: 1rem;
+        padding: var(--space-3);
     }
 
     .album-title {

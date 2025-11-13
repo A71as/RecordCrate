@@ -125,6 +125,8 @@ export const Discover: React.FC = () => {
         return 'Your Top Music (6 Months)';
       case 'personal-alltime':
         return 'Your All-Time Favorites';
+      case 'billboard-hot-100':
+        return 'Billboard Hot 100 Albums';
       default:
         return 'Featured Albums';
     }
@@ -133,7 +135,32 @@ export const Discover: React.FC = () => {
   const showPersonalNote = activeFilter.startsWith('personal');
 
   if (loading) return <div className="loading">Loading content...</div>;
-  if (error) return <div className="error">Error: {error}</div>;
+  if (error) {
+    return (
+      <div className="error" style={{ maxWidth: '700px', margin: '2rem auto', padding: '2rem', borderRadius: '12px' }}>
+        <h3 style={{ marginBottom: '1rem', color: 'var(--rc-red)' }}>⚠️ Spotify API Setup Required</h3>
+        <p style={{ marginBottom: '1.5rem', lineHeight: '1.6' }}>
+          To view music content on this page, you need to set up Spotify API credentials. Don't worry, it's free and only takes a few minutes!
+        </p>
+        <div style={{ background: 'var(--panel-bg)', padding: '1.5rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+          <h4 style={{ marginBottom: '1rem', color: 'var(--rc-amber-glow)' }}>Quick Setup Steps:</h4>
+          <ol style={{ textAlign: 'left', lineHeight: '1.8', paddingLeft: '1.5rem' }}>
+            <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--rc-amber-glow)', textDecoration: 'underline' }}>Spotify Developer Dashboard</a></li>
+            <li>Click "Create app" and fill in any name (e.g., "RecordCrate Dev")</li>
+            <li>Set Redirect URI to: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '2px 8px', borderRadius: '4px', color: 'var(--rc-amber-glow)' }}>http://127.0.0.1:5173/callback</code></li>
+            <li>Check "Web API" and save</li>
+            <li>Click "Settings" and copy your <strong>Client ID</strong> and <strong>Client Secret</strong></li>
+            <li>Open the <code style={{ background: 'rgba(0,0,0,0.3)', padding: '2px 8px', borderRadius: '4px' }}>.env</code> file in your project root</li>
+            <li>Replace <code>your_client_id_here</code> and <code>your_client_secret_here</code> with your actual values</li>
+            <li>Restart the dev server: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '2px 8px', borderRadius: '4px' }}>npm run dev</code></li>
+          </ol>
+        </div>
+        <p style={{ fontSize: '0.9rem', color: 'var(--muted)', marginTop: '1rem' }}>
+          💡 <strong>Tip:</strong> The Spotify API is completely free for development use and doesn't require any payment information.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="discover">
