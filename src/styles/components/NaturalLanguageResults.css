@@ -1,0 +1,226 @@
+/* Natural Language Search Results */
+.natural-language-results {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(26, 26, 29, 0.1);
+}
+
+.nl-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.nl-header-icon {
+  color: var(--amber-gold);
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.nl-header-content h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--rc-text);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.nl-interpretation {
+  color: var(--muted-2);
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Recommendations Grid */
+.nl-recommendations {
+  margin-bottom: 1.5rem;
+}
+
+.nl-recommendations h4 {
+  color: var(--rc-text);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+}
+
+.nl-recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.nl-recommendation-card {
+  background: var(--background);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nl-recommendation-card:hover {
+  border-color: var(--amber-gold);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.2);
+}
+
+.nl-rec-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.nl-rec-icon {
+  color: var(--amber-gold);
+  flex-shrink: 0;
+}
+
+.nl-rec-type {
+  background: color-mix(in srgb, var(--amber-gold) 20%, transparent);
+  color: var(--amber-gold);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nl-rec-title {
+  color: var(--rc-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+}
+
+.nl-rec-reason {
+  color: var(--muted-2);
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Search Suggestions */
+.nl-search-suggestions {
+  margin-bottom: 1.5rem;
+}
+
+.nl-search-suggestions h4 {
+  color: var(--rc-text);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+}
+
+.nl-suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nl-suggestion-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--background);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.nl-suggestion-button:hover {
+  border-color: var(--warm-wood);
+  background: color-mix(in srgb, var(--warm-wood) 5%, var(--background));
+}
+
+.nl-suggestion-icon {
+  color: var(--warm-wood);
+  flex-shrink: 0;
+}
+
+.nl-suggestion-content {
+  flex: 1;
+}
+
+.nl-suggestion-text {
+  display: block;
+  color: var(--rc-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.nl-suggestion-reason {
+  color: var(--muted-2);
+  font-size: 0.8rem;
+}
+
+/* Additional Terms */
+.nl-additional-terms h4 {
+  color: var(--rc-text);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+}
+
+.nl-terms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.nl-term-tag {
+  background: color-mix(in srgb, var(--warm-wood) 15%, transparent);
+  border: 1px solid var(--warm-wood);
+  color: var(--warm-wood);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nl-term-tag:hover {
+  background: var(--warm-wood);
+  color: var(--background);
+  transform: translateY(-1px);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .natural-language-results {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .nl-recommendations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nl-header {
+    gap: 0.5rem;
+  }
+
+  .nl-header-content h3 {
+    font-size: 1rem;
+  }
+
+  .nl-recommendation-card {
+    padding: 0.75rem;
+  }
+
+  .nl-suggestion-button {
+    padding: 0.625rem;
+  }
+}

@@ -16,6 +16,7 @@ RecordCrate features a **vintage vinyl + wooden crate aesthetic** with a careful
 - **Discover Page** - Explore new releases, popular albums, and personalized recommendations with dynamic filters
 - **Discography Browser** - Genre-based exploration of popular music with no login required
 - **Advanced Search** - Find specific albums, artists, and tracks across the Spotify catalog
+- **Natural Language Search** - Use AI-powered queries like "albums like Blonde by Frank Ocean" or "sad indie music from the 2010s"
 
 ### ⭐ Rating & Review System
 - **Dual Rating Scale**
@@ -104,12 +105,21 @@ RecordCrate features a **vintage vinyl + wooden crate aesthetic** with a careful
    CORS_ORIGIN=http://localhost:5173
    SPOTIFY_CLIENT_ID=your_spotify_client_id
    SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+   GEMINI_API_KEY=your_gemini_api_key  # Optional - for natural language search
    ```
 
-5. **Optional: Spotify API Credentials**
+5. **Optional: API Credentials**
+   
+   **Spotify API** (recommended):
    - Visit [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
    - Create an app and add `http://localhost:5173/callback` as a redirect URI
    - Copy Client ID and Client Secret to your `.env` files
+   
+   **Gemini AI API** (optional for natural language search):
+   - Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Create a new API key
+   - Add it to your server `.env` file as `GEMINI_API_KEY`
+   
    - **Note**: The app works without credentials using fallback data sources
 
 ## 📁 Project Structure
@@ -172,6 +182,10 @@ RecordCrate/
 - `GET /api/reviews/album/:albumId` - Get all reviews for an album
 - `GET /api/reviews/user/:spotifyId` - Get user's reviews
 - `DELETE /api/reviews/:userSpotifyId/:albumId` - Delete a review
+
+### Natural Language Search
+- `POST /api/search/natural-language` - Process natural language music queries with AI
+- `GET /api/search/health` - Check AI search service status
 
 ### Discography (No-Login Browsing)
 - `GET /api/discography/top-tracks?page=0&limit=50` - Get popular tracks

@@ -43,4 +43,10 @@ export const backend = {
     const p = albumId ? `/api/reviews/user/${spotifyId}?albumId=${encodeURIComponent(albumId)}` : `/api/reviews/user/${spotifyId}`;
     return jsonFetch(p);
   },
+  async processNaturalLanguageSearch(query: string) {
+    return jsonFetch('/api/search/natural-language', { 
+      method: 'POST', 
+      body: JSON.stringify({ query }) 
+    });
+  },
 };

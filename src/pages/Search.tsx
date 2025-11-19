@@ -5,11 +5,14 @@ import { SearchDropdown } from '../components/SearchDropdown';
 import { SearchResults } from '../components/SearchResults';
 import { ArtistSearchResults } from '../components/ArtistSearchResults';
 import { TrackSearchResults } from '../components/TrackSearchResults';
+import { NaturalLanguageResults } from '../components/NaturalLanguageResults';
 import { useSearchLogic } from '../hooks/useSearchLogic';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { useNaturalLanguageSearch } from '../hooks/useNaturalLanguageSearch';
 import { MusicFilterBar, type MusicFilterState } from '../components/MusicFilterBar';
 import { useSpotify } from '../hooks/useSpotify';
 import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack } from '../types';
+import type { SearchSuggestion } from '../hooks/useNaturalLanguageSearch';
 
 const DEFAULT_DECADES = ['2020s', '2010s', '2000s', '1990s', '1980s', '1970s', '1960s', '1950s', '1940s'];
 
@@ -147,6 +150,40 @@ export const Search: React.FC = () => {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Natural Language Search
+  const { 
+    processNaturalLanguageQuery, 
+    loading: nlLoading, 
+    error: nlError, 
+    lastResponse: nlResponse,
+    clearResponse: clearNlResponse 
+  } = useNaturalLanguageSearch();
+
+  // Check for natural language queries and process them
+  useEffect(() => {
+    if (query && hasSearched) {
+      // Simple heuristic to detect natural language queries
+      const naturalLanguageIndicators = [
+        'like', 'similar to', 'reminds me of', 'sounds like', 'albums like',
+        'music like', 'artists like', 'recommend', 'suggest', 'find me',
+        'what are some', 'i want', 'looking for', 'show me', 'give me'
+      ];
+      
+      const lowerQuery = query.toLowerCase();
+      const isNaturalLanguage = naturalLanguageIndicators.some(indicator => 
+        lowerQuery.includes(indicator)
+      );
+
+      if (isNaturalLanguage) {
+        processNaturalLanguageQuery(query).catch(console.error);
+      } else {
+        clearNlResponse();
+      }
+    } else {
+      clearNlResponse();
+    }
+  }, [query, hasSearched, processNaturalLanguageQuery, clearNlResponse]);
 
   const artistGenreMap = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -313,7 +350,7 @@ export const Search: React.FC = () => {
                 ariaExpanded={showDropdown}
                 ariaControls="search-dropdown"
                 ariaDescribedBy={error ? "search-error" : undefined}
-                placeholder="Search for albums, artists, and tracks..."
+                placeholder="Search for albums, artists, tracks... or try 'albums like Blonde by Frank Ocean'"
               />
 
               <SearchDropdown
@@ -326,6 +363,36 @@ export const Search: React.FC = () => {
             </div>
           </form>
         </div>
+
+        {/* Natural Language Search Results */}
+        {nlResponse && nlResponse.isNaturalLanguage && !nlError && (
+          <NaturalLanguageResults
+            response={nlResponse}
+            onSuggestionClick={(suggestion: SearchSuggestion) => {
+              setQuery(suggestion.query);
+              handleSearch();
+            }}
+            onExecuteSearch={(searchQuery: string) => {
+              setQuery(searchQuery);
+              handleSearch();
+            }}
+          />
+        )}
+
+        {/* Error Display - Only show non-AI errors */}
+        {error && (
+          <div className="error-section">
+            <p className="error-message" id="search-error">{error}</p>
+          </div>
+        )}
+
+        {/* Loading States */}
+        {(loading || nlLoading) && (
+          <div className="loading-section">
+            {loading && <p className="loading-message">Searching music catalog...</p>}
+            {nlLoading && <p className="loading-message">AI is analyzing your request...</p>}
+          </div>
+        )}
 
         {/* Results Section - Show albums, artists, and tracks */}
         {(albumResults.length > 0 || artistResults.length > 0 || trackResults.length > 0) && (
