@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AlbumCard } from '../components/AlbumCard';
 import { ArtistCard } from '../components/ArtistCard';
 import { FilterTabs } from '../components/FilterTabs';
@@ -8,6 +9,7 @@ import { useAuth } from '../context/useAuth';
 import type { SpotifyAlbum, SpotifyArtist, FilterType, AlbumReview } from '../types';
 
 export const Discover: React.FC = () => {
+  const navigate = useNavigate();
   const [albums, setAlbums] = useState<SpotifyAlbum[]>([]);
   const [artists, setArtists] = useState<SpotifyArtist[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterType>('new-releases-week');
@@ -182,7 +184,7 @@ export const Discover: React.FC = () => {
           <div className="personal-note">
             <p>
               <strong>Note:</strong> Personal listening data requires Spotify account 
-              connection. Currently showing popular content as placeholder.
+              connection. Currently showing popular content from the Spotify catalog.
             </p>
           </div>
         )}
@@ -212,7 +214,7 @@ export const Discover: React.FC = () => {
                   <ArtistCard
                     key={artist.id}
                     artist={artist}
-                    onClick={() => console.log('Navigate to artist:', artist.id)}
+                    onClick={() => navigate(`/artist/${artist.id}`)}
                   />
                 ))}
               </div>

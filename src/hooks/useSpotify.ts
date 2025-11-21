@@ -164,6 +164,27 @@ export const useSpotify = () => {
     }
   }, []);
 
+  const naturalLanguageSearch = async (query: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const results = await spotifyService.naturalLanguageSearch(query);
+      return results;
+    } catch (err) {
+      setError('Failed to perform natural language search');
+      return {
+        albums: [],
+        artists: [],
+        tracks: [],
+        query: { searchTerms: [query], type: 'mixed', description: query },
+        spotifyQuery: query
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     error,
@@ -174,5 +195,6 @@ export const useSpotify = () => {
     getFilteredContent,
     getPopularTracks,
     getAvailableGenres,
+    naturalLanguageSearch,
   };
 };

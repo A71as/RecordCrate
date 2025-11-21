@@ -16,7 +16,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
   onClick,
 }) => {
   const navigate = useNavigate();
-  const imageUrl = album.images[0]?.url || '/placeholder-album.png';
+  const imageUrl = album.images[0]?.url;
   const artistNames = album.artists.map((artist) => artist.name).join(', ');
 
   const handleClick = () => {
@@ -30,7 +30,11 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
   return (
     <div className="album-card" onClick={handleClick}>
       <div className="album-image">
-        <img src={imageUrl} alt={album.name} />
+        {imageUrl ? (
+          <img src={imageUrl} alt={album.name} />
+        ) : (
+          <div className="album-image-placeholder">♪</div>
+        )}
         {userRating && (
           <div className="rating-overlay">
             <StarRating rating={userRating} readonly size={16} />

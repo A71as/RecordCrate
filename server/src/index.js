@@ -5,13 +5,14 @@ import mongoose from 'mongoose';
 import reviewsRouter from './routes/reviews.js';
 import usersRouter from './routes/users.js';
 import discographyRouter from './routes/discography.js';
+import searchRouter from './routes/search.js';
 
 const app = express();
 
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI || '';
 // Allow multiple origins in dev. Support comma-separated CORS_ORIGIN.
-const DEFAULT_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const DEFAULT_ORIGINS = ['http://localhost:5175', 'http://127.0.0.1:5175'];
 const CORS_ORIGIN = process.env.CORS_ORIGIN;
 const ORIGINS = CORS_ORIGIN
   ? CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
@@ -24,8 +25,9 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'recordcrate-api', time: new Date().toISOString() });
 });
 
-// Always mount discography; it does not require DB
+// Always mount discography and search; they do not require DB
 app.use('/api/discography', discographyRouter);
+app.use('/api/search', searchRouter);
 
 // Mount DB-backed routes only when Mongo is configured
 function mountDbRoutes() {

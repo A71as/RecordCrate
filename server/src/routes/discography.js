@@ -9,34 +9,7 @@ const DEFAULT_MARKET = 'US';
 
 let appAccessToken = null;
 let appAccessTokenExpiry = 0;
-function sampleEntries(limit = 10) {
-  const samples = [
-    { id: '3n3Ppam7vgaVa1iaRUc9Lp', name: 'Hey Ya!', artists: ['Outkast'] },
-    { id: '7GhIk7Il098yCjg4BQjzvb', name: 'Never Gonna Give You Up', artists: ['Rick Astley'] },
-    { id: '0VjIjW4GlUZAMYd2vXMi3b', name: 'Blinding Lights', artists: ['The Weeknd'] },
-    { id: '2VxeLyX666F8uXCJ0dZF8B', name: 'Levitating', artists: ['Dua Lipa'] },
-    { id: '4Oun2ylbjFKMPTiaSbbCih', name: 'good 4 u', artists: ['Olivia Rodrigo'] },
-    { id: '1fDsrQ23eTAVFElUMaf38X', name: 'As It Was', artists: ['Harry Styles'] },
-    { id: '1rqqCSm0Qe4I9rUvWncaom', name: 'Dance Monkey', artists: ['Tones And I'] },
-    { id: '4uUG5RXrOk84mYEfFvj3cK', name: 'Bad Guy', artists: ['Billie Eilish'] },
-    { id: '2bgTY4UwhfBYhGT4HUYStN', name: 'Flowers', artists: ['Miley Cyrus'] },
-    { id: '0ZcohShptsJ8ovC9UZk7Xw', name: 'Stay', artists: ['The Kid LAROI', 'Justin Bieber'] },
-  ];
-  return samples.slice(0, limit).map((s) => ({
-    id: s.id,
-    type: 'track',
-    name: s.name,
-    artists: s.artists.map((n) => ({ id: '', name: n })),
-    imageUrl: null,
-    releaseDate: '',
-    releaseYear: 0,
-    popularity: 0,
-    explicit: false,
-    albumName: undefined,
-    genres: [],
-    externalUrl: `https://open.spotify.com/track/${s.id}`,
-  }));
-}
+
 
 async function fetchOEmbedDetails(trackIds, max = 30) {
   const map = new Map();
@@ -181,8 +154,8 @@ router.get('/top-tracks', async (req, res) => {
       const csvResp = await axios.get('https://spotifycharts.com/regional/global/daily/latest/download', { responseType: 'text' });
       csvText = csvResp.data;
     } catch (csvErr) {
-      // If CSV fetch fails entirely, provide static samples so UI still renders
-      return res.json({ entries: sampleEntries(limit), hasMore: false });
+      // If CSV fetch fails entirely, return empty array
+      return res.json({ entries: [], hasMore: false });
     }
 
     // If Spotify credentials are not set, return a minimal fallback from CSV (names + links only)
@@ -197,23 +170,19 @@ router.get('/top-tracks', async (req, res) => {
         return cols[4] && /track\/[a-zA-Z0-9]+/.test(cols[4]);
       });
       if (safeLines.length === 0) {
-        // Try to enrich samples with thumbnails via oEmbed
-        const samples = sampleEntries(limit);
-        const idList = samples.map((e) => e.id).filter(Boolean);
-        const details = await fetchOEmbedDetails(idList);
-        const withEnrichment = samples.map((e) => {
-          const d = details.get(e.id);
-          // Prefer oEmbed title/author when available to avoid CSV name/link mismatches
-          const oTitle = (d?.title && typeof d.title === 'string') ? d.title : e.name;
-          const oAuthor = (d?.author && typeof d.author === 'string') ? d.author : null;
-          return {
-            ...e,
-            name: oTitle,
-            artists: oAuthor ? [{ id: '', name: oAuthor }] : e.artists,
-            imageUrl: d?.thumbnail || e.imageUrl,
-          };
-        });
-        return res.json({ entries: withEnrichment, hasMore: false });
+        // Return empty array when Spotify credentials not available
+        return res.json({ entries: [], hasMore: false });
+
+
+
+
+
+
+
+
+
+
+
       }
       const rowsRaw = safeLines.map((line) => {
         const cols = parseCsvLine(line);
@@ -285,7 +254,7 @@ router.get('/top-tracks', async (req, res) => {
 
     // Full enrichment path using Spotify API
   const trackIds = extractTrackIdsFromCsv(csvText, limit);
-  if (trackIds.length === 0) return res.json({ entries: sampleEntries(limit), hasMore: false });
+  if (trackIds.length === 0) return res.json({ entries: [], hasMore: false });
 
     const tracks = await fetchTracksDetails(trackIds);
     if (tracks.length === 0) return res.json({ entries: [], hasMore: false });

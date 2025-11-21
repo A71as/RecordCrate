@@ -16,6 +16,7 @@ RecordCrate features a **vintage vinyl + wooden crate aesthetic** with a careful
 - **Discover Page** - Explore new releases, popular albums, and personalized recommendations with dynamic filters
 - **Discography Browser** - Genre-based exploration of popular music with no login required
 - **Advanced Search** - Find specific albums, artists, and tracks across the Spotify catalog
+- **Natural Language Search** - Use AI-powered queries like "albums like Blonde by Frank Ocean" or "sad indie music from the 2010s"
 
 ### ⭐ Rating & Review System
 - **Dual Rating Scale**
@@ -95,6 +96,7 @@ RecordCrate features a **vintage vinyl + wooden crate aesthetic** with a careful
    VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id
    VITE_SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
    VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/callback
+   VITE_GEMINI_API_KEY=your_gemini_api_key  # Optional - for natural language search
    ```
 
    **Backend** (`server/.env`):
@@ -104,6 +106,7 @@ RecordCrate features a **vintage vinyl + wooden crate aesthetic** with a careful
    CORS_ORIGIN=http://localhost:5173
    SPOTIFY_CLIENT_ID=your_spotify_client_id
    SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+   GEMINI_API_KEY=your_gemini_api_key  # Optional - for natural language search
    ```
 
 5. **Optional: Spotify API Credentials**
@@ -176,6 +179,9 @@ RecordCrate/
 ### Discography (No-Login Browsing)
 - `GET /api/discography/top-tracks?page=0&limit=50` - Get popular tracks
 - `GET /api/discography/genres` - Get available genres
+
+### Search
+- `POST /api/search/natural-language` - Process natural language music queries with AI
 
 ### Users
 - `POST /api/users/sync` - Sync user data from Spotify
@@ -251,6 +257,8 @@ RecordCrate is configured for seamless Netlify deployment with SPA routing via `
 | `CORS_ORIGIN` | ❌ | ✅ | Yes | Allowed frontend origin |
 | `SPOTIFY_CLIENT_ID` | ❌ | ✅ | No | Backend Spotify API access |
 | `SPOTIFY_CLIENT_SECRET` | ❌ | ✅ | No | Backend Spotify API secret |
+| `VITE_GEMINI_API_KEY` | ✅ | ❌ | No | Google Gemini AI API for natural language search |
+| `GEMINI_API_KEY` | ❌ | ✅ | No | Backend Gemini AI API key |
 
 ## 🛠️ Development Scripts
 

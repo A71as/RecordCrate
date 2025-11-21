@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 import { StarRating } from './StarRating';
 import type { Review, SpotifyAlbum } from '../types';
 
@@ -16,6 +17,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
+  const { user, isAuthenticated, loginWithRedirect } = useAuth0();
   const [rating, setRating] = useState(existingReview?.rating || 0);
   const [content, setContent] = useState(existingReview?.content || '');
 
@@ -25,12 +27,34 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
 
     onSubmit({
       albumId: album.id,
-      userId: 'current-user', // In a real app, get from auth
+      userId: user?.sub || 'anonymous',
       rating,
       content,
       album,
     });
   };
+
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="review-form">
+        <h3>Login Required</h3>
+        <p>You need to be logged in to write reviews.</p>
+        <div className="form-actions">
+          <button type="button" onClick={onCancel} className="cancel-btn">
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => loginWithRedirect()}
+            className="submit-btn"
+          >
+            Login to Review
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="review-form">
@@ -41,7 +65,12 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
       <form onSubmit={handleSubmit}>
         <div className="rating-section">
           <label>Rating:</label>
-          <StarRating rating={rating} onRatingChange={setRating} size={24} />
+          <StarRating 
+            rating={rating} 
+            onRatingChange={setRating} 
+            size={24}
+            readonly={!isAuthenticated}
+          />
         </div>
 
         <div className="content-section">
@@ -52,6 +81,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
             onChange={(e) => setContent(e.target.value)}
             placeholder="Share your thoughts about this album..."
             rows={6}
+            disabled={!isAuthenticated}
           />
         </div>
 
@@ -61,7 +91,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
           </button>
           <button
             type="submit"
-            disabled={rating === 0}
+            disabled={!isAuthenticated || rating === 0}
             className="submit-btn"
           >
             {existingReview ? 'Update Review' : 'Submit Review'}

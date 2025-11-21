@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Sparkles } from 'lucide-react';
 import { SearchInput } from '../components/SearchInput';
 import { SearchDropdown } from '../components/SearchDropdown';
 import { SearchResults } from '../components/SearchResults';
 import { ArtistSearchResults } from '../components/ArtistSearchResults';
 import { TrackSearchResults } from '../components/TrackSearchResults';
+import { NaturalLanguageSearch } from '../components/NaturalLanguageSearch';
 import { useSearchLogic } from '../hooks/useSearchLogic';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { MusicFilterBar, type MusicFilterState } from '../components/MusicFilterBar';
@@ -106,6 +108,7 @@ export const Search: React.FC = () => {
     explicit: 'all',
   });
   const [genreSeeds, setGenreSeeds] = useState<string[]>([]);
+  const [isNaturalLanguageMode, setIsNaturalLanguageMode] = useState(false);
 
   const {
     query,
@@ -137,7 +140,7 @@ export const Search: React.FC = () => {
     },
     onTrackSelect: (track: SpotifyTrack) => {
       // For now, just log the track selection and play preview if available
-      console.log('Selected track:', track.name, 'by', track.artists.map(a => a.name).join(', '));
+      // Track selected
       if (track.preview_url) {
         const audio = new Audio(track.preview_url);
         audio.play().catch(console.error);
@@ -297,10 +300,32 @@ export const Search: React.FC = () => {
     <div className="search-page">
       <div className="container">
         <div className="search-header">
-          <h1>Search Music</h1>
+          <div className="search-header-top">
+            <h1>Search Music</h1>
+            <button
+              type="button"
+              onClick={() => setIsNaturalLanguageMode(!isNaturalLanguageMode)}
+              className={`natural-language-toggle ${isNaturalLanguageMode ? 'active' : ''}`}
+              title="Toggle Natural Language Search"
+            >
+              <Sparkles size={18} />
+              {isNaturalLanguageMode ? 'Traditional Search' : 'Natural Language'}
+            </button>
+          </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="search-form">
-            <div className="search-input-group" ref={dropdownRef}>
+          {isNaturalLanguageMode ? (
+            <div className="container">
+              <NaturalLanguageSearch onClose={() => setIsNaturalLanguageMode(false)} />
+            </div>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSearch();
+              }}
+              className="search-form"
+            >
+              <div className="search-input-group" ref={dropdownRef}>
               <SearchInput
                 ref={inputRef}
                 value={query}
@@ -316,15 +341,16 @@ export const Search: React.FC = () => {
                 placeholder="Search for albums, artists, and tracks..."
               />
 
-              <SearchDropdown
-                suggestions={dropdownSuggestions}
-                isVisible={showDropdown}
-                selectedIndex={selectedIndex}
-                onSuggestionSelect={handleSuggestionSelect}
-                onHover={setSelectedIndex}
-              />
-            </div>
-          </form>
+                <SearchDropdown
+                  suggestions={dropdownSuggestions}
+                  isVisible={showDropdown}
+                  selectedIndex={selectedIndex}
+                  onSuggestionSelect={handleSuggestionSelect}
+                  onHover={setSelectedIndex}
+                />
+              </div>
+            </form>
+          )}
         </div>
 
         {/* Results Section - Show albums, artists, and tracks */}
@@ -376,11 +402,18 @@ export const Search: React.FC = () => {
         )}
 
         {/* No results message */}
-        {!loading && albumResults.length === 0 && artistResults.length === 0 && trackResults.length === 0 && hasSearched && (
-          <div className="no-results">
-            <p>No albums, artists, or tracks found for "{query}". Try a different search term.</p>
-          </div>
-        )}
+        {!loading &&
+          albumResults.length === 0 &&
+          artistResults.length === 0 &&
+          trackResults.length === 0 &&
+          hasSearched && (
+            <div className="no-results">
+              <p>
+                No albums, artists, or tracks found for "{query}". Try a different
+                search term.
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );

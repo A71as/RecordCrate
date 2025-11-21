@@ -34,6 +34,12 @@ class SpotifyService {
       return this.accessToken;
     }
 
+    // Check if credentials are configured
+    if (!CLIENT_ID || CLIENT_ID === 'your_spotify_client_id_here' || 
+        !CLIENT_SECRET || CLIENT_SECRET === 'your_spotify_client_secret_here') {
+      throw new Error('Spotify credentials not configured. Please set VITE_SPOTIFY_CLIENT_ID and VITE_SPOTIFY_CLIENT_SECRET in .env.local');
+    }
+
     const response = await axios.post(
       'https://accounts.spotify.com/api/token',
       'grant_type=client_credentials',
@@ -75,54 +81,96 @@ class SpotifyService {
   }
 
   async searchAlbums(query: string): Promise<SpotifyAlbum[]> {
-    const token = await this.getAccessToken();
+    try {
+      const token = await this.getAccessToken();
 
-    const response = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-        query
-      )}&type=album&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      const response = await axios.get(
+        `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+          query
+        )}&type=album&limit=20`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    return response.data.albums.items;
+      return response.data.albums.items;
+    } catch (error) {
+      console.warn('Spotify API not available:', error);
+      return [];
+    }
+  }
+
+  async naturalLanguageSearch(query: string): Promise<{
+    albums: SpotifyAlbum[];
+    artists: SpotifyArtist[];
+    tracks: SpotifyTrack[];
+    query: any;
+    spotifyQuery: string;
+  }> {
+    try {
+      const response = await axios.post(`${API_BASE}/api/search/natural-language`, {
+        query: query
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Natural language search failed:', error);
+      // Fallback to regular search
+      const albums = await this.searchAlbums(query);
+      return {
+        albums,
+        artists: [],
+        tracks: [],
+        query: { searchTerms: [query], type: 'mixed', description: query },
+        spotifyQuery: query
+      };
+    }
   }
 
   async searchArtists(query: string): Promise<SpotifyArtist[]> {
-    const token = await this.getAccessToken();
+    try {
+      const token = await this.getAccessToken();
 
-    const response = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-        query
-      )}&type=artist&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      const response = await axios.get(
+        `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+          query
+        )}&type=artist&limit=20`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    return response.data.artists.items;
+      return response.data.artists.items;
+    } catch (error) {
+      console.warn('Spotify API not available:', error);
+      return [];
+    }
   }
 
   async searchTracks(query: string): Promise<SpotifyTrack[]> {
-    const token = await this.getAccessToken();
+    try {
+      const token = await this.getAccessToken();
 
-    const response = await axios.get(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-        query
-      )}&type=track&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      const response = await axios.get(
+        `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+          query
+        )}&type=track&limit=20`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    return response.data.tracks.items;
+      return response.data.tracks.items;
+    } catch (error) {
+      console.warn('Spotify API not available:', error);
+      return [];
+    }
   }
 
   async getAlbum(id: string): Promise<SpotifyAlbum> {
@@ -427,61 +475,10 @@ class SpotifyService {
 
       return { entries, hasMore };
     } catch (error) {
-      console.error('Failed to assemble global top tracks (no-auth CSV path). Trying curated samples...', error);
-
-      // Final fallback: curated static samples (minimal, no auth, no external CSV needed)
-      const samples: Array<{ name: string; artist: string; url: string }> = [
-        {
-          name: 'Blinding Lights',
-          artist: 'The Weeknd',
-          url: 'https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b',
-        },
-        {
-          name: 'Levitating',
-          artist: 'Dua Lipa',
-          url: 'https://open.spotify.com/track/463CkQjx2Zk1yXoBuierM9',
-        },
-        {
-          name: 'As It Was',
-          artist: 'Harry Styles',
-          url: 'https://open.spotify.com/track/4LRPiXqCikLlN15c3yImP7',
-        },
-        {
-          name: 'Watermelon Sugar',
-          artist: 'Harry Styles',
-          url: 'https://open.spotify.com/track/6UelLqGlWMcVH1E5c4H7lY',
-        },
-        {
-          name: 'drivers license',
-          artist: 'Olivia Rodrigo',
-          url: 'https://open.spotify.com/track/5wANPM4fQCJwkGd4rN57mH',
-        },
-      ];
-
-      const entries: DiscographyEntry[] = [];
-      for (let i = 0; i < samples.length; i += 1) {
-        const { name, artist, url } = samples[i];
-        const idMatch = url.match(/track\/([a-zA-Z0-9]+)/);
-        const trackId = idMatch?.[1] ?? String(i);
-        const oembed = await this.fetchOEmbed(url);
-        const imageUrl = oembed?.thumbnail_url ?? null;
-        entries.push({
-          id: trackId,
-          type: 'track',
-          name,
-          artists: [{ id: '', name: artist }],
-          imageUrl,
-          releaseDate: '',
-          releaseYear: 0,
-          popularity: Math.max(55, 100 - i * 3),
-          explicit: false,
-          albumName: undefined,
-          genres: [],
-          externalUrl: url,
-        });
-      }
-
-      return { entries, hasMore: false };
+      console.error('Failed to assemble global top tracks:', error);
+      
+      // Return empty results when external services are unavailable
+      return { entries: [], hasMore: false };
     }
   }
 
@@ -738,7 +735,7 @@ class SpotifyService {
   async getPersonalTopAlbums(timeframe: 'week' | '6months' | 'alltime'): Promise<SpotifyAlbum[]> {
     const token = await this.getUserAccessToken();
     if (!token) {
-      console.log(`Getting personal top albums for ${timeframe} (mock data - not logged in)`);
+
       return this.getPopularAlbums();
     }
 
@@ -783,7 +780,7 @@ class SpotifyService {
   async getPersonalTopArtists(timeframe: 'week' | '6months' | 'alltime'): Promise<SpotifyArtist[]> {
     const token = await this.getUserAccessToken();
     if (!token) {
-      console.log(`Getting personal top artists for ${timeframe} (mock data - not logged in)`);
+
       return this.getTopArtists();
     }
 

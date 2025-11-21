@@ -1,131 +1,50 @@
 import React, {
-  useCallback,
   useEffect,
   useMemo,
   useState,
 } from 'react';
-import { jwtDecode } from 'jwt-decode';
 import { spotifyService } from '../services/spotify';
-import type { GoogleUser, SpotifyUser } from '../types';
 import { AuthContext } from './AuthContext';
 import type { AuthContextValue } from './AuthContext';
-import { GOOGLE_USER_STORAGE_KEY } from './authConstants';
-
-interface GoogleCredentialPayload {
-  sub: string;
-  email: string;
-  name?: string;
-  picture?: string;
-}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [googleUser, setGoogleUser] = useState<GoogleUser | null>(() => {
-    try {
-      const stored = localStorage.getItem(GOOGLE_USER_STORAGE_KEY);
-      return stored ? (JSON.parse(stored) as GoogleUser) : null;
-    } catch (error) {
-      console.error('Failed to parse stored Google user', error);
-      return null;
-    }
-  });
-  const [spotifyUser, setSpotifyUser] = useState<SpotifyUser | null>(null);
-  const [isSpotifyLinked, setIsSpotifyLinked] = useState<boolean>(() => spotifyService.isLoggedIn());
-  const [loadingSpotify, setLoadingSpotify] = useState(false);
+  const [hasSpotifyAccess, setHasSpotifyAccess] = useState(false);
+  const [loadingSpotify, setLoadingSpotify] = useState(true);
 
-  const isGoogleConfigured = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
-  const refreshSpotifyUser = useCallback(async () => {
-    if (!spotifyService.isLoggedIn()) {
-      setSpotifyUser(null);
-      setIsSpotifyLinked(false);
-      return;
-    }
-
-    setLoadingSpotify(true);
-    try {
-      const currentUser = await spotifyService.getCurrentUser();
-      if (currentUser) {
-        setSpotifyUser(currentUser);
-        setIsSpotifyLinked(true);
-      } else {
-        setSpotifyUser(null);
-        setIsSpotifyLinked(false);
-      }
-    } catch (error) {
-      console.error('Failed to load Spotify user', error);
-      setSpotifyUser(null);
-      setIsSpotifyLinked(false);
-    } finally {
-      setLoadingSpotify(false);
-    }
-  }, []);
-
+  // Check if we can access Spotify's public API
   useEffect(() => {
-    if (spotifyService.isLoggedIn()) {
-      void refreshSpotifyUser();
-    } else {
-      setSpotifyUser(null);
-      setIsSpotifyLinked(false);
-    }
-  }, [refreshSpotifyUser]);
-
-  const loginWithGoogle = useCallback((credential: string) => {
-    try {
-      const payload = jwtDecode<GoogleCredentialPayload>(credential);
-      if (!payload?.sub || !payload.email) {
-        throw new Error('Invalid credential payload');
+    const checkSpotifyAccess = async () => {
+      setLoadingSpotify(true);
+      try {
+        // Try to get an access token for public API access
+        const accessToken = await spotifyService.getAccessToken();
+        setHasSpotifyAccess(!!accessToken);
+      } catch (error) {
+        console.error('Failed to get Spotify access', error);
+        setHasSpotifyAccess(false);
+      } finally {
+        setLoadingSpotify(false);
       }
+    };
 
-      const user: GoogleUser = {
-        id: payload.sub,
-        email: payload.email,
-        name: payload.name ?? payload.email,
-        picture: payload.picture,
-      };
-
-      setGoogleUser(user);
-      localStorage.setItem(GOOGLE_USER_STORAGE_KEY, JSON.stringify(user));
-    } catch (error) {
-      console.error('Failed to process Google login', error);
-    }
-  }, []);
-
-  const linkSpotifyAccount = useCallback(() => {
-    window.location.href = spotifyService.getAuthUrl();
-  }, []);
-
-  const logout = useCallback(() => {
-    setGoogleUser(null);
-    localStorage.removeItem(GOOGLE_USER_STORAGE_KEY);
-    spotifyService.logout();
-    setSpotifyUser(null);
-    setIsSpotifyLinked(false);
+    checkSpotifyAccess();
   }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      googleUser,
-      spotifyUser,
-      isGoogleLoggedIn: !!googleUser,
-      isSpotifyLinked,
+      // Auth0 will handle user authentication
+      googleUser: null,
+      spotifyUser: null,
+      isGoogleLoggedIn: false,
+      isSpotifyLinked: hasSpotifyAccess,
       loadingSpotify,
-      isGoogleConfigured,
-      loginWithGoogle,
-      linkSpotifyAccount,
-      logout,
-      refreshSpotifyUser,
+      isGoogleConfigured: true, // Auth0 is configured
+      loginWithGoogle: () => {}, // Not used with Auth0
+      linkSpotifyAccount: () => {}, // Not needed for public API
+      logout: () => {}, // Auth0 handles logout
+      refreshSpotifyUser: async () => {}, // Not needed for public API
     }),
-    [
-      googleUser,
-      spotifyUser,
-      isSpotifyLinked,
-      loadingSpotify,
-      isGoogleConfigured,
-      loginWithGoogle,
-      linkSpotifyAccount,
-      logout,
-      refreshSpotifyUser,
-    ]
+    [hasSpotifyAccess, loadingSpotify]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

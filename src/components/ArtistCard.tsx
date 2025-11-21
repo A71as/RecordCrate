@@ -10,7 +10,7 @@ interface ArtistCardProps {
 
 export const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onClick }) => {
   const navigate = useNavigate();
-  const imageUrl = artist.images[0]?.url || '/placeholder-artist.png';
+  const imageUrl = artist.images[0]?.url;
 
   const handleClick = () => {
     if (onClick) {
@@ -23,7 +23,11 @@ export const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onClick }) => {
   return (
     <div className="artist-card" onClick={handleClick}>
       <div className="artist-image">
-        <img src={imageUrl} alt={artist.name} />
+        {imageUrl ? (
+          <img src={imageUrl} alt={artist.name} />
+        ) : (
+          <div className="artist-image-placeholder">👤</div>
+        )}
       </div>
       <div className="artist-info">
         <h3 className="artist-name">{artist.name}</h3>

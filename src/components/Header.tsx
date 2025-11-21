@@ -1,15 +1,17 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Search, User, Music, LogOut } from 'lucide-react';
-import { useAuth } from '../context/useAuth';
+import { useAuth0 } from '@auth0/auth0-react';
 
 export const Header: React.FC = () => {
-  const { googleUser, spotifyUser, linkSpotifyAccount, logout } = useAuth();
+  const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0();
 
   const handleLogin = () => {
-    // Store current page to redirect back after login
-    localStorage.setItem('spotify_redirect_after_login', window.location.pathname);
-    linkSpotifyAccount();
+    loginWithRedirect();
+  };
+
+  const handleLogout = () => {
+    logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
   const navigate = useNavigate();
@@ -18,8 +20,8 @@ export const Header: React.FC = () => {
     navigate('/search', { state: { resetSearch: Date.now() } });
   };
 
-  const displayName = spotifyUser?.display_name ?? googleUser?.name ?? 'Guest';
-  const avatarUrl = spotifyUser?.images?.[0]?.url ?? googleUser?.picture;
+  const displayName = user?.name ?? user?.email ?? 'Guest';
+  const avatarUrl = user?.picture;
 
   return (
     <header className="header">
@@ -45,7 +47,7 @@ export const Header: React.FC = () => {
             Profile
           </NavLink>
           <div className="nav-divider"></div>
-          {spotifyUser ? (
+          {isAuthenticated ? (
             <div className="user-section">
               <div className="user-info">
                 {avatarUrl && (
@@ -57,17 +59,17 @@ export const Header: React.FC = () => {
                 )}
                 <span className="user-name">{displayName}</span>
               </div>
-              <button className="logout-btn" onClick={() => logout()}>
+              <button className="logout-btn" onClick={handleLogout}>
                 <LogOut size={16} />
                 Logout
               </button>
             </div>
           ) : (
             <button
-              className="spotify-login-btn"
+              className="auth-login-btn"
               onClick={handleLogin}
             >
-              <Music size={16} />
+              <User size={16} />
               Login
             </button>
           )}

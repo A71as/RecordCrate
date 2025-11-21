@@ -48,13 +48,13 @@ export const SearchDropdown = forwardRef<HTMLDivElement, SearchDropdownProps>(({
 
                 if (isAlbum) {
                     const album = item as SpotifyAlbum;
-                    imageUrl = album.images?.[0]?.url || '/placeholder-album.png';
+                    imageUrl = album.images?.[0]?.url;
                     subtitle = album.artists.map(artist => artist.name).join(', ');
                     typeIcon = '♪';
                     imageClass = 'dropdown-album-image';
                 } else if (isArtist) {
                     const artist = item as SpotifyArtist;
-                    imageUrl = artist.images?.[0]?.url || '/placeholder-artist.png';
+                    imageUrl = artist.images?.[0]?.url;
                     subtitle = 'Artist';
                     typeIcon = '👤';
                     imageClass = 'dropdown-artist-image';

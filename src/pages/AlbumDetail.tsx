@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Star, ArrowLeft, Clock, Trash2 } from "lucide-react";
+import { Star, ArrowLeft, Clock } from "lucide-react";
 import { spotifyService } from "../services/spotify";
 import { backend } from "../services/backend";
 import { StarRating } from "../components/StarRating";
 import type { SpotifyAlbum, SongRating, AlbumReview } from "../types";
-import { useAuth } from "../context/useAuth";
+import { useAuth0 } from '@auth0/auth0-react';
 
 type ModifierState = {
   emotionalStoryConnection: number;
@@ -61,8 +61,8 @@ export const AlbumDetail: React.FC = () => {
     artistIdentityOriginality: 0,
     visualAestheticEcosystem: 0,
   });
-  const { isSpotifyLinked, linkSpotifyAccount, loadingSpotify } = useAuth();
-  const canRate = isSpotifyLinked;
+  const { user, isAuthenticated, loginWithRedirect } = useAuth0();
+  const canRate = isAuthenticated;
 
   useEffect(() => {
     if (!canRate && isReviewing) {
@@ -80,25 +80,22 @@ export const AlbumDetail: React.FC = () => {
         const albumData = await spotifyService.getAlbumWithTracks(albumId);
         setAlbum(albumData);
 
-        // Try to identify current user (Spotify login), sync to backend
+        // Use Auth0 authenticated user for backend sync
         let userId: string | null = null;
-        try {
-          const user = await spotifyService.getCurrentUser();
-          if (user) {
-            userId = user.id;
-            setCurrentUserId(user.id);
-            // best-effort sync
+        if (isAuthenticated && user) {
+          userId = user.sub || null;
+          setCurrentUserId(userId);
+          // best-effort sync with Auth0 user data
+          if (userId) {
             backend
               .syncUser({
-                spotifyId: user.id,
-                displayName: user.display_name,
-                avatarUrl: user.images?.[0]?.url,
+                spotifyId: userId, // Use Auth0 ID as user identifier
+                displayName: user.name || user.email || 'User',
+                avatarUrl: user.picture,
               })
               .catch(() => {});
-          } else {
-            setCurrentUserId(null);
           }
-        } catch {
+        } else {
           setCurrentUserId(null);
         }
 
@@ -288,7 +285,7 @@ export const AlbumDetail: React.FC = () => {
     const review: AlbumReview = {
       id: existingReview?.id || Date.now().toString(),
       albumId: album.id,
-      userId: "current-user", // In real app, this would be the logged-in user's ID
+      userId: user?.sub || "anonymous", // Use Auth0 user ID
       overallRating: finalAdjusted,
       baseOverallRating: overallRating,
       adjustedOverallRating: finalAdjusted,
@@ -355,7 +352,7 @@ export const AlbumDetail: React.FC = () => {
     ? existingReview
       ? "Edit Review"
       : "Write Review"
-    : "Login to Rate";
+    : "Login to Review";
 
   const handleCancelReview = () => {
     setIsReviewing(false);
@@ -493,14 +490,13 @@ export const AlbumDetail: React.FC = () => {
 
             {!canRate && (
               <div className="rating-lockout">
-                <p>Log in with Spotify to rate this album.</p>
+                <p>Log in to rate this album and write reviews.</p>
                 <button
                   type="button"
-                  className="spotify-login-btn"
-                  onClick={linkSpotifyAccount}
-                  disabled={loadingSpotify}
+                  className="auth-login-btn"
+                  onClick={() => loginWithRedirect()}
                 >
-                  {loadingSpotify ? "Opening Spotify..." : "Login with Spotify"}
+                  Login to Review
                 </button>
               </div>
             )}
@@ -729,8 +725,7 @@ export const AlbumDetail: React.FC = () => {
                 onClick={handleDeleteReview}
                 title="Delete this review"
               >
-                <Trash2 size={16} />
-                Delete Review
+                🗑️ Delete Review
               </button>
             </div>
             <div className="review-content">
