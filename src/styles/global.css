@@ -1,19 +1,84 @@
 /* RecordCrate Global Styles */
 
 :root {
-    /* Reuse the canonical tokens defined in src/App.css to avoid duplication. */
-    --header-height: var(--header-height, 80px);
-    --rc-bg: var(--rc-bg);
-    --rc-grid: var(--rc-grid);
-    --rc-text: var(--rc-text);
-    --rc-red: var(--rc-red);
-    --rc-green-1: var(--rc-green-1);
-    --rc-green-2: var(--rc-green-2);
-    --rc-gray: var(--rc-gray);
-    --panel-bg: var(--panel-bg);
-    --panel-border: var(--panel-border);
-    --muted: var(--muted);
-    --muted-2: var(--muted-2);
+    /* Theme tokens - baseline defaults (overrideable) */
+    --header-height: 80px;
+
+    /* Spacing scale */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 1rem;
+    --space-4: 1.5rem;
+    --space-5: 2rem;
+}
+
+/* Light theme (default) */
+:root,
+[data-theme="light"] {
+    /* Colors: Light crate theme with brown/wood tones */
+    --rc-bg: #efe5d5; /* warmer cream background (crate interior) */
+    --rc-grid: rgba(139, 111, 71, 0.1); /* subtle wood grain pattern */
+    --rc-text: #3d2d1f; /* rich dark brown text */
+    --rc-red: #c17d5a; /* terracotta red */
+    --rc-green-1: #7ba66a; /* muted sage green */
+    --rc-green-2: #5a7d4e; /* deeper forest green */
+    --rc-gray: #7d6549; /* deeper warm brown-gray */
+    --rc-warm: #b8956a; /* warm brass/bronze */
+    --rc-cream: #f7f0e3; /* creamier highlight */
+    --rc-amber-glow: #d4a574; /* golden amber accent */
+    --rc-crate-wood: #8b6f47; /* warm wood accent */
+    --spotify-green: #1db954;
+
+    /* Additional brand colors */
+    --rc-vinyl-black: #1a1a1d;
+    --rc-vinyl-groove: #0d0d0f;
+    --rc-primary: #d4a574; /* same as amber-glow */
+    --rc-accent: #8b6f47; /* same as crate-wood */
+
+    /* Percent indicators */
+    --percent-red: #c17d5a;
+    --percent-yellow: #d4a574;
+    --percent-green: #7ba66a;
+
+    /* Panel / surface tokens */
+    --panel-bg: #f5ede0; /* warmer cream panel (wood surface) */
+    --panel-border: rgba(139, 111, 71, 0.25); /* more visible wood-toned borders */
+    --muted: #7d6549; /* deeper warm muted brown */
+    --muted-2: #9d8970; /* warmer gray-brown */
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+    /* Dark mode colors */
+    --rc-bg: #0f0f0f; /* deep black background */
+    --rc-grid: rgba(255,255,255,0.03);
+    --rc-text: #f5f5f5; /* light text */
+    --rc-red: #ff6b6b;
+    --rc-green-1: #51cf66;
+    --rc-green-2: #37b24d;
+    --rc-gray: #6c7a89; /* muted gray for dark mode */
+    --rc-warm: #ffb347; /* brighter gold for dark mode */
+    --rc-cream: #2a2520; /* dark cream accent */
+    --rc-amber-glow: #ffb347; /* brighter amber for visibility */
+    --rc-crate-wood: #d4a574;
+    --spotify-green: #1ed760;
+
+    /* Additional brand colors */
+    --rc-vinyl-black: #1a1a1d;
+    --rc-vinyl-groove: #0d0d0f;
+    --rc-primary: #ffb347; /* same as amber-glow */
+    --rc-accent: #d4a574; /* same as crate-wood */
+
+    /* Percent indicators */
+    --percent-red: #ff6b6b;
+    --percent-yellow: #ffd93d;
+    --percent-green: #51cf66;
+
+    /* Panel / surface tokens */
+    --panel-bg: #1a1a1a; /* dark panel */
+    --panel-border: rgba(255,255,255,0.1);
+    --muted: #a0a0a0;
+    --muted-2: #808080;
 }
 
 /* Global Reset */
@@ -68,7 +133,7 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 var(--space-3);
     width: 100%;
 }
 
@@ -103,95 +168,11 @@ body {
     text-align: center;
 }
 
-/* Enhanced Typography Hierarchy */
-h1, h2, h3, h4, h5, h6 {
-    color: var(--rc-text);
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    line-height: 1.2;
-    margin-bottom: 0.8rem;
+/* Ensure the page content isn't obscured by the fixed header */
+.App {
+    padding-top: var(--header-height);
 }
 
-h1 {
-    font-size: clamp(1.8rem, 4vw, 2.8rem);
-    font-weight: 800;
-    letter-spacing: -0.03em;
-}
-
-h2 {
-    font-size: clamp(1.4rem, 3vw, 2.2rem);
-}
-
-h3 {
-    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
-}
-
-p {
-    margin-bottom: 1.2rem;
-    line-height: 1.75;
-}
-
-/* Enhanced Button Base Styles */
-button {
-    font-family: inherit;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 12px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-}
-
-button:focus {
-    outline: 2px solid var(--rc-primary);
-    outline-offset: 2px;
-}
-
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none !important;
-}
-
-/* Enhanced Form Elements */
-input, textarea, select {
-    font-family: inherit;
-    background: var(--panel-bg);
-    border: 2px solid var(--panel-border);
-    border-radius: 12px;
-    padding: 0.8rem 1rem;
-    color: var(--rc-text);
-    font-size: 1rem;
-    font-weight: 400;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 100%;
-}
-
-input:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: var(--rc-bronze);
-    box-shadow: 
-        0 0 0 3px rgba(205, 153, 104, 0.1),
-        0 4px 12px rgba(0, 0, 0, 0.15);
-    background: color-mix(in srgb, var(--panel-bg) 95%, var(--rc-bronze) 5%);
-}
-
-input::placeholder, textarea::placeholder {
-    color: var(--muted-2);
-    font-weight: 400;
-}
-
-/* Enhanced Labels */
-label {
-    color: var(--rc-bronze-light);
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin-bottom: 0.5rem;
-    display: block;
-    letter-spacing: -0.01em;
-}
-
-/* Enhanced Loading States */
 .loading-spinner {
     display: inline-block;
     width: 20px;

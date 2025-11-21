@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { spotifyService } from '../services/spotify';
+import { billboardService } from '../services/billboard';
 import type {
   DiscographyEntry,
   FilterType,
@@ -150,6 +151,9 @@ export const useSpotify = () => {
           albums = await spotifyService.getPersonalTopAlbums('alltime');
           artists = await spotifyService.getPersonalTopArtists('alltime');
           break;
+        case 'billboard-hot-100':
+          albums = await billboardService.getBillboardAlbumsFromSpotify();
+          break;
         default:
           albums = await spotifyService.getNewReleases();
       }
@@ -157,7 +161,14 @@ export const useSpotify = () => {
       return { albums, artists };
     } catch (error) {
       console.error('Failed to fetch filtered content', error);
-      setError('Failed to fetch content');
+      
+      // Check if it's a missing credentials error
+      if (error instanceof Error && error.message === 'MISSING_CREDENTIALS') {
+        setError('Spotify API credentials not configured. Please add VITE_SPOTIFY_CLIENT_ID and VITE_SPOTIFY_CLIENT_SECRET to your .env file.');
+      } else {
+        setError('Failed to fetch content');
+      }
+      
       return { albums: [], artists: [] };
     } finally {
       setLoading(false);

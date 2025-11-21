@@ -9,53 +9,16 @@
   box-sizing: border-box;
 }
 
-/* RecordCrate Design Tokens - Vintage vinyl & warm wood crate aesthetics */
+/* RecordCrate Design Tokens - Now defined in global.css with theme support */
+/* Keeping layout-specific variables here */
 :root {
-  /* Core brand colors - inspired by vinyl records and wooden crates */
-  --rc-vinyl-black:  #1a1a1d;      /* Deep vinyl black (main background) */
-  --rc-vinyl-groove: #0d0d0f;      /* Darker grooves (depth) */
-  --rc-crate-wood:   #8b6f47;      /* Warm wood accent */
-  --rc-amber-glow:   #d4a574;      /* Golden amber highlight */
-  --rc-cream:        #d4a574;      /* Bronze text/labels (warmer tone) */
-  --rc-bronze:       #cd9968;      /* Rich bronze */
-  --rc-bronze-light: #e6c49a;      /* Light bronze for highlights */
-  
-  /* Primary actions - warm and inviting */
-  --rc-primary:      #cd9968;      /* Rich bronze (primary CTA) */
-  --rc-accent:       #c17d5a;      /* Terracotta accent */
-  --rc-warm:         #b8956a;      /* Warm brass */
-  --rc-highlight:    #e6c49a;      /* Light bronze highlight */
-  
-  /* Success & positive states */
-  --rc-green-1:      #7ba66a;      /* Muted sage green */
-  --rc-green-2:      #5a7d4e;      /* Deeper forest green */
-  
-  /* Neutrals & surfaces */
-  --rc-deep:         var(--rc-vinyl-groove);
-  --rc-bg:           var(--rc-vinyl-black);
-  --panel-bg:        #252528;      /* Raised panel (lighter vinyl) */
-  --panel-border:    #3a3a3d;      /* Subtle borders */
-  
-  /* Text hierarchy */
-  --rc-text:         var(--rc-bronze-light);
-  --muted:           var(--rc-bronze);      /* Muted bronze */
-  --muted-2:         #a0845f;      /* More muted bronze */
-  --rc-gray:         #5a5854;      /* Subtle gray */
-  
-  /* Grid pattern (subtle texture) */
-  --rc-grid:         rgba(212, 165, 116, 0.03);
-  
-  /* Percent indicators */
-  --percent-red:     #c17d5a;
-  --percent-yellow:  #d4a574;
-  --percent-green:   #7ba66a;
-  
-  /* Layout */
   --header-height: 80px;
   
-  /* Legacy aliases */
-  --rc-red: var(--rc-accent);
-  --spotify-green: #7ba66a;
+  /* Fixed brand colors that don't change with theme */
+  --rc-vinyl-black:  #1a1a1d;
+  
+  /* Legacy aliases - these now reference themeable variables from global.css */
+  --rc-red: var(--rc-accent, #c17d5a);
   --primary-color: var(--rc-text);
   --text-primary: var(--rc-text);
   --text-muted: var(--muted);
@@ -77,7 +40,7 @@ body {
   font-weight: 400;
   letter-spacing: -0.011em;
 
-  /* Subtle vinyl texture background */
+  /* Theme-aware background - colors defined in global.css */
   background-color: var(--rc-bg);
   background-image: 
     radial-gradient(circle at 20% 50%, rgba(212, 165, 116, 0.02) 0%, transparent 50%),
@@ -85,6 +48,7 @@ body {
     linear-gradient(0deg, var(--rc-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--rc-grid) 1px, transparent 1px);
   background-size: 100% 100%, 100% 100%, 60px 60px, 60px 60px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Loading spinner animation */
@@ -231,7 +195,7 @@ body {
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.1;
-  background: linear-gradient(135deg, var(--rc-cream) 0%, var(--rc-amber-glow) 100%);
+  background: linear-gradient(135deg, var(--rc-amber-glow) 0%, var(--rc-crate-wood) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -453,7 +417,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #ffffff;
+  color: var(--rc-text);
   font-weight: 700;
   font-size: 1.1rem;
   margin-bottom: 1rem;
@@ -467,8 +431,8 @@ body {
 }
 
 .filter-button {
-  background-color: color-mix(in srgb, var(--rc-cream) 8%, var(--panel-bg));
-  color: var(--rc-cream);
+  background-color: color-mix(in srgb, var(--rc-amber-glow) 8%, var(--panel-bg));
+  color: var(--rc-text);
   border: 1px solid color-mix(in srgb, var(--rc-amber-glow) 15%, transparent);
   padding: 0.8rem 1.35rem;
   border-radius: 12px;
@@ -522,7 +486,7 @@ body {
 .filtered-content h2 {
   margin-bottom: 2rem;
   font-size: 2rem;
-  color: #ffffff;
+  color: var(--rc-text);
   font-weight: 700;
 }
 
@@ -747,8 +711,8 @@ body {
 }
 
 .toggle-button {
-  background-color: color-mix(in srgb, var(--rc-cream) 6%, var(--panel-bg));
-  color: var(--rc-cream);
+  background-color: color-mix(in srgb, var(--rc-amber-glow) 8%, var(--panel-bg));
+  color: var(--rc-text);
   border: 1.5px solid color-mix(in srgb, var(--rc-amber-glow) 12%, transparent);
   padding: 0.8rem 1.6rem;
   border-radius: 12px;
@@ -818,7 +782,7 @@ body {
   flex: 1;
   background: none;
   border: none;
-  color: white;
+  color: var(--rc-text);
   font-size: 1.1rem;
   outline: none;
   width: 100%;
@@ -1287,7 +1251,7 @@ body {
   font-size: 2.5rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--rc-cream) 0%, var(--rc-amber-glow) 100%);
+  background: linear-gradient(135deg, var(--rc-amber-glow) 0%, var(--rc-crate-wood) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1734,7 +1698,7 @@ body {
 .discography-filter-option:hover,
 .discography-filter-option.selected {
   background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
+  color: var(--rc-text);
 }
 
 /* Enhanced Responsive Design */

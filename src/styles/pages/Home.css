@@ -5,14 +5,14 @@
 
 .hero {
     text-align: center;
-    margin-bottom: 1.5rem;
-    padding: 1.5rem 0 1rem 0;
+    margin-bottom: var(--space-4);
+    padding: var(--space-4) 0 var(--space-3) 0;
     width: 100%;
 }
 
 .hero h1 {
     font-size: 2rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: var(--space-2);
     color: var(--rc-text);
     font-weight: 900;
     letter-spacing: -0.02em;
@@ -25,18 +25,18 @@
 
 /* Filter Tabs */
 .content-filters {
-    margin-bottom: 1.5rem;
-    background-color: var(--panel-bg, rgba(255, 255, 255, 0.8));
+    margin-bottom: var(--space-4);
+    background-color: var(--panel-bg);
     border-radius: 12px;
-    padding: 1rem;
-    border: 1px solid var(--panel-border, #D9D1C6);
+    padding: var(--space-3);
+    border: 1px solid var(--panel-border);
     width: 100%;
 }
 
 .filter-tabs {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--space-3);
     width: 100%;
 }
 
@@ -47,25 +47,25 @@
 .filter-category-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    color: var(--rc-gray, #3D4042);
+    gap: var(--space-2);
+    color: var(--rc-gray);
     font-weight: 700;
     font-size: 1.1rem;
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-3);
 }
 
 .filter-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: var(--space-2);
     width: 100%;
 }
 
 .filter-button {
     background-color: var(--panel-bg);
-    color: var(--spotify-green, #1DB954);
-    border: 1px solid var(--panel-border, #D9D1C6);
-    padding: 0.75rem 1.25rem;
+    color: var(--rc-warm);
+    border: 1px solid var(--panel-border);
+    padding: var(--space-2) var(--space-3);
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -76,15 +76,15 @@
 
 .filter-button:hover {
     background-color: color-mix(in srgb, var(--panel-bg) 95%, var(--rc-warm) 5%);
-    border-color: var(--rc-red, #EE5C5C);
+    border-color: var(--rc-amber-glow);
     transform: translateY(-1px);
 }
 
 .filter-button.active {
-    background-color: var(--rc-green-2, #66C0B8);
+    background-color: var(--rc-amber-glow);
     color: var(--panel-bg);
-    border-color: var(--rc-green-2, #66C0B8);
-    box-shadow: 0 6px 20px color-mix(in srgb, var(--rc-green-2) 20%, black);
+    border-color: var(--rc-amber-glow);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--rc-amber-glow) 20%, black);
 }
 
 /* Personal Note */
@@ -92,8 +92,8 @@
     background-color: color-mix(in srgb, var(--rc-green-2) 8%, transparent);
     border: 1px solid color-mix(in srgb, var(--rc-green-2) 22%, transparent);
     border-radius: 8px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 2rem;
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-5);
     color: var(--rc-green-1);
     width: 100%;
 }
@@ -109,19 +109,19 @@
 }
 
 .filtered-content h2 {
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-5);
     font-size: 2rem;
     color: var(--rc-text);
     font-weight: 700;
 }
 
 .content-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-4);
     width: 100%;
 }
 
 .content-section h3 {
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-3);
     font-size: 1.3rem;
     color: var(--rc-gray);
     font-weight: 700;

@@ -60,8 +60,8 @@
 }
 
 .search-button {
-    background-color: var(--rc-red);
-    color: #111;
+    background: linear-gradient(135deg, var(--rc-amber-glow) 0%, var(--rc-crate-wood) 100%);
+    color: var(--rc-vinyl-black);
     border: none;
     padding: 0.75rem 1.5rem;
     border-radius: 8px;
@@ -69,11 +69,16 @@
     cursor: pointer;
     transition: all 0.2s;
     flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px rgba(212, 165, 116, 0.2),
+        0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
 }
 
 .search-button:hover {
-    filter: brightness(0.95);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 18px rgba(212, 165, 116, 0.3),
+        0 1px 0 0 rgba(255, 255, 255, 0.25) inset;
 }
 
 .clear-button {

@@ -10,7 +10,7 @@ import type {
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
-const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 'http://localhost:5173/callback';
+const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 'http://127.0.0.1:5173/callback';
 
 const SCOPES = [
   'user-read-private',
@@ -19,6 +19,13 @@ const SCOPES = [
   'user-library-read',
   'user-read-recently-played'
 ].join(' ');
+
+// Check if credentials are configured
+const hasCredentials = !!CLIENT_ID && !!CLIENT_SECRET;
+
+if (!hasCredentials) {
+  console.warn('⚠️ Spotify credentials not configured. Please add VITE_SPOTIFY_CLIENT_ID and VITE_SPOTIFY_CLIENT_SECRET to your .env file.');
+}
 
 // DEFAULT_MARKET removed; no longer required in no-auth discography flow.
 
@@ -34,10 +41,8 @@ class SpotifyService {
       return this.accessToken;
     }
 
-    // Check if credentials are configured
-    if (!CLIENT_ID || CLIENT_ID === 'your_spotify_client_id_here' || 
-        !CLIENT_SECRET || CLIENT_SECRET === 'your_spotify_client_secret_here') {
-      throw new Error('Spotify credentials not configured. Please set VITE_SPOTIFY_CLIENT_ID and VITE_SPOTIFY_CLIENT_SECRET in .env.local');
+    if (!hasCredentials) {
+      throw new Error('MISSING_CREDENTIALS');
     }
 
     const response = await axios.post(
@@ -520,11 +525,8 @@ class SpotifyService {
 
   // OAuth Authentication Methods
   getAuthUrl(): string {
-    // Prefer the configured REDIRECT_URI, but at runtime fall back to the current origin
-    // Use 127.0.0.1 instead of localhost per Spotify requirements
-    const runtimeRedirect = (typeof window !== 'undefined')
-      ? (REDIRECT_URI || `${window.location.origin}/callback`)
-      : (REDIRECT_URI || 'http://127.0.0.1:5173/callback');
+    // Always use 127.0.0.1 (Spotify requirement) not localhost
+    const runtimeRedirect = REDIRECT_URI || 'http://127.0.0.1:5173/callback';
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: CLIENT_ID,
@@ -540,11 +542,8 @@ class SpotifyService {
     if (this.pendingTokenExchange) {
       return this.pendingTokenExchange;
     }
-    // Use the configured REDIRECT_URI, but fall back to the current origin at runtime
-    // Use 127.0.0.1 instead of localhost per Spotify requirements
-    const effectiveRedirect = (typeof window !== 'undefined')
-      ? (REDIRECT_URI || `${window.location.origin}/callback`)
-      : (REDIRECT_URI || 'http://127.0.0.1:5173/callback');
+    // Always use 127.0.0.1 (Spotify requirement) not localhost
+    const effectiveRedirect = REDIRECT_URI || 'http://127.0.0.1:5173/callback';
     this.pendingTokenExchange = (async () => {
       try {
       const response = await axios.post(

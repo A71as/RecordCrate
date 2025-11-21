@@ -1,18 +1,12 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Search, User, Music, LogOut } from 'lucide-react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { Search, User, Music, LogOut, Moon, Sun } from 'lucide-react';
+import { useAuth } from '../context/useAuth';
+import { useTheme } from '../context/ThemeContext';
 
 export const Header: React.FC = () => {
-  const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0();
-
-  const handleLogin = () => {
-    loginWithRedirect();
-  };
-
-  const handleLogout = () => {
-    logout({ logoutParams: { returnTo: window.location.origin } });
-  };
+  const { googleUser, spotifyUser, linkSpotifyAccount, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const navigate = useNavigate();
 
@@ -20,8 +14,9 @@ export const Header: React.FC = () => {
     navigate('/search', { state: { resetSearch: Date.now() } });
   };
 
-  const displayName = user?.name ?? user?.email ?? 'Guest';
-  const avatarUrl = user?.picture;
+  const displayName = googleUser?.name ?? googleUser?.email ?? 'Guest';
+  const avatarUrl = googleUser?.picture;
+  const isAuthenticated = !!googleUser;
 
   return (
     <header className="header">
@@ -46,6 +41,14 @@ export const Header: React.FC = () => {
             <User size={18} />
             Profile
           </NavLink>
+          <button 
+            type="button" 
+            className="nav-link nav-link-button" 
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
           <div className="nav-divider"></div>
           {isAuthenticated ? (
             <div className="user-section">
@@ -59,7 +62,7 @@ export const Header: React.FC = () => {
                 )}
                 <span className="user-name">{displayName}</span>
               </div>
-              <button className="logout-btn" onClick={handleLogout}>
+              <button className="logout-btn" onClick={logout}>
                 <LogOut size={16} />
                 Logout
               </button>
@@ -67,7 +70,7 @@ export const Header: React.FC = () => {
           ) : (
             <button
               className="auth-login-btn"
-              onClick={handleLogin}
+              onClick={() => {}}
             >
               <User size={16} />
               Login
