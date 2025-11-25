@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI || '';
 // Allow multiple origins in dev. Support comma-separated CORS_ORIGIN.
-const DEFAULT_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const DEFAULT_ORIGINS = ['http://localhost:5173', 'http://localhost:8888', 'http://127.0.0.1:5173'];
 const CORS_ORIGIN = process.env.CORS_ORIGIN;
 const ORIGINS = CORS_ORIGIN
   ? CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)

@@ -1,6 +1,5 @@
 import express from 'express';
 import { AlbumReview } from '../models/AlbumReview.js';
-
 const router = express.Router();
 
 // Upsert a review for a user+album
@@ -82,17 +81,31 @@ router.get('/', async (_req, res) => {
   }
 });
 
+// Review route
+router.get('/:reviewId', async (req, res) => {
+  // Get review
+  try {
+    const review = await AlbumReview.findById(req.params.reviewId).lean();
+
+    if (!review)
+      return res.status(404).json({ error: 'Review does not exist'});
+    res.status(200).json(review);
+  } catch (error) {
+    return res.status(500).json({ error: 'Database failed'})
+}
+});
+
 // Delete a review
 router.delete('/:userSpotifyId/:albumId', async (req, res) => {
   try {
     const { userSpotifyId, albumId } = req.params;
-    
+
     if (!userSpotifyId || !albumId) {
       return res.status(400).json({ error: 'userSpotifyId and albumId required' });
     }
 
     const result = await AlbumReview.findOneAndDelete({ userSpotifyId, albumId });
-    
+
     if (!result) {
       return res.status(404).json({ error: 'Review not found' });
     }
