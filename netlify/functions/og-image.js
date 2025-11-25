@@ -1,16 +1,21 @@
 import satori from "satori";
 import sharp from "sharp";
+import fs from "fs";
 
 export const handler = async (event) => {
+  console.log("called");
   const id = event.queryStringParameters.id;
+  
+  const url = new URL(event.rawUrl);
   // We extract the domain from our url, is more flexible than a static constant
   const domain = `${url.protocol}//${url.hostname}`;
 
   const review = await fetch(`${domain}:4000/api/reviews/${id}`)
     .then(res => res.json());
 
-  const svg = await satori(
-    {
+  const InterData = fs.readFileSync("public/fonts/Inter_24pt-Medium.ttf");
+
+  const svg = await satori({
       type: "div",
       props: {
         style: {
@@ -41,7 +46,12 @@ export const handler = async (event) => {
         ],
       },
     },
-    { width: 1200, height: 630, fonts: [] }
+    { 
+      width: 1200, height: 630, 
+      fonts: [{ 
+        name: "Inter", data: InterData, weight: 400 
+      }]
+    }
   );
 
   const png = await sharp(Buffer.from(svg)).png().toBuffer();

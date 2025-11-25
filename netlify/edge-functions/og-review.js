@@ -27,7 +27,7 @@ export default async (request) => {
     // Ideally this should be after the if statement below. But the id given is not the album id
     const review = await fetch(`${domain}:4000/api/reviews/${id}`)
         .then(res => res.json());
-    console.log("fetched review");
+    console.log("fetched review.");
 
     // Here lies the redirect url for real users. Make sure this points to an actual page
     if (isBot) {

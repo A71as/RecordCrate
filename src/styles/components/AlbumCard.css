@@ -153,3 +153,31 @@
         font-size: 1rem;
     }
 }
+
+.album-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    /* space between buttons */
+}
+
+.clippy {
+    border-radius: 5px;
+    border: 1px solid transparent;
+    padding: 0.3em 0.4em;
+}
+
+.share-container {
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    border-width: 2px;
+    border-style: solid;
+    /* or dotted, dashed, double, groove, ridge, inset, outset */
+    border-color: black;
+}
+
+.share-container[hidden] {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}

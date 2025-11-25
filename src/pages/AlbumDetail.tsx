@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Star, ArrowLeft, Clock, Trash2 } from "lucide-react";
+import { Clipboard, Star, ArrowLeft, Clock, Trash2 } from "lucide-react";
 import { spotifyService } from "../services/spotify";
 import { backend } from "../services/backend";
 import { StarRating } from "../components/StarRating";
 import type { SpotifyAlbum, SongRating, AlbumReview } from "../types";
 import { useAuth } from "../context/useAuth";
+import {
+  TwitterShareButton, XIcon
+} from "react-share";
 
 type ModifierState = {
   emotionalStoryConnection: number;
@@ -54,6 +57,7 @@ export const AlbumDetail: React.FC = () => {
   const [isReviewing, setIsReviewing] = useState(false);
   const [existingReview, setExistingReview] = useState<AlbumReview | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
+  const [hidden, setHidden] = useState(true);
   // Score modifiers: signed percentages (-10..+10) per category
   const [modifiers, setModifiers] = useState<ModifierState>({
     emotionalStoryConnection: 0,
@@ -64,6 +68,21 @@ export const AlbumDetail: React.FC = () => {
   const { isSpotifyLinked, linkSpotifyAccount, loadingSpotify } = useAuth();
   const canRate = isSpotifyLinked;
 
+  // For my dumb share feature
+  const hideTimer = useRef<number | null>(null);
+
+  const showShare = () => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    setHidden(false);
+  };
+
+  const delayedHideShare = () => {
+    hideTimer.current = window.setTimeout(() => {
+      setHidden(true);
+    }, 500);
+  };
+  // --------------------------------
+
   useEffect(() => {
     if (!canRate && isReviewing) {
       setIsReviewing(false);
@@ -73,7 +92,7 @@ export const AlbumDetail: React.FC = () => {
   useEffect(() => {
     const fetchAlbum = async () => {
       if (!albumId) return;
-
+      
       try {
         setLoading(true);
         setError(null);
@@ -94,7 +113,7 @@ export const AlbumDetail: React.FC = () => {
                 displayName: user.display_name,
                 avatarUrl: user.images?.[0]?.url,
               })
-              .catch(() => {});
+              .catch(() => { });
           } else {
             setCurrentUserId(null);
           }
@@ -282,6 +301,7 @@ export const AlbumDetail: React.FC = () => {
           rating,
         };
       }
+      
     );
 
     const finalAdjusted = adjustedOverall();
@@ -391,7 +411,7 @@ export const AlbumDetail: React.FC = () => {
 
   const handleDeleteReview = async () => {
     if (!album || !existingReview) return;
-    
+
     const confirmDelete = window.confirm("Are you sure you want to delete this review? This action cannot be undone.");
     if (!confirmDelete) return;
 
@@ -412,7 +432,7 @@ export const AlbumDetail: React.FC = () => {
       const savedReviews = JSON.parse(localStorage.getItem("albumReviews") || "[]");
       const filtered = savedReviews.filter((r: AlbumReview) => r.albumId !== album.id);
       localStorage.setItem("albumReviews", JSON.stringify(filtered));
-      
+
       if (!currentUserId) {
         setReviewCount(filtered.filter((r: AlbumReview) => r.albumId === album.id).length);
       }
@@ -468,21 +488,21 @@ export const AlbumDetail: React.FC = () => {
             {albumImage && <img src={albumImage} alt={album.name} />}
           </div>
 
-            <div className="album-info">
-              <h1 className="album-title">{album.name}</h1>
-              <div className="album-artists">
-                {album.artists.map((artist, index) => (
-                  <button
-                    key={artist.id}
-                    type="button"
-                    className="artist-link"
-                    onClick={() => navigate(`/artist/${artist.id}`)}
-                  >
-                    {artist.name}
-                    {index < album.artists.length - 1 ? ", " : ""}
-                  </button>
-                ))}
-              </div>
+          <div className="album-info">
+            <h1 className="album-title">{album.name}</h1>
+            <div className="album-artists">
+              {album.artists.map((artist, index) => (
+                <button
+                  key={artist.id}
+                  type="button"
+                  className="artist-link"
+                  onClick={() => navigate(`/artist/${artist.id}`)}
+                >
+                  {artist.name}
+                  {index < album.artists.length - 1 ? ", " : ""}
+                </button>
+              ))}
+            </div>
             <div className="album-meta">
               <span className="release-date">
                 {new Date(album.release_date).getFullYear()}
@@ -533,6 +553,39 @@ export const AlbumDetail: React.FC = () => {
                 <Star size={20} />
                 {reviewButtonLabel}
               </button>
+              {/* Stuff needed for image rendering */}
+              <meta property="og:image" content={albumImage} />
+              <meta property="og:title" content={album.name} />
+              <meta property="og:description" content={album.name} />
+              <meta property="og:url" content={albumImage} />
+              <meta name="twitter:card" content="summary_large_image" />
+              <meta name="twitter:title" content={album.name} />
+              <meta name="twitter:description" content="description" />
+              <meta name="twitter:image" content={albumImage} />
+              <div
+                className="share-container"
+                hidden={!hidden}
+                onMouseOver={showShare}
+              >
+                Share Review
+              </div>
+              <div className='share-container'
+                hidden={hidden}
+                onMouseOver={showShare}
+                onMouseOut={delayedHideShare}
+              >
+                <button
+                  className="clippy"
+                  onClick={() => navigator.clipboard.writeText(window.location.href)}
+                >
+                  <Clipboard size={20} />
+                </button>
+                <a className="share-link twitter" target="_blank" href={`https://twitter.com/intent/tweet?text=Create a Twisted Wonderland Tier List&hashtags=TierMaker&via=TierMaker&url=${window.location.href}`}>
+                  <XIcon size={30} round bgStyle={{ fill: '#252528' }} /></a>
+                <TwitterShareButton url={albumImage} htmlTitle="RecordCrate">
+                  <XIcon size={30} round bgStyle={{ fill: '#252528' }} />
+                </TwitterShareButton>
+              </div>
             </div>
           </div>
         </div>
@@ -724,7 +777,7 @@ export const AlbumDetail: React.FC = () => {
           <div className="existing-review">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h2>Your Review</h2>
-              <button 
+              <button
                 className="delete-review-btn"
                 onClick={handleDeleteReview}
                 title="Delete this review"
@@ -820,7 +873,7 @@ export const AlbumDetail: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 
