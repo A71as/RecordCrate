@@ -1,5 +1,6 @@
 import express from 'express';
 import axios from 'axios';
+import * as cheerio from 'cheerio';
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const router = express.Router();
  */
 router.get('/hot-100', async (req, res) => {
   try {
-    console.log('Fetching Billboard Hot 100...');
+    console.log('[Billboard] Fetching Billboard Hot 100...');
     
     // Try RSS feed first (most reliable)
     try {
@@ -54,14 +55,15 @@ router.get('/hot-100', async (req, res) => {
       }
 
       if (tracks.length > 0) {
-        console.log(`✅ Fetched ${tracks.length} tracks from Billboard RSS`);
+        console.log(`[Billboard] ✅ Fetched ${tracks.length} tracks from Billboard RSS`);
         return res.json({ success: true, tracks, source: 'rss' });
       }
     } catch (rssError) {
-      console.log('RSS feed failed, trying HTML scraping...', rssError.message);
+      console.log('[Billboard] RSS feed failed, trying HTML scraping...', rssError.message);
     }
 
-    // Fallback to HTML scraping
+    // Fallback to HTML scraping with Cheerio
+    console.log('[Billboard] Attempting HTML scraping...');
     const htmlUrl = 'https://www.billboard.com/charts/hot-100/';
     const htmlResponse = await axios.get(htmlUrl, {
       timeout: 15000,
@@ -70,15 +72,44 @@ router.get('/hot-100', async (req, res) => {
       },
     });
 
-    const html = htmlResponse.data;
+    const $ = cheerio.load(htmlResponse.data);
     const tracks = [];
 
-    // Parse HTML chart entries
+    // Try to find chart items using multiple selectors
+    let rank = 1;
+    
+    // Strategy 1: Look for list items in chart results
+    $('ul.o-chart-results-list-row li.o-chart-results-list__item').each((index, element) => {
+      if (rank > 100) return false;
+      
+      const $el = $(element);
+      let title = $el.find('h3#title-of-a-story').text().trim() || $el.find('h3').first().text().trim();
+      let artist = $el.find('span.c-label.a-no-trucate').text().trim() || $el.find('span.c-label').first().text().trim();
+      
+      title = title.replace(/\s+/g, ' ').trim();
+      artist = artist.replace(/\s+/g, ' ').trim();
+      
+      if (title && artist && !artist.match(/^(LW|PEAK|WEEKS|NEW|RE-ENTRY)$/i)) {
+        tracks.push({ rank: rank++, title, artist });
+      }
+    });
+
+    if (tracks.length > 0) {
+      console.log(`[Billboard] ✅ Fetched ${tracks.length} tracks from Billboard HTML (Cheerio)`);
+      return res.json({ success: true, tracks, source: 'html-cheerio' });
+    }
+
+    // Strategy 2: Fallback regex parsing
+    console.log('[Billboard] Cheerio parsing yielded no results, trying regex fallback...');
+    const html = htmlResponse.data;
+    // Parse HTML chart entries with regex
     const chartEntryRegex = /<ul[^>]*class="[^"]*o-chart-results-list-row[^"]*"[^>]*>([\s\S]*?)<\/ul>/gi;
     let entryMatches = html.matchAll(chartEntryRegex);
     
-    let rank = 1;
+    let regexRank = 1;
     for (const entryMatch of entryMatches) {
+      if (regexRank > 100) break;
+      
       const entryHtml = entryMatch[1];
       
       // Extract title
@@ -99,21 +130,20 @@ router.get('/hot-100', async (req, res) => {
         
         // Filter out UI labels
         if (!artist.match(/^(LW|PEAK|WEEKS|NEW|RE-ENTRY)$/i)) {
-          tracks.push({ rank: rank++, title, artist });
-          if (rank > 100) break;
+          tracks.push({ rank: regexRank++, title, artist });
         }
       }
     }
 
     if (tracks.length > 0) {
-      console.log(`✅ Fetched ${tracks.length} tracks from Billboard HTML`);
+      console.log(`[Billboard] ✅ Fetched ${tracks.length} tracks from Billboard HTML (regex)`);
       return res.json({ success: true, tracks, source: 'html' });
     }
 
-    throw new Error('Could not parse Billboard data');
+    throw new Error('Could not parse Billboard data from any source');
     
   } catch (error) {
-    console.error('❌ Failed to fetch Billboard Hot 100:', error.message);
+    console.error('[Billboard] ❌ Failed to fetch Billboard Hot 100:', error.message);
     res.status(500).json({ 
       success: false, 
       error: 'Failed to fetch Billboard Hot 100',

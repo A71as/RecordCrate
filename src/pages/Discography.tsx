@@ -13,6 +13,9 @@ export const Discography: React.FC = () => {
           <p>
             Explore the current Billboard Hot 100 chart. The hottest tracks across all genres, ranked by popularity.
           </p>
+          <p style={{ fontSize: '0.9rem', color: 'var(--muted)', marginTop: '0.5rem' }}>
+            Tracks not available on Spotify are shown with limited information
+          </p>
         </header>
 
         <BillboardTrackList

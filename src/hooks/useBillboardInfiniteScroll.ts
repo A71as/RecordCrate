@@ -2,8 +2,15 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { billboardService } from '../services/billboard';
 import type { SpotifyTrack } from '../types';
 
+interface BillboardTrack {
+  rank: number;
+  title: string;
+  artist: string;
+  isSpotifyMatched?: boolean;
+}
+
 export const useBillboardInfiniteScroll = () => {
-  const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
+  const [tracks, setTracks] = useState<(SpotifyTrack | BillboardTrack)[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);

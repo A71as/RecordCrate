@@ -21,21 +21,55 @@ const ORIGINS = CORS_ORIGIN
 app.use(cors({ origin: ORIGINS, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 
+// Add error handling middleware BEFORE routes
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'recordcrate-api', time: new Date().toISOString() });
 });
 
-// Always mount discography and billboard; they do not require DB
-app.use('/api/discography', discographyRouter);
-app.use('/api/billboard', billboardRouter);
+// Wrap route mounting in try-catch
+try {
+  // Always mount discography and billboard; they do not require DB
+  app.use('/api/discography', discographyRouter);
+  app.use('/api/billboard', billboardRouter);
+  console.log('[recordcrate-api] Mounted discography and billboard routes');
+} catch (e) {
+  console.error('[recordcrate-api] Failed to mount routes:', e);
+  process.exit(1);
+}
 
 // Mount DB-backed routes only when Mongo is configured
 function mountDbRoutes() {
-  app.use('/api/reviews', reviewsRouter);
-  app.use('/api/users', usersRouter);
+  try {
+    app.use('/api/reviews', reviewsRouter);
+    app.use('/api/users', usersRouter);
+    console.log('[recordcrate-api] Mounted DB routes');
+  } catch (e) {
+    console.error('[recordcrate-api] Failed to mount DB routes:', e);
+  }
 }
 
+// Global error handler - MUST be after routes
+app.use((err, req, res, next) => {
+  console.error('[recordcrate-api] Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error', message: err.message });
+});
+
 async function start() {
+  // Global error handlers to prevent crashes
+  process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    console.error(error.stack);
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  });
+
   if (!MONGODB_URI) {
     console.warn('[recordcrate-api] No MONGODB_URI provided. Starting in discography-only mode.');
     app.listen(PORT, () => console.log(`API listening (discography-only) on http://localhost:${PORT}`));
