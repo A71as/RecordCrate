@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Search as SearchIcon, Sparkles, X, Loader } from 'lucide-react';
+import { Sparkles, X, Loader } from 'lucide-react';
 import { AlbumCard } from '../components/AlbumCard';
 import { ArtistCard } from '../components/ArtistCard';
 import { TrackSearchResults } from '../components/TrackSearchResults';
@@ -157,15 +157,7 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           {results.tracks.length > 0 && (
             <div className="results-section">
               <h3>Tracks ({results.tracks.length})</h3>
-              <TrackSearchResults 
-                tracks={results.tracks} 
-                onTrackSelect={(track) => {
-                  if (track.preview_url) {
-                    const audio = new Audio(track.preview_url);
-                    audio.play().catch(console.error);
-                  }
-                }} 
-              />
+              <TrackSearchResults tracks={results.tracks} />
             </div>
           )}
         </div>

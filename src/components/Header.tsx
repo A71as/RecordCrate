@@ -5,7 +5,7 @@ import { useAuth } from '../context/useAuth';
 import { useTheme } from '../context/ThemeContext';
 
 export const Header: React.FC = () => {
-  const { googleUser, spotifyUser, linkSpotifyAccount, logout } = useAuth();
+  const { googleUser, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const navigate = useNavigate();
