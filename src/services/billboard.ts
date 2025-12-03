@@ -77,7 +77,7 @@ class BillboardService {
   async getBillboardTracksWithSpotifyData(
     page: number = 0,
     limit: number = 20
-  ): Promise<{ tracks: SpotifyTrack[]; hasMore: boolean; total: number }> {
+  ): Promise<{ tracks: (SpotifyTrack | BillboardTrack)[]; hasMore: boolean; total: number }> {
     try {
       // Get all 100 tracks from Billboard
       const billboardTracks = await this.getBillboardHot100();
@@ -91,49 +91,52 @@ class BillboardService {
       // Get the tracks for this page
       const tracksToMatch = billboardTracks.slice(startIndex, endIndex);
       
-      const spotifyTracks: SpotifyTrack[] = [];
-      const skippedTracks: string[] = [];
+      // Process tracks in parallel batches of 5 for faster loading
+      const batchSize = 5;
+      const results: (SpotifyTrack | BillboardTrack)[] = [];
       
-      // Match each Billboard track to Spotify
-      for (const track of tracksToMatch) {
-        try {
-          const query = `track:${track.title} artist:${track.artist}`;
-          const searchResults = await spotifyService.searchTracks(query);
-          
-          if (searchResults.length > 0) {
-            const spotifyTrack = searchResults[0];
-            // Add the Billboard rank and any skipped tracks before this one
-            (spotifyTrack as any).billboardRank = track.rank;
-            if (skippedTracks.length > 0) {
-              (spotifyTrack as any).skippedBefore = [...skippedTracks];
-              skippedTracks.length = 0; // Clear the array
+      for (let i = 0; i < tracksToMatch.length; i += batchSize) {
+        const batch = tracksToMatch.slice(i, i + batchSize);
+        
+        // Search all tracks in the batch simultaneously
+        const batchResults = await Promise.all(
+          batch.map(async (track) => {
+            try {
+              const query = `track:${track.title} artist:${track.artist}`;
+              const searchResults = await spotifyService.searchTracks(query);
+              
+              if (searchResults.length > 0) {
+                const spotifyTrack = searchResults[0];
+                // Mark as matched and add Billboard rank
+                (spotifyTrack as any).billboardRank = track.rank;
+                (spotifyTrack as any).isSpotifyMatched = true;
+                return spotifyTrack;
+              } else {
+                // Return Billboard track as placeholder
+                console.log(`No Spotify match for: #${track.rank}: ${track.title} by ${track.artist}`);
+                return {
+                  ...track,
+                  isSpotifyMatched: false,
+                  billboardRank: track.rank,
+                } as any;
+              }
+            } catch (error) {
+              console.warn(`Failed to match track: #${track.rank}: ${track.title} by ${track.artist}`, error);
+              // Return Billboard track as placeholder on error
+              return {
+                ...track,
+                isSpotifyMatched: false,
+                billboardRank: track.rank,
+              } as any;
             }
-            spotifyTracks.push(spotifyTrack);
-          } else {
-            // No match found - track this as skipped
-            const skippedInfo = `#${track.rank}: ${track.title} by ${track.artist}`;
-            skippedTracks.push(skippedInfo);
-            console.log(`No Spotify match for: ${skippedInfo}`);
-          }
-          
-          // Small delay to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 100));
-        } catch (error) {
-          const skippedInfo = `#${track.rank}: ${track.title} by ${track.artist}`;
-          skippedTracks.push(skippedInfo);
-          console.warn(`Failed to match track: ${skippedInfo}`, error);
-        }
-      }
-      
-      // If there are trailing skipped tracks, attach them to the last track
-      if (skippedTracks.length > 0 && spotifyTracks.length > 0) {
-        const lastTrack = spotifyTracks[spotifyTracks.length - 1];
-        const existing = (lastTrack as any).skippedBefore || [];
-        (lastTrack as any).skippedBefore = [...existing, ...skippedTracks];
+          })
+        );
+        
+        results.push(...batchResults);
       }
       
       return {
-        tracks: spotifyTracks,
+        tracks: results,
         hasMore,
         total,
       };
