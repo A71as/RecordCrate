@@ -1,4 +1,4 @@
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:4000';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || `${window.location.origin}:4000`;
 import axios from 'axios';
 import type {
   DiscographyEntry,
@@ -10,7 +10,7 @@ import type {
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
-const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 'http://127.0.0.1:5173/callback';
+const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || `${window.location.protocol}//${window.location.hostname}/callback`;
 
 const SCOPES = [
   'user-read-private',

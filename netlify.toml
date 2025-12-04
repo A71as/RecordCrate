@@ -1,9 +1,11 @@
 [build]
   command = "npm run build"
+  functions = "netlify/functions"
   publish = "dist"
 
-[functions]
-  directory = "netlify/functions"
+[[edge_functions]]
+  function = "og-review"
+  path = "/og/review/:id"
 
 # Billboard API redirect - must come BEFORE the catch-all
 [[redirects]]

@@ -15,7 +15,7 @@ export type SaveReviewPayload = {
   albumMeta?: { name?: string; artists?: string[]; image?: string };
 };
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:4001';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || `${window.location.protocol}//${window.location.hostname}:4000`;
 
 async function jsonFetch<T = unknown>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -38,6 +38,9 @@ export const backend = {
   },
   async getAlbumReviews(albumId: string) {
     return jsonFetch(`/api/reviews/album/${albumId}`);
+  },
+  async getReview(reviewId: string) {
+    return jsonFetch(`/api/reviews/${reviewId}`)
   },
   async getUserReviews(spotifyId: string, albumId?: string) {
     const p = albumId ? `/api/reviews/user/${spotifyId}?albumId=${encodeURIComponent(albumId)}` : `/api/reviews/user/${spotifyId}`;
