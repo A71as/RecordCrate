@@ -22,15 +22,13 @@ export default async (request) => {
     // We extract the domain from our url, is more flexible than a static constant
     const domain = `${url.protocol}//${url.hostname}`;
 
-    console.log("fetching review...");
     // Fetch review data from your backend
     // Ideally this should be after the if statement below. But the id given is not the album id
     const review = await fetch(`${domain}:4000/api/reviews/${id}`)
         .then(res => res.json());
-    console.log("fetched review.");
 
     // Here lies the redirect url for real users. Make sure this points to an actual page
-    if (isBot) {
+    if (!isBot) {
         return Response.redirect(`${domain}:5173/album/${review.albumId}`, 302);
     }
 
