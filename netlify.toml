@@ -1,13 +1,18 @@
 [build]
   command = "npm run build"
   publish = "dist"
-  functions = "netlify/functions"
 
+[functions]
+  directory = "netlify/functions"
+
+# Billboard API redirect - must come BEFORE the catch-all
 [[redirects]]
-  from = "/api/billboard/hot-100"
+  from = "/api/billboard/*"
   to = "/.netlify/functions/billboard"
   status = 200
+  force = true
 
+# SPA catch-all redirect
 [[redirects]]
   from = "/*"
   to = "/index.html"
