@@ -10,8 +10,8 @@
 /* Search Header - Premium Design */
 .search-header {
     text-align: center;
-    margin-bottom: clamp(2.5rem, 5vw, 4rem);
-    padding-top: clamp(1.5rem, 3vw, 2.5rem);
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    padding-top: clamp(1rem, 2vw, 1.5rem);
 }
 
 .search-header h1 {
@@ -122,15 +122,15 @@
 /* Results Section */
 .unified-results {
     max-width: var(--container-max);
-    margin: clamp(3rem, 5vw, 4rem) auto 0;
+    margin: clamp(2rem, 4vw, 3rem) auto 0;
 }
 
 .results-section-title {
     font-size: clamp(1.5rem, 3vw, 2.25rem);
     font-weight: 700;
     color: var(--rc-text);
-    margin-bottom: var(--space-5);
-    margin-top: clamp(3rem, 5vw, 4rem);
+    margin-bottom: var(--space-4);
+    margin-top: clamp(2rem, 4vw, 3rem);
     padding-bottom: var(--space-3);
     border-bottom: 2px solid var(--panel-border);
     position: relative;
