@@ -36,15 +36,38 @@ class BillboardService {
 
       console.log('Billboard API response status:', response.status);
       console.log('Billboard API response data:', response.data);
+      console.log('Billboard API response type:', typeof response.data);
+      console.log('Billboard API response keys:', Object.keys(response.data || {}));
 
-      if (response.data.success && Array.isArray(response.data.tracks)) {
-        const tracks = response.data.tracks;
-        console.log(`✅ Successfully fetched ${tracks.length} current Billboard tracks (source: ${response.data.source})`);
+      // Handle the response data - it might be double-wrapped or stringified
+      let responseData = response.data;
+      
+      // If the response is a string, try to parse it
+      if (typeof responseData === 'string') {
+        console.log('Response is a string, parsing JSON...');
+        try {
+          responseData = JSON.parse(responseData);
+        } catch (parseError) {
+          console.error('Failed to parse response as JSON:', parseError);
+          throw new Error('Invalid JSON response from Billboard API');
+        }
+      }
+
+      console.log('Parsed response data:', responseData);
+      console.log('Has success field?', 'success' in (responseData || {}));
+      console.log('Has tracks field?', 'tracks' in (responseData || {}));
+
+      if (responseData && responseData.success && Array.isArray(responseData.tracks)) {
+        const tracks = responseData.tracks;
+        console.log(`✅ Successfully fetched ${tracks.length} current Billboard tracks (source: ${responseData.source})`);
         console.log('Top 5 tracks:', tracks.slice(0, 5));
         return tracks;
       }
 
-      throw new Error('Invalid response from Billboard API');
+      console.error('Invalid response structure. Expected: { success: true, tracks: [...] }');
+      console.error('Actual response:', responseData);
+      throw new Error(`Invalid response from Billboard API. Structure: ${JSON.stringify(Object.keys(responseData || {}))}`);
+
       
     } catch (error) {
       console.error('❌ Failed to fetch Billboard Hot 100:', error);

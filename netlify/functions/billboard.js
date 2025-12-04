@@ -57,13 +57,16 @@ exports.handler = async (event, context) => {
 
       if (tracks.length > 0) {
         console.log(`[Billboard] ✅ Fetched ${tracks.length} tracks from Billboard RSS`);
+        const responseBody = { success: true, tracks, source: 'rss' };
+        console.log('[Billboard] Returning response:', JSON.stringify(responseBody).substring(0, 200));
         return {
           statusCode: 200,
           headers: {
             'Content-Type': 'application/json',
             'Cache-Control': 'public, max-age=21600', // Cache for 6 hours
+            'Access-Control-Allow-Origin': '*', // Allow CORS
           },
-          body: JSON.stringify({ success: true, tracks, source: 'rss' })
+          body: JSON.stringify(responseBody)
         };
       }
     } catch (rssError) {
@@ -104,13 +107,16 @@ exports.handler = async (event, context) => {
 
     if (tracks.length > 0) {
       console.log(`[Billboard] ✅ Fetched ${tracks.length} tracks from Billboard HTML`);
+      const responseBody = { success: true, tracks, source: 'html' };
+      console.log('[Billboard] Returning response:', JSON.stringify(responseBody).substring(0, 200));
       return {
         statusCode: 200,
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'public, max-age=21600', // Cache for 6 hours
+          'Access-Control-Allow-Origin': '*', // Allow CORS
         },
-        body: JSON.stringify({ success: true, tracks, source: 'html' })
+        body: JSON.stringify(responseBody)
       };
     }
 
@@ -118,16 +124,19 @@ exports.handler = async (event, context) => {
     
   } catch (error) {
     console.error('[Billboard] ❌ Failed to fetch Billboard Hot 100:', error.message);
+    const errorBody = { 
+      success: false, 
+      error: 'Failed to fetch Billboard Hot 100',
+      message: error.message 
+    };
+    console.log('[Billboard] Returning error response:', JSON.stringify(errorBody));
     return {
       statusCode: 500,
       headers: {
         'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*', // Allow CORS
       },
-      body: JSON.stringify({ 
-        success: false, 
-        error: 'Failed to fetch Billboard Hot 100',
-        message: error.message 
-      })
+      body: JSON.stringify(errorBody)
     };
   }
 };
