@@ -22,7 +22,8 @@ class BillboardService {
   private async scrapeBillboardHot100(): Promise<BillboardTrack[]> {
     try {
       // Use our backend API to fetch Billboard data (bypasses CORS)
-      const apiUrl = 'http://127.0.0.1:4000/api/billboard/hot-100';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+      const apiUrl = `${API_BASE_URL}/api/billboard/hot-100`;
       
       console.log('Fetching current Billboard Hot 100 from backend API...');
       const response = await axios.get(apiUrl, {
