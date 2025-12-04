@@ -26,10 +26,16 @@ class BillboardService {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
       const apiUrl = API_BASE_URL ? `${API_BASE_URL}/api/billboard/hot-100` : '/api/billboard/hot-100';
       
+      console.log('Billboard API URL:', apiUrl);
+      console.log('Environment:', import.meta.env.MODE);
       console.log('Fetching current Billboard Hot 100 from backend API...');
+      
       const response = await axios.get(apiUrl, {
         timeout: 30000, // Longer timeout since backend needs to scrape
       });
+
+      console.log('Billboard API response status:', response.status);
+      console.log('Billboard API response data:', response.data);
 
       if (response.data.success && Array.isArray(response.data.tracks)) {
         const tracks = response.data.tracks;
@@ -42,6 +48,11 @@ class BillboardService {
       
     } catch (error) {
       console.error('❌ Failed to fetch Billboard Hot 100:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Response status:', error.response?.status);
+        console.error('Response data:', error.response?.data);
+        console.error('Request URL:', error.config?.url);
+      }
       throw new Error('Unable to fetch current Billboard Hot 100. Backend API error.');
     }
   }

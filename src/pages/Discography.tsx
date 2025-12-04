@@ -19,6 +19,23 @@ export const Discography: React.FC = () => {
           </p>
         </header>
 
+        {billboardData.error && (
+          <div style={{ 
+            padding: '2rem', 
+            background: 'var(--error-bg, #fee)', 
+            border: '1px solid var(--error-border, #fcc)',
+            borderRadius: '8px',
+            margin: '2rem 0',
+            color: 'var(--error-text, #c00)'
+          }}>
+            <h3>Error Loading Billboard Data</h3>
+            <p>{billboardData.error}</p>
+            <p style={{ fontSize: '0.9rem', marginTop: '1rem' }}>
+              Please check the browser console for more details.
+            </p>
+          </div>
+        )}
+
         <BillboardTrackList
           tracks={billboardData.tracks}
           loading={billboardData.loading}
