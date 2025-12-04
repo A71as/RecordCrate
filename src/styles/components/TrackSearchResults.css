@@ -81,35 +81,49 @@
 }
 
 .preview-button {
-    background: none;
-    border: none;
+    background: color-mix(in srgb, var(--panel-bg) 80%, transparent);
+    border: 1px solid color-mix(in srgb, var(--spotify-green) 30%, transparent);
     cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
+    padding: 0.4rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    color: var(--spotify-green);
 }
 
 .preview-button:hover {
-    background-color: color-mix(in srgb, var(--spotify-green) 14%, transparent);
+    background: color-mix(in srgb, var(--spotify-green) 20%, transparent);
+    border-color: var(--spotify-green);
+    transform: scale(1.1);
 }
 
 .spotify-link {
-    color: var(--spotify-green);
+    color: white;
+    background: linear-gradient(135deg, 
+        color-mix(in srgb, var(--spotify-green) 90%, black 10%) 0%, 
+        color-mix(in srgb, var(--spotify-green) 80%, black 20%) 100%);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.9rem;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--spotify-green);
+    padding: 0.6rem 1.2rem;
+    border: 2px solid color-mix(in srgb, var(--spotify-green) 40%, transparent);
     border-radius: 999px;
     transition: all 0.2s ease;
     flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px color-mix(in srgb, var(--spotify-green) 30%, black),
+        0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
 }
 
 .spotify-link:hover,
 .spotify-link:focus-visible {
-    background-color: var(--spotify-green);
-    color: #0a2513;
-    box-shadow: 0 6px 20px rgba(29, 185, 84, 0.18);
+    background: linear-gradient(135deg, 
+        color-mix(in srgb, var(--spotify-green) 95%, black 5%) 0%, 
+        color-mix(in srgb, var(--spotify-green) 85%, black 15%) 100%);
+    border-color: var(--spotify-green);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 20px color-mix(in srgb, var(--spotify-green) 40%, black),
+        0 1px 0 0 rgba(255, 255, 255, 0.25) inset;
 }
 
 @media (max-width: 768px) {

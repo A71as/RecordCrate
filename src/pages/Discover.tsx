@@ -7,6 +7,7 @@ import AlbumStreakCalendar, { type AlbumStreakCalendarEntry } from '../component
 import { useSpotify } from '../hooks/useSpotify';
 import { useAuth } from '../context/useAuth';
 import type { SpotifyAlbum, SpotifyArtist, FilterType, AlbumReview } from '../types';
+import '../styles/pages/Discover.css';
 
 export const Discover: React.FC = () => {
   const navigate = useNavigate();

@@ -1,18 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Search, User, Music, LogOut, Moon, Sun } from 'lucide-react';
+import { Search, User, LogOut, Moon, Sun, MessageSquare, Menu, X, Disc3 } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { useTheme } from '../context/ThemeContext';
+import '../styles/components/Header.css';
 
 export const Header: React.FC = () => {
   const { googleUser, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSearchNavClick = () => {
     navigate('/search', { state: { resetSearch: Date.now() } });
+    setMobileMenuOpen(false);
   };
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   const displayName = googleUser?.name ?? googleUser?.email ?? 'Guest';
   const avatarUrl = googleUser?.picture;
@@ -20,39 +24,69 @@ export const Header: React.FC = () => {
 
   return (
     <header className="header">
-      <div className="header-content">
-        <Link to="/" className="logo">
-          <Music size={24} />
-          <span>RecordCrate</span>
+      <div className="header-container">
+        {/* Logo */}
+        <Link to="/" className="header-logo" onClick={closeMobileMenu}>
+          <div className="logo-icon">
+            <Disc3 size={28} strokeWidth={2.5} />
+          </div>
+          <span className="logo-text">RecordCrate</span>
         </Link>
 
-        <nav className="nav">
-          <NavLink to="/discover" className="nav-link">
+        {/* Desktop Navigation */}
+        <nav className="header-nav">
+          <NavLink 
+            to="/discover" 
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          >
             Discover
           </NavLink>
-          <NavLink to="/discography" className="nav-link">
+          <NavLink 
+            to="/discography" 
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          >
             Discography
           </NavLink>
-          <button type="button" className="nav-link nav-link-button" onClick={handleSearchNavClick}>
-            <Search size={18} />
-            Search
-          </button>
-          <NavLink to="/profile" className="nav-link">
-            <User size={18} />
-            Profile
+          <NavLink 
+            to="/reviews" 
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          >
+            <MessageSquare size={16} />
+            <span>Reviews</span>
           </NavLink>
           <button 
             type="button" 
-            className="nav-link nav-link-button" 
+            className="nav-item nav-item-button" 
+            onClick={handleSearchNavClick}
+          >
+            <Search size={16} />
+            <span>Search</span>
+          </button>
+          <NavLink 
+            to="/profile" 
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          >
+            <User size={16} />
+            <span>Profile</span>
+          </NavLink>
+        </nav>
+
+        {/* Actions */}
+        <div className="header-actions">
+          {/* Theme Toggle */}
+          <button 
+            type="button" 
+            className="action-btn theme-toggle" 
             onClick={toggleTheme}
             aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
           >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
-          <div className="nav-divider"></div>
+
+          {/* User Section */}
           {isAuthenticated ? (
-            <div className="user-section">
-              <div className="user-info">
+            <>
+              <div className="user-badge">
                 {avatarUrl && (
                   <img
                     src={avatarUrl}
@@ -62,22 +96,78 @@ export const Header: React.FC = () => {
                 )}
                 <span className="user-name">{displayName}</span>
               </div>
-              <button className="logout-btn" onClick={logout}>
+              <button className="action-btn logout-btn" onClick={logout}>
                 <LogOut size={16} />
-                Logout
+                <span className="logout-text">Logout</span>
               </button>
-            </div>
+            </>
           ) : (
             <button
-              className="auth-login-btn"
+              className="action-btn login-btn"
               onClick={() => {}}
             >
               <User size={16} />
-              Login
+              <span>Login</span>
             </button>
           )}
-        </nav>
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            type="button" 
+            className="mobile-menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu">
+          <nav className="mobile-nav">
+            <NavLink 
+              to="/discover" 
+              className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+            >
+              Discover
+            </NavLink>
+            <NavLink 
+              to="/discography" 
+              className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+            >
+              Discography
+            </NavLink>
+            <NavLink 
+              to="/reviews" 
+              className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+            >
+              <MessageSquare size={18} />
+              <span>Reviews</span>
+            </NavLink>
+            <button 
+              type="button" 
+              className="mobile-nav-item" 
+              onClick={handleSearchNavClick}
+            >
+              <Search size={18} />
+              <span>Search</span>
+            </button>
+            <NavLink 
+              to="/profile" 
+              className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+            >
+              <User size={18} />
+              <span>Profile</span>
+            </NavLink>
+          </nav>
+        </div>
+      )}
     </header>
   );
 };

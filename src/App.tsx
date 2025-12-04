@@ -7,6 +7,7 @@ import { Discover } from './pages/Discover';
 import { Discography } from './pages/Discography';
 import { Search } from './pages/Search';
 import { Profile } from './pages/Profile';
+import { Reviews } from './pages/Reviews';
 import { AlbumDetail } from './pages/AlbumDetail';
 import { ArtistDetail } from './pages/ArtistDetail';
 import { SpotifyCallback } from './pages/SpotifyCallback';
@@ -62,6 +63,7 @@ function App() {
                 <Route path="/discography" element={<Discography />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/reviews" element={<Reviews />} />
                 <Route path="/album/:albumId" element={<AlbumDetail />} />
                 <Route path="/artist/:id" element={<ArtistDetail />} />
                 <Route path="/callback" element={<SpotifyCallback />} />

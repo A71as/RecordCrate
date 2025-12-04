@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { useBillboardInfiniteScroll } from '../hooks/useBillboardInfiniteScroll';
 import { BillboardTrackList } from '../components/BillboardTrackList';
+import '../styles/pages/Discography.css';
 
 export const Discography: React.FC = () => {
   const billboardData = useBillboardInfiniteScroll();

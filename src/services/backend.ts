@@ -43,4 +43,7 @@ export const backend = {
     const p = albumId ? `/api/reviews/user/${spotifyId}?albumId=${encodeURIComponent(albumId)}` : `/api/reviews/user/${spotifyId}`;
     return jsonFetch(p);
   },
+  async getAllReviews() {
+    return jsonFetch('/api/reviews');
+  },
 };

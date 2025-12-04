@@ -1,0 +1,948 @@
+/* ============================================
+   ALBUM DETAIL PAGE - Professional Design
+   ============================================ */
+
+.album-detail {
+  width: 100%;
+  min-height: calc(100vh - var(--header-height));
+  padding: 0rem 0 2rem;
+}
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
+
+.back-button {
+  background: color-mix(in srgb, var(--panel-bg) 85%, transparent);
+  border: 2px solid color-mix(in srgb, var(--panel-border) 80%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--rc-text);
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.back-button:hover {
+  color: white;
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--rc-amber-glow) 85%, var(--rc-vinyl-black) 15%) 0%, 
+    color-mix(in srgb, var(--rc-crate-wood) 90%, var(--rc-vinyl-black) 10%) 100%);
+  border-color: var(--rc-amber-glow);
+  transform: translateX(-4px);
+  box-shadow: 
+    0 4px 16px color-mix(in srgb, var(--rc-amber-glow) 30%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+.back-button svg {
+  transition: transform 0.2s ease;
+}
+
+.back-button:hover svg {
+  transform: translateX(-3px);
+}
+
+/* ============================================
+   ALBUM HEADER
+   ============================================ */
+
+.album-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--panel-bg) 97%, var(--rc-amber-glow) 3%) 0%, 
+    var(--panel-bg) 100%);
+  border-radius: 20px;
+  padding: 3rem;
+  border: 1px solid color-mix(in srgb, var(--rc-amber-glow) 15%, transparent);
+  box-shadow: 
+    0 12px 40px color-mix(in srgb, black 20%, transparent),
+    0 1px 0 0 color-mix(in srgb, var(--rc-amber-glow) 8%, transparent) inset;
+  position: relative;
+  overflow: hidden;
+}
+
+.album-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    var(--rc-amber-glow) 0%, 
+    var(--rc-crate-wood) 50%, 
+    var(--rc-amber-glow) 100%);
+  opacity: 0.6;
+}
+
+.album-artwork {
+  width: 320px;
+  height: 320px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 
+    0 12px 40px color-mix(in srgb, black 35%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--rc-amber-glow) 20%, transparent);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.album-artwork::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, 
+    transparent 0%, 
+    transparent 70%,
+    color-mix(in srgb, black 20%, transparent) 100%);
+  pointer-events: none;
+}
+
+.album-artwork:hover {
+  transform: scale(1.02);
+  box-shadow: 
+    0 16px 48px color-mix(in srgb, black 40%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--rc-amber-glow) 30%, transparent);
+}
+
+.album-artwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ============================================
+   ALBUM INFO
+   ============================================ */
+
+.album-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.album-title {
+  font-size: 2.75rem;
+  font-weight: 900;
+  color: var(--rc-text);
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, 
+    var(--rc-text) 0%, 
+    color-mix(in srgb, var(--rc-text) 75%, var(--rc-amber-glow) 25%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.album-artists {
+  font-size: 1.6rem;
+  color: var(--muted);
+  font-weight: 700;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.album-artists .artist-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.album-artists .artist-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--rc-amber-glow);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.album-artists .artist-link:hover {
+  color: var(--rc-amber-glow);
+}
+
+.album-artists .artist-link:hover::after {
+  transform: scaleX(1);
+}
+
+.album-meta {
+  display: flex;
+  gap: 1.5rem;
+  color: var(--muted-2);
+  font-size: 1rem;
+  font-weight: 700;
+  flex-wrap: wrap;
+}
+
+.album-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: color-mix(in srgb, var(--rc-amber-glow) 8%, transparent);
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--rc-amber-glow) 15%, transparent);
+}
+
+.album-meta svg {
+  color: var(--rc-amber-glow);
+}
+
+/* ============================================
+   EXISTING REVIEW SUMMARY
+   ============================================ */
+
+.existing-review-summary {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--rc-green-2) 10%, transparent) 0%, 
+    color-mix(in srgb, var(--rc-green-2) 6%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--rc-green-2) 25%, transparent);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--rc-green-2) 10%, black);
+}
+
+.overall-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.rating-number {
+  color: var(--rc-green-1);
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+/* ============================================
+   ALBUM ACTIONS
+   ============================================ */
+
+.album-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.review-button {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--rc-red) 90%, var(--rc-vinyl-black) 10%) 0%, 
+    color-mix(in srgb, var(--rc-red) 75%, var(--rc-vinyl-black) 25%) 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 
+    0 6px 20px color-mix(in srgb, var(--rc-red) 40%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+.review-button:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 
+    0 10px 30px color-mix(in srgb, var(--rc-red) 50%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.3) inset;
+}
+
+.review-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  filter: grayscale(0.5);
+}
+
+.rating-lockout {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--spotify-green) 70%, transparent);
+  background: color-mix(in srgb, var(--spotify-green) 12%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 480px;
+}
+
+.rating-lockout p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.rating-lockout .spotify-login-btn,
+.rating-lockout .auth-login-btn {
+  align-self: flex-start;
+}
+
+/* ============================================
+   TRACKLIST SECTION
+   ============================================ */
+
+.tracklist-section {
+  background: var(--panel-bg);
+  border-radius: 20px;
+  padding: 2.5rem;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
+  margin-bottom: 3rem;
+  box-shadow: 0 8px 24px color-mix(in srgb, black 15%, transparent);
+}
+
+.tracklist-section h2 {
+  margin: 0 0 2rem 0;
+  font-size: 1.75rem;
+  color: var(--rc-text);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tracklist-section h2::after {
+  content: '';
+  flex: 1;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    var(--rc-amber-glow) 0%, 
+    transparent 100%);
+  border-radius: 2px;
+}
+
+.tracklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.track-item {
+  display: grid;
+  grid-template-columns: 50px 1fr auto auto;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  background: color-mix(in srgb, var(--panel-bg) 50%, transparent);
+}
+
+.track-item:hover {
+  background: color-mix(in srgb, var(--rc-amber-glow) 5%, var(--panel-bg));
+  transform: translateX(4px);
+}
+
+.track-number {
+  color: var(--muted-2);
+  font-weight: 800;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.track-info {
+  min-width: 0;
+}
+
+.track-name {
+  font-weight: 700;
+  color: var(--rc-text);
+  margin: 0 0 0.35rem 0;
+  font-size: 1.05rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.track-artists {
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.track-rating {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+}
+
+.track-duration {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted-2);
+  font-size: 0.9rem;
+  font-weight: 700;
+  justify-self: end;
+  padding: 0.5rem 0.75rem;
+  background: color-mix(in srgb, var(--panel-bg) 40%, transparent);
+  border-radius: 8px;
+}
+
+/* ============================================
+   REVIEW SECTION
+   ============================================ */
+
+.review-section {
+  background: var(--panel-bg);
+  border-radius: 20px;
+  padding: 2.5rem;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
+  margin-bottom: 3rem;
+  box-shadow: 0 8px 24px color-mix(in srgb, black 15%, transparent);
+}
+
+.review-section h2 {
+  margin: 0 0 2rem 0;
+  color: var(--rc-text);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.review-section h2::after {
+  content: '';
+  flex: 1;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    var(--rc-amber-glow) 0%, 
+    transparent 100%);
+  border-radius: 2px;
+}
+
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.overall-rating-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.overall-rating-section label {
+  font-weight: 800;
+  color: var(--rc-text);
+  font-size: 1.1rem;
+}
+
+.writeup-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.writeup-section label {
+  font-weight: 800;
+  color: var(--rc-text);
+  font-size: 1.1rem;
+}
+
+.writeup-section textarea {
+  min-height: 140px;
+  resize: vertical;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--panel-bg) 95%, white);
+  color: var(--rc-text);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  transition: all 0.2s ease;
+}
+
+.writeup-section textarea:focus {
+  outline: none;
+  border-color: var(--rc-amber-glow);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rc-amber-glow) 15%, transparent);
+}
+
+.character-count {
+  color: var(--muted-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.review-actions {
+  display: flex;
+  gap: 1.25rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   SCORE MODIFIERS
+   ============================================ */
+
+.modifiers-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  padding: 1.25rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--panel-bg) 92%, var(--rc-amber-glow) 8%) 0%, 
+    color-mix(in srgb, var(--panel-bg) 96%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--rc-amber-glow) 15%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, black 8%, transparent);
+}
+
+.modifiers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 800;
+  color: var(--rc-text);
+  font-size: 1.05rem;
+}
+
+.modifiers-total {
+  color: var(--rc-green-1);
+  font-size: 1.15rem;
+}
+
+.modifier-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.modifier-row > label {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.modifier-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modifier-value {
+  min-width: 50px;
+  text-align: right;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--rc-text);
+}
+
+.modifier-btn {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--panel-bg) 80%, var(--rc-amber-glow) 20%) 0%, 
+    var(--panel-bg) 100%);
+  color: var(--rc-text);
+  border: 2px solid color-mix(in srgb, var(--rc-amber-glow) 30%, transparent);
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 42px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.modifier-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--rc-amber-glow) 85%, var(--rc-vinyl-black) 15%) 0%, 
+    color-mix(in srgb, var(--rc-crate-wood) 90%, var(--rc-vinyl-black) 10%) 100%);
+  border-color: var(--rc-amber-glow);
+  color: white;
+  transform: scale(1.08);
+  box-shadow: 
+    0 4px 12px color-mix(in srgb, var(--rc-amber-glow) 30%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+.modifier-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.adjusted-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--rc-amber-glow) 20%, transparent);
+}
+
+/* ============================================
+   FORM BUTTONS
+   ============================================ */
+
+.cancel-btn,
+.save-btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--panel-bg) 75%, var(--rc-text) 25%) 0%, 
+    color-mix(in srgb, var(--panel-bg) 85%, var(--rc-text) 15%) 100%);
+  color: var(--rc-text);
+  border: 2px solid color-mix(in srgb, var(--panel-border) 150%, transparent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+}
+
+.cancel-btn:hover {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--panel-bg) 65%, var(--rc-text) 35%) 0%, 
+    color-mix(in srgb, var(--panel-bg) 75%, var(--rc-text) 25%) 100%);
+  border-color: var(--rc-text);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--rc-text) 20%, transparent);
+}
+
+.save-btn {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--rc-green-1) 90%, var(--rc-vinyl-black) 10%) 0%, 
+    color-mix(in srgb, var(--rc-green-1) 75%, var(--rc-vinyl-black) 25%) 100%);
+  color: white;
+  border: 2px solid color-mix(in srgb, var(--rc-green-1) 40%, transparent);
+  box-shadow: 
+    0 6px 20px color-mix(in srgb, var(--rc-green-1) 35%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--rc-green-1) 95%, var(--rc-vinyl-black) 5%) 0%, 
+    color-mix(in srgb, var(--rc-green-1) 80%, var(--rc-vinyl-black) 20%) 100%);
+  border-color: var(--rc-green-1);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 
+    0 10px 30px color-mix(in srgb, var(--rc-green-1) 45%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.25) inset;
+}
+
+.save-btn:disabled {
+  background: var(--muted-2);
+  color: var(--panel-bg);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+/* ============================================
+   EXISTING REVIEW DISPLAY
+   ============================================ */
+
+.existing-review {
+  background: var(--panel-bg);
+  border-radius: 20px;
+  padding: 2.5rem;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
+  box-shadow: 0 8px 24px color-mix(in srgb, black 15%, transparent);
+}
+
+.existing-review h2 {
+  margin: 0 0 2rem 0;
+  color: var(--rc-text);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.review-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.review-modifiers {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--panel-bg) 90%, var(--rc-amber-glow) 10%) 0%, 
+    var(--panel-bg) 100%);
+  border: 1px solid color-mix(in srgb, var(--rc-amber-glow) 15%, transparent);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.modifier-list {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: 0.75rem;
+  column-gap: 1.25rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.modifier-item .label {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.modifier-item .value {
+  text-align: right;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.modifier-item.modifier-total {
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--rc-amber-glow) 20%, transparent);
+}
+
+.modifier-item.modifier-total .label {
+  color: var(--rc-text);
+  font-size: 1.05rem;
+}
+
+.modifier-item.modifier-total .value {
+  color: var(--rc-green-1);
+  font-size: 1.15rem;
+}
+
+.review-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.review-writeup {
+  line-height: 1.7;
+  color: var(--rc-text);
+  font-size: 1.05rem;
+}
+
+.review-writeup p {
+  margin: 0;
+}
+
+.review-meta {
+  color: var(--muted-2);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-top: 1px solid var(--panel-border);
+  padding-top: 1.25rem;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .album-header {
+    gap: 2.5rem;
+    padding: 2.5rem;
+  }
+
+  .album-artwork {
+    width: 280px;
+    height: 280px;
+  }
+
+  .album-title {
+    font-size: 2.25rem;
+  }
+
+  .album-artists {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .album-detail {
+    padding: 0 0 1.5rem;
+  }
+
+  .back-button {
+    margin-bottom: 1.5rem;
+  }
+
+  .album-header {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .album-artwork {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .album-info {
+    text-align: center;
+  }
+
+  .album-title {
+    font-size: 2rem;
+  }
+
+  .album-artists {
+    font-size: 1.25rem;
+    justify-content: center;
+  }
+
+  .album-meta {
+    justify-content: center;
+  }
+
+  .album-actions {
+    justify-content: center;
+  }
+
+  .tracklist-section,
+  .review-section {
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .track-item {
+    grid-template-columns: 40px 1fr auto;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .track-duration {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    justify-self: start;
+    margin-top: 0.5rem;
+  }
+
+  .review-actions {
+    flex-direction: column;
+  }
+
+  .cancel-btn,
+  .save-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .album-header {
+    padding: 1.5rem;
+  }
+
+  .album-title {
+    font-size: 1.75rem;
+  }
+
+  .album-artists {
+    font-size: 1.1rem;
+  }
+
+  .album-meta {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .album-meta span {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tracklist-section,
+  .review-section {
+    padding: 1.5rem;
+  }
+
+  .tracklist-section h2,
+  .review-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .tracklist-section h2::after,
+  .review-section h2::after {
+    display: none;
+  }
+
+  .track-item {
+    grid-template-columns: 30px 1fr;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .track-rating {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    justify-self: start;
+    margin-top: 0.5rem;
+  }
+
+  .review-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modifier-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .modifier-control {
+    justify-content: space-between;
+  }
+}

@@ -26,45 +26,92 @@ class GeminiNaturalLanguageService {
     }
 
     try {
-      const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-      const prompt = `
-        Parse this natural language music search query and extract structured information:
-        
-        Query: "${query}"
-        
-        Please respond with JSON in this exact format:
-        {
-          "type": "album|artist|track|mixed",
-          "searchTerms": ["main search terms"],
-          "genres": ["genre1", "genre2"] or null,
-          "decades": ["2010s", "2000s"] or null,
-          "mood": ["sad", "upbeat", "chill"] or null,
-          "similarTo": "artist or album name" or null,
-          "description": "brief description of what user wants"
+      const model = this.genAI.getGenerativeModel({ 
+        model: 'gemini-pro',
+        generationConfig: {
+          temperature: 0.1, // Low temperature for more consistent, accurate parsing
+          topP: 0.8,
+          topK: 20,
         }
+      });
 
-        Examples:
-        - "albums like Blonde by Frank Ocean" → {"type": "album", "searchTerms": ["blonde", "frank ocean"], "similarTo": "Frank Ocean - Blonde", "description": "albums similar to Blonde by Frank Ocean"}
-        - "sad indie music from the 2010s" → {"type": "mixed", "searchTerms": ["indie"], "genres": ["indie"], "decades": ["2010s"], "mood": ["sad"], "description": "sad indie music from 2010s"}
-        - "Taylor Swift albums" → {"type": "album", "searchTerms": ["taylor swift"], "description": "Taylor Swift albums"}
-        - "upbeat pop songs" → {"type": "track", "searchTerms": ["pop"], "genres": ["pop"], "mood": ["upbeat"], "description": "upbeat pop songs"}
+      const prompt = `You are a music search query parser. Parse the following natural language music search query into structured data for Spotify API search.
 
-        Focus on extracting:
-        1. What type of music content (album, artist, track, or mixed)
-        2. Key search terms (artist names, album names, etc.)
-        3. Musical genres mentioned
-        4. Time periods (convert to decades like "2010s", "2000s", "1990s")
-        5. Mood/emotional descriptors
-        6. "Similar to" or "like" references
-        7. Overall intent
+Query: "${query}"
 
-        Return only valid JSON, no other text.
-      `;
+CRITICAL INSTRUCTIONS:
+1. Extract EXACT artist/album/song names as they appear in the query
+2. Be PRECISE with search terms - preserve capitalization and full names
+3. Identify the PRIMARY search intent (what the user really wants)
+4. Don't add genres/moods unless explicitly mentioned or strongly implied
+5. For "similar to" queries, the similarTo field should contain the EXACT reference
+6. Convert year mentions (e.g., "2015", "90s", "nineties") to decade format: "2010s", "1990s"
+7. Distinguish between artist search vs their albums/tracks
+
+OUTPUT FORMAT (valid JSON only):
+{
+  "type": "album|artist|track|mixed",
+  "searchTerms": ["exact", "search", "terms"],
+  "genres": ["genre1"] or null,
+  "decades": ["2010s"] or null,
+  "mood": ["mood1"] or null,
+  "similarTo": "Exact Artist - Album Name" or null,
+  "description": "clear description"
+}
+
+EXAMPLES:
+
+Input: "albums like Blonde by Frank Ocean"
+Output: {"type":"album","searchTerms":["frank ocean","blonde"],"genres":null,"decades":null,"mood":null,"similarTo":"Frank Ocean - Blonde","description":"albums similar to Blonde by Frank Ocean"}
+
+Input: "Taylor Swift reputation album"
+Output: {"type":"album","searchTerms":["taylor swift","reputation"],"genres":null,"decades":null,"mood":null,"similarTo":null,"description":"Taylor Swift's Reputation album"}
+
+Input: "sad indie songs from 2010s"
+Output: {"type":"track","searchTerms":["indie"],"genres":["indie"],"decades":["2010s"],"mood":["sad","melancholic"],"similarTo":null,"description":"sad indie songs from the 2010s"}
+
+Input: "The Weeknd"
+Output: {"type":"artist","searchTerms":["the weeknd"],"genres":null,"decades":null,"mood":null,"similarTo":null,"description":"The Weeknd artist"}
+
+Input: "Kanye West graduation"
+Output: {"type":"album","searchTerms":["kanye west","graduation"],"genres":null,"decades":null,"mood":null,"similarTo":null,"description":"Graduation album by Kanye West"}
+
+Input: "chill lo-fi hip hop beats"
+Output: {"type":"track","searchTerms":["lo-fi","hip hop","beats"],"genres":["hip-hop","lo-fi"],"decades":null,"mood":["chill","relaxing"],"similarTo":null,"description":"chill lo-fi hip hop instrumental beats"}
+
+Input: "90s alternative rock bands"
+Output: {"type":"artist","searchTerms":["alternative rock"],"genres":["alternative","rock"],"decades":["1990s"],"mood":null,"similarTo":null,"description":"alternative rock bands from the 1990s"}
+
+Input: "songs like Blinding Lights"
+Output: {"type":"track","searchTerms":["blinding lights"],"genres":null,"decades":null,"mood":null,"similarTo":"Blinding Lights","description":"songs similar to Blinding Lights"}
+
+Input: "Billie Eilish when we all fall asleep"
+Output: {"type":"album","searchTerms":["billie eilish","when we all fall asleep"],"genres":null,"decades":null,"mood":null,"similarTo":null,"description":"When We All Fall Asleep, Where Do We Go? album by Billie Eilish"}
+
+Input: "upbeat workout music"
+Output: {"type":"track","searchTerms":["workout"],"genres":null,"decades":null,"mood":["upbeat","energetic","motivating"],"similarTo":null,"description":"upbeat energetic workout music"}
+
+GENRE KEYWORDS: pop, rock, hip-hop, rap, indie, electronic, edm, jazz, classical, country, r&b, soul, funk, blues, folk, punk, metal, alternative, reggae, latin, k-pop, disco, house, techno, ambient, lo-fi
+
+MOOD KEYWORDS: sad, happy, upbeat, chill, energetic, mellow, dark, bright, emotional, calm, intense, relaxing, aggressive, romantic, melancholic, nostalgic, dreamy, angry, peaceful, motivating
+
+TIME PERIOD CONVERSION:
+- "2020", "2020s", "twenties" → "2020s"
+- "2015", "2010s", "2010", "tens" → "2010s"  
+- "2005", "2000s", "2000", "aughts" → "2000s"
+- "1995", "1990s", "90s", "nineties" → "1990s"
+- "1985", "1980s", "80s", "eighties" → "1980s"
+- "1975", "1970s", "70s", "seventies" → "1970s"
+- "1965", "1960s", "60s", "sixties" → "1960s"
+
+Return ONLY the JSON object, no markdown, no explanation, no extra text.`;
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
-      const text = response.text();
+      let text = response.text().trim();
+      
+      // Clean up markdown code blocks if present
+      text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       
       try {
         const parsed = JSON.parse(text);
@@ -82,46 +129,71 @@ class GeminiNaturalLanguageService {
   basicParseQuery(query) {
     const lowercaseQuery = query.toLowerCase();
     
-    const genres = ['pop', 'rock', 'hip-hop', 'rap', 'indie', 'electronic', 'jazz', 'classical', 'country', 'r&b', 'soul', 'funk', 'blues', 'folk', 'punk', 'metal', 'alternative'];
-    const moods = ['sad', 'happy', 'upbeat', 'chill', 'energetic', 'mellow', 'dark', 'bright', 'emotional', 'calm', 'intense'];
+    const genres = ['pop', 'rock', 'hip-hop', 'hip hop', 'rap', 'indie', 'electronic', 'edm', 'jazz', 'classical', 'country', 'r&b', 'soul', 'funk', 'blues', 'folk', 'punk', 'metal', 'alternative', 'reggae', 'latin', 'k-pop', 'kpop', 'disco', 'house', 'techno', 'ambient', 'lo-fi', 'lofi'];
+    const moods = ['sad', 'happy', 'upbeat', 'chill', 'energetic', 'mellow', 'dark', 'bright', 'emotional', 'calm', 'intense', 'relaxing', 'aggressive', 'romantic', 'melancholic', 'nostalgic', 'dreamy', 'angry', 'peaceful'];
     const decades = ['2020s', '2010s', '2000s', '1990s', '1980s', '1970s', '1960s'];
     
     const foundGenres = genres.filter(genre => lowercaseQuery.includes(genre));
     const foundMoods = moods.filter(mood => lowercaseQuery.includes(mood));
     const foundDecades = decades.filter(decade => {
       const year = decade.slice(0, 4);
-      return lowercaseQuery.includes(decade) || lowercaseQuery.includes(year) || lowercaseQuery.includes(year.slice(2, 4) + 's');
+      return lowercaseQuery.includes(decade) || 
+             lowercaseQuery.includes(year) || 
+             lowercaseQuery.includes(year.slice(2, 4) + 's') ||
+             (decade === '1990s' && (lowercaseQuery.includes('90s') || lowercaseQuery.includes('nineties'))) ||
+             (decade === '1980s' && (lowercaseQuery.includes('80s') || lowercaseQuery.includes('eighties'))) ||
+             (decade === '2000s' && (lowercaseQuery.includes('00s') || lowercaseQuery.includes('aughts')));
     });
 
     let type = 'mixed';
     if (lowercaseQuery.includes('album') || lowercaseQuery.includes('albums')) {
       type = 'album';
-    } else if (lowercaseQuery.includes('artist') || lowercaseQuery.includes('artists')) {
+    } else if (lowercaseQuery.includes('artist') || lowercaseQuery.includes('artists') || lowercaseQuery.includes('band') || lowercaseQuery.includes('bands')) {
       type = 'artist';
     } else if (lowercaseQuery.includes('song') || lowercaseQuery.includes('songs') || lowercaseQuery.includes('track') || lowercaseQuery.includes('tracks')) {
       type = 'track';
     }
 
     let similarTo = null;
-    const likeMatch = lowercaseQuery.match(/like (.+?)(?:\s|$)/);
-    const similarMatch = lowercaseQuery.match(/similar to (.+?)(?:\s|$)/);
-    if (likeMatch) {
-      similarTo = likeMatch[1];
-    } else if (similarMatch) {
-      similarTo = similarMatch[1];
+    const likePatterns = [
+      /like\s+(.+?)(?:\s+by\s+|\s+from\s+|$)/i,
+      /similar\s+to\s+(.+?)(?:\s+by\s+|\s+from\s+|$)/i,
+      /sounds?\s+like\s+(.+?)(?:\s+by\s+|\s+from\s+|$)/i
+    ];
+    
+    for (const pattern of likePatterns) {
+      const match = query.match(pattern);
+      if (match && match[1]) {
+        similarTo = match[1].trim();
+        break;
+      }
     }
 
-    const commonWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'like', 'similar', 'albums', 'artists', 'songs', 'tracks', 'music', 'from'];
-    const searchTerms = query
-      .toLowerCase()
-      .replace(/[^\w\s]/g, ' ')
-      .split(/\s+/)
-      .filter(word => word.length > 2 && !commonWords.includes(word) && !foundGenres.includes(word) && !foundMoods.includes(word))
-      .slice(0, 5);
+    const byMatch = query.match(/by\s+([A-Z][\w\s&'.]+?)(?:\s+(?:from|in|album|track|song)|$)/i);
+    const artistName = byMatch ? byMatch[1].trim() : null;
+
+    const commonWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'like', 'similar', 'albums', 'artists', 'songs', 'tracks', 'music', 'from', 'sounds', 'band', 'bands', 'give', 'me', 'some', 'find', 'show', 'search'];
+    
+    const words = query.split(/\s+/);
+    const searchTerms = [];
+    
+    for (const word of words) {
+      const lowerWord = word.toLowerCase().replace(/[^\w]/g, '');
+      if (lowerWord.length > 2 && 
+          !commonWords.includes(lowerWord) && 
+          !foundGenres.some(g => g.replace(/[^\w]/g, '') === lowerWord) && 
+          !foundMoods.includes(lowerWord)) {
+        searchTerms.push(word.replace(/[^\w\s]/g, ''));
+      }
+    }
+
+    if (artistName && !searchTerms.some(term => term.toLowerCase().includes(artistName.toLowerCase()))) {
+      searchTerms.unshift(artistName);
+    }
 
     return {
       type,
-      searchTerms,
+      searchTerms: searchTerms.slice(0, 5),
       genres: foundGenres.length > 0 ? foundGenres : null,
       decades: foundDecades.length > 0 ? foundDecades : null,
       mood: foundMoods.length > 0 ? foundMoods : null,
@@ -145,29 +217,55 @@ class GeminiNaturalLanguageService {
   generateSpotifyQuery(musicQuery) {
     const parts = [];
 
+    // Prioritize "similar to" references first
+    if (musicQuery.similarTo) {
+      parts.push(musicQuery.similarTo);
+    }
+
+    // Add main search terms
     if (musicQuery.searchTerms.length > 0) {
-      parts.push(musicQuery.searchTerms.join(' '));
+      const searchTermString = musicQuery.searchTerms.join(' ');
+      // Only add if not already included in similarTo
+      if (!musicQuery.similarTo || !musicQuery.similarTo.toLowerCase().includes(searchTermString.toLowerCase())) {
+        parts.push(searchTermString);
+      }
     }
 
+    // Add genre filters with Spotify's genre syntax
     if (musicQuery.genres && musicQuery.genres.length > 0) {
-      musicQuery.genres.forEach(genre => {
-        parts.push(`genre:"${genre}"`);
+      const genreTerms = musicQuery.genres.map(genre => {
+        // Normalize genre names for Spotify API
+        const normalizedGenre = genre.replace(/&/g, 'and').replace(/\s+/g, '-');
+        return `genre:"${normalizedGenre}"`;
       });
+      parts.push(...genreTerms);
     }
 
+    // Add year range filters
     if (musicQuery.decades && musicQuery.decades.length > 0) {
       const years = musicQuery.decades.map(decade => {
         const startYear = parseInt(decade.slice(0, 4));
-        return `year:${startYear}-${startYear + 9}`;
+        const endYear = startYear + 9;
+        return `year:${startYear}-${endYear}`;
       });
-      parts.push(`(${years.join(' OR ')})`);
+      // Use OR for multiple decades
+      if (years.length > 1) {
+        parts.push(`(${years.join(' OR ')})`);
+      } else {
+        parts.push(years[0]);
+      }
     }
 
-    if (musicQuery.similarTo) {
-      parts.unshift(musicQuery.similarTo);
+    const query = parts.join(' ').trim();
+    
+    // Fallback to broader search if query is too restrictive or empty
+    if (!query || query.length < 2) {
+      return musicQuery.searchTerms.length > 0 
+        ? musicQuery.searchTerms.join(' ') 
+        : 'popular music';
     }
 
-    return parts.join(' ').trim() || 'popular';
+    return query;
   }
 }
 
@@ -246,11 +344,32 @@ router.post('/natural-language', async (req, res) => {
     // Search Spotify
     const spotifyResults = await searchSpotify(spotifyQuery, searchType, 20);
 
-    // Format results
+    // Extract artist name from similarTo for filtering
+    let excludeArtistName = null;
+    if (musicQuery.similarTo && musicQuery.type === 'album') {
+      // Check if similarTo is just an artist name or "Artist - Album" format
+      const artistAlbumMatch = musicQuery.similarTo.match(/^(.+?)\s*[-–—]\s*.+$/);
+      if (artistAlbumMatch) {
+        // Format: "Artist - Album"
+        excludeArtistName = artistAlbumMatch[1].trim().toLowerCase();
+      } else {
+        // Might be just an artist name - check if it matches search terms
+        const lowerSimilarTo = musicQuery.similarTo.toLowerCase();
+        // If similarTo doesn't contain common album words, it's likely an artist name
+        if (!lowerSimilarTo.includes('album') && 
+            !lowerSimilarTo.includes('mixtape') && 
+            !lowerSimilarTo.includes('ep') &&
+            musicQuery.searchTerms.some(term => lowerSimilarTo.includes(term.toLowerCase()))) {
+          excludeArtistName = musicQuery.similarTo.toLowerCase();
+        }
+      }
+    }
+
+    // Format and filter results
     const results = {
       query: musicQuery,
       spotifyQuery: spotifyQuery,
-      albums: spotifyResults.albums?.items?.map(album => ({
+      albums: (spotifyResults.albums?.items?.map(album => ({
         id: album.id,
         name: album.name,
         artists: album.artists.map(artist => ({
@@ -262,7 +381,16 @@ router.post('/natural-language', async (req, res) => {
         total_tracks: album.total_tracks,
         external_urls: album.external_urls,
         popularity: album.popularity
-      })) || [],
+      })) || []).filter(album => {
+        // Filter out albums by the same artist when searching "albums like [artist]"
+        if (excludeArtistName) {
+          return !album.artists.some(artist => 
+            artist.name.toLowerCase().includes(excludeArtistName) || 
+            excludeArtistName.includes(artist.name.toLowerCase())
+          );
+        }
+        return true;
+      }),
       artists: spotifyResults.artists?.items?.map(artist => ({
         id: artist.id,
         name: artist.name,

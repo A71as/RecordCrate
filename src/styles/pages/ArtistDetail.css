@@ -517,32 +517,32 @@
 
 .album-card {
     background: linear-gradient(135deg, 
-        color-mix(in srgb, var(--panel-bg) 92%, var(--rc-bronze) 8%) 0%, 
-        color-mix(in srgb, var(--panel-bg) 97%, var(--rc-bronze) 3%) 100%);
+        color-mix(in srgb, var(--panel-bg) 92%, var(--rc-primary) 8%) 0%, 
+        color-mix(in srgb, var(--panel-bg) 97%, var(--rc-accent) 3%) 100%);
     border-radius: 20px;
     padding: 2rem;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
-    border: 2px solid color-mix(in srgb, var(--rc-bronze) 15%, transparent);
+    border: 2px solid color-mix(in srgb, var(--rc-primary) 15%, transparent);
     box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.12),
-        0 4px 16px rgba(205, 153, 104, 0.08),
-        0 1px 0 0 rgba(212, 165, 116, 0.08) inset;
+        0 8px 32px color-mix(in srgb, var(--rc-text) 12%, transparent),
+        0 4px 16px color-mix(in srgb, var(--rc-primary) 8%, transparent),
+        0 1px 0 0 color-mix(in srgb, var(--rc-primary) 8%, transparent) inset;
     position: relative;
     overflow: hidden;
 }
 
 .album-card:hover {
     background: linear-gradient(135deg, 
-        color-mix(in srgb, var(--panel-bg) 85%, var(--rc-bronze) 15%) 0%, 
-        color-mix(in srgb, var(--panel-bg) 92%, var(--rc-bronze) 8%) 100%);
+        color-mix(in srgb, var(--panel-bg) 85%, var(--rc-primary) 15%) 0%, 
+        color-mix(in srgb, var(--panel-bg) 92%, var(--rc-accent) 8%) 100%);
     transform: translateY(-12px) scale(1.03);
     box-shadow: 
-        0 32px 80px rgba(0, 0, 0, 0.25),
-        0 16px 40px rgba(205, 153, 104, 0.15),
-        0 0 0 3px color-mix(in srgb, var(--rc-bronze) 60%, transparent),
-        0 1px 0 0 rgba(212, 165, 116, 0.2) inset;
-    border-color: color-mix(in srgb, var(--rc-bronze) 40%, transparent);
+        0 32px 80px color-mix(in srgb, var(--rc-text) 25%, transparent),
+        0 16px 40px color-mix(in srgb, var(--rc-primary) 15%, transparent),
+        0 0 0 3px color-mix(in srgb, var(--rc-primary) 60%, transparent),
+        0 1px 0 0 color-mix(in srgb, var(--rc-primary) 20%, transparent) inset;
+    border-color: color-mix(in srgb, var(--rc-primary) 40%, transparent);
 }
 
 .album-image {
@@ -552,8 +552,8 @@
     object-fit: cover;
     margin-bottom: 1.5rem;
     box-shadow: 
-        0 12px 40px rgba(0, 0, 0, 0.2),
-        0 6px 20px rgba(0, 0, 0, 0.1);
+        0 12px 40px color-mix(in srgb, var(--rc-text) 20%, transparent),
+        0 6px 20px color-mix(in srgb, var(--rc-text) 10%, transparent);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -692,21 +692,30 @@
 }
 
 .pagination-button {
-    background: color-mix(in srgb, var(--panel-bg) 10%, transparent);
-    border: 1px solid color-mix(in srgb, var(--panel-bg) 18%, transparent);
-    color: var(--text-primary);
-    padding: 0.6rem 1.2rem;
-    border-radius: 8px;
+    background: linear-gradient(135deg, 
+        color-mix(in srgb, var(--panel-bg) 75%, var(--rc-amber-glow) 25%) 0%, 
+        var(--panel-bg) 100%);
+    border: 2px solid color-mix(in srgb, var(--panel-border) 120%, transparent);
+    color: var(--rc-text);
+    padding: 0.75rem 1.4rem;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .pagination-button:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--panel-bg) 16%, transparent);
-    border-color: var(--rc-accent);
-    color: var(--rc-accent);
+    background: linear-gradient(135deg, 
+        color-mix(in srgb, var(--rc-amber-glow) 85%, var(--rc-vinyl-black) 15%) 0%, 
+        color-mix(in srgb, var(--rc-crate-wood) 90%, var(--rc-vinyl-black) 10%) 100%);
+    border-color: var(--rc-amber-glow);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 
+        0 4px 16px color-mix(in srgb, var(--rc-amber-glow) 30%, black),
+        0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
 }
 
 .pagination-button:disabled {
@@ -715,12 +724,17 @@
 }
 
 .pagination-current {
-    color: var(--text-secondary);
-    font-weight: 500;
-    padding: 0.6rem 1rem;
-    background: color-mix(in srgb, var(--panel-bg) 6%, transparent);
-    border-radius: 8px;
-    border: 1px solid color-mix(in srgb, var(--panel-bg) 12%, transparent);
+    color: white;
+    font-weight: 700;
+    padding: 0.75rem 1.4rem;
+    background: linear-gradient(135deg, 
+        color-mix(in srgb, var(--rc-amber-glow) 85%, var(--rc-vinyl-black) 15%) 0%, 
+        color-mix(in srgb, var(--rc-crate-wood) 90%, var(--rc-vinyl-black) 10%) 100%);
+    border-radius: 10px;
+    border: 2px solid color-mix(in srgb, var(--rc-amber-glow) 40%, transparent);
+    box-shadow: 
+        0 4px 12px color-mix(in srgb, var(--rc-amber-glow) 30%, black),
+        0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
 }
 
 /* Loading States */

@@ -1,0 +1,195 @@
+/* ============================================
+   SPOTIFY CALLBACK PAGE
+   ============================================ */
+
+.spotify-callback {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 3rem 1rem;
+}
+
+/* ============================================
+   CALLBACK CONTENT
+   ============================================ */
+
+.callback-content {
+  text-align: center;
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--panel-bg) 96%, var(--spotify-green) 4%) 0%, 
+    var(--panel-bg) 100%);
+  border-radius: 24px;
+  padding: 4rem 3rem;
+  border: 1px solid color-mix(in srgb, var(--spotify-green) 15%, transparent);
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 
+    0 20px 60px color-mix(in srgb, black 25%, transparent),
+    0 1px 0 0 color-mix(in srgb, var(--spotify-green) 10%, transparent) inset;
+  position: relative;
+  overflow: hidden;
+}
+
+.callback-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--spotify-green) 50%, 
+    transparent 100%);
+  opacity: 0.7;
+}
+
+.callback-content h2 {
+  color: var(--rc-text);
+  margin: 0 0 1.5rem 0;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, 
+    var(--rc-text) 0%, 
+    color-mix(in srgb, var(--rc-text) 70%, var(--spotify-green) 30%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.callback-content p {
+  color: var(--muted);
+  margin: 0 0 2.5rem 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* ============================================
+   RETRY BUTTON
+   ============================================ */
+
+.retry-button {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--rc-red) 90%, var(--rc-vinyl-black) 10%) 0%, 
+    color-mix(in srgb, var(--rc-red) 75%, var(--rc-vinyl-black) 25%) 100%);
+  color: white;
+  border: 2px solid color-mix(in srgb, var(--rc-red) 40%, transparent);
+  padding: 1.25rem 2.5rem;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 
+    0 8px 24px color-mix(in srgb, var(--rc-red) 40%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.25) inset;
+}
+
+.retry-button:hover {
+  border-color: var(--rc-red);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 
+    0 12px 36px color-mix(in srgb, var(--rc-red) 50%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.35) inset;
+}
+
+.retry-button:active {
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.callback-content .loading {
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.callback-content .loading::after {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--muted);
+  border-radius: 50%;
+  border-top-color: var(--spotify-green);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+  .spotify-callback {
+    padding: 2rem 1rem;
+  }
+
+  .callback-content {
+    padding: 3rem 2rem;
+  }
+
+  .callback-content h2 {
+    font-size: 1.75rem;
+  }
+
+  .callback-content p {
+    font-size: 1rem;
+  }
+
+  .retry-button {
+    padding: 1.1rem 2.25rem;
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .callback-content {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .callback-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .callback-content p {
+    font-size: 0.95rem;
+  }
+
+  .retry-button {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .callback-content {
+    padding: 2rem 1.25rem;
+  }
+
+  .callback-content h2 {
+    font-size: 1.35rem;
+  }
+}
+

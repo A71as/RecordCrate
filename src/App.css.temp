@@ -1,0 +1,84 @@
+/*
+  NOTE: Legacy root tokens removed to avoid conflicts.
+  The canonical palette is defined below in the second :root block.
+*/
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* RecordCrate Design Tokens - Now defined in global.css with theme support */
+/* Keeping layout-specific variables here */
+:root {
+  --header-height: 80px;
+  
+  /* Fixed brand colors that don't change with theme */
+  --rc-vinyl-black:  #1a1a1d;
+  
+  /* Legacy aliases - these now reference themeable variables from global.css */
+  --rc-red: var(--rc-accent, #c17d5a);
+  --primary-color: var(--rc-text);
+  --text-primary: var(--rc-text);
+  --text-muted: var(--muted);
+  --text-secondary: var(--muted-2);
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    sans-serif;
+  color: var(--rc-text);
+  line-height: 1.65;
+  font-weight: 400;
+  letter-spacing: -0.011em;
+
+  /* Theme-aware background - colors defined in global.css */
+  background-color: var(--rc-bg);
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(212, 165, 116, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(193, 125, 90, 0.015) 0%, transparent 50%),
+    linear-gradient(0deg, var(--rc-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rc-grid) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 60px 60px, 60px 60px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.App {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header styles are defined in styles/components/Header.css to keep concerns separated. */
+
+/* Keep header sticky; push all content below it */
+.main-content {
+  flex: 1;
+  width: 100%;
+  background: transparent;
+  padding-top: calc(var(--header-height) + 1rem);
+  padding-bottom: 4rem;
+}
+
+/* Page containers don't need additional padding since they're wrapped in .main-content */
+

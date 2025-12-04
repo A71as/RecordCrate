@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { User, Music, Star, Calendar } from 'lucide-react';
 import { useAuth0 } from '@auth0/auth0-react';
 import type { AlbumReview } from '../types';
+import '../styles/pages/Profile.css';
 
 export const Profile: React.FC = () => {
   const [reviews, setReviews] = useState<AlbumReview[]>([]);

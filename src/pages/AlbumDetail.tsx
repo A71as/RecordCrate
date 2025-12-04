@@ -6,6 +6,7 @@ import { backend } from "../services/backend";
 import { StarRating } from "../components/StarRating";
 import type { SpotifyAlbum, SongRating, AlbumReview } from "../types";
 import { useAuth0 } from '@auth0/auth0-react';
+import '../styles/pages/AlbumDetail.css';
 
 type ModifierState = {
   emotionalStoryConnection: number;

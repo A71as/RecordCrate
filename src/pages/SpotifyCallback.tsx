@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { spotifyService } from '../services/spotify';
 import { useAuth } from '../context/useAuth';
+import '../styles/pages/SpotifyCallback.css';
 
 export const SpotifyCallback: React.FC = () => {
   const navigate = useNavigate();

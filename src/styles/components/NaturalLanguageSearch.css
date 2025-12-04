@@ -55,8 +55,8 @@
 }
 
 .close-button {
-  background: none;
-  border: none;
+  background: color-mix(in srgb, var(--panel-bg) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--panel-border) 60%, transparent);
   color: var(--muted);
   cursor: pointer;
   padding: 0.5rem;
@@ -68,8 +68,10 @@
 }
 
 .close-button:hover {
-  background-color: var(--panel-bg);
+  background: var(--panel-bg);
+  border-color: var(--rc-amber-glow);
   color: var(--rc-text);
+  transform: scale(1.1);
 }
 
 .search-subtitle {
@@ -129,12 +131,12 @@
 }
 
 .clear-button {
-  background: none;
-  border: none;
+  background: color-mix(in srgb, var(--panel-bg) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--panel-border) 40%, transparent);
   color: var(--muted);
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
+  padding: 0.4rem;
+  border-radius: 6px;
   transition: all 0.2s;
   display: flex;
   align-items: center;
@@ -143,14 +145,18 @@
 
 .clear-button:hover {
   color: var(--rc-text);
-  background-color: rgba(255, 255, 255, 0.1);
+  background: var(--panel-bg);
+  border-color: var(--rc-amber-glow);
+  transform: scale(1.05);
 }
 
 .natural-language-button {
-  background: linear-gradient(135deg, #1db954 0%, #169944 100%);
-  color: #020b05;
-  border: none;
-  padding: 0.55rem 1.4rem;
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--rc-green-1) 90%, var(--rc-vinyl-black) 10%) 0%, 
+    color-mix(in srgb, var(--rc-green-2) 85%, var(--rc-vinyl-black) 15%) 100%);
+  color: white;
+  border: 2px solid color-mix(in srgb, var(--rc-green-1) 40%, transparent);
+  padding: 0.6rem 1.5rem;
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.9rem;
@@ -162,15 +168,16 @@
   min-width: 80px;
   justify-content: center;
   box-shadow:
-    0 6px 18px rgba(15, 244, 118, 0.4),
-    0 0 0 1px rgba(0, 0, 0, 0.8) inset;
+    0 6px 18px color-mix(in srgb, var(--rc-green-1) 35%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
 }
 
 .natural-language-button:hover:not(:disabled) {
+  border-color: var(--rc-green-1);
   transform: translateY(-1px) scale(1.02);
   box-shadow:
-    0 10px 26px rgba(15, 244, 118, 0.55),
-    0 0 0 1px rgba(0, 0, 0, 0.85) inset;
+    0 8px 24px color-mix(in srgb, var(--rc-green-1) 45%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.25) inset;
 }
 
 .natural-language-button:disabled {

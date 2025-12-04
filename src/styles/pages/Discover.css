@@ -1,0 +1,730 @@
+/* ============================================
+   DISCOVER PAGE - Modern Professional Design
+   ============================================ */
+
+.discover {
+  min-height: calc(100vh - 80px);
+  padding: 2rem 0 4rem 0;
+  width: 100%;
+}
+
+.discover .container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 3vw, 2rem);
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+
+.hero {
+  text-align: center;
+  margin-bottom: 3.5rem;
+  padding: 3rem 0;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--rc-amber-glow) 6%, transparent) 0%,
+    color-mix(in srgb, var(--rc-crate-wood) 6%, transparent) 100%);
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--rc-amber-glow) 12%, transparent);
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.08),
+    0 1px 0 0 color-mix(in srgb, var(--rc-amber-glow) 8%, transparent) inset;
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  margin: 0 0 1rem 0;
+  color: var(--rc-text);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  background: linear-gradient(135deg, 
+    var(--rc-amber-glow) 0%, 
+    var(--rc-crate-wood) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero p {
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================
+   STREAK CALENDAR SECTION
+   ============================================ */
+
+.streak-calendar-section {
+  margin-bottom: 3.5rem;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.calendar-lock-wrapper {
+  position: relative;
+}
+
+.calendar-lock-wrapper.locked .album-streak-calendar {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.65;
+}
+
+.album-streak-calendar {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--panel-bg) 96%, var(--rc-crate-wood) 4%) 0%, 
+    var(--panel-bg) 100%);
+  border: 1px solid color-mix(in srgb, var(--rc-amber-glow) 15%, transparent);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 
+    0 12px 40px color-mix(in srgb, black 18%, transparent),
+    0 1px 0 0 color-mix(in srgb, var(--rc-amber-glow) 10%, transparent) inset;
+  position: relative;
+  overflow: hidden;
+}
+
+.album-streak-calendar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--rc-amber-glow) 50%, 
+    transparent 100%);
+  opacity: 0.7;
+}
+
+.streak-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.streak-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  color: var(--rc-amber-glow);
+}
+
+.streak-summary {
+  font-size: 1.05rem;
+  color: var(--rc-text);
+  font-weight: 700;
+}
+
+.streak-description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-weekday {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+  text-align: center;
+  font-weight: 800;
+  padding: 0.5rem 0;
+}
+
+.calendar-cell {
+  aspect-ratio: 1.5;
+  border-radius: 10px;
+  border: 2px solid color-mix(in srgb, var(--panel-border) 80%, transparent);
+  background: color-mix(in srgb, var(--panel-bg) 85%, transparent);
+  color: var(--muted-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: default;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-cell.empty {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.calendar-cell.completed {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--spotify-green) 85%, var(--rc-vinyl-black) 15%) 0%, 
+    color-mix(in srgb, var(--spotify-green) 75%, var(--rc-vinyl-black) 25%) 100%);
+  border-color: var(--spotify-green);
+  color: white;
+  box-shadow: 
+    0 4px 12px color-mix(in srgb, var(--spotify-green) 30%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+}
+
+.calendar-cell.completed.today {
+  box-shadow: 
+    0 0 0 3px color-mix(in srgb, var(--spotify-green) 40%, transparent),
+    0 6px 20px color-mix(in srgb, var(--spotify-green) 40%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.25) inset;
+  transform: scale(1.08);
+}
+
+.calendar-cell.pending {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--panel-bg) 70%, var(--rc-text) 30%) 0%, 
+    var(--panel-bg) 100%);
+  border-color: color-mix(in srgb, var(--panel-border) 120%, transparent);
+}
+
+.calendar-cell.pending.today {
+  border-color: var(--rc-amber-glow);
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--rc-amber-glow) 85%, var(--rc-vinyl-black) 15%) 0%, 
+    color-mix(in srgb, var(--rc-crate-wood) 90%, var(--rc-vinyl-black) 10%) 100%);
+  color: white;
+  box-shadow: 
+    0 0 0 3px color-mix(in srgb, var(--rc-amber-glow) 35%, transparent),
+    0 4px 16px color-mix(in srgb, var(--rc-amber-glow) 30%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+  transform: scale(1.08);
+}
+
+.calendar-cell.day:not(.empty):hover {
+  transform: translateY(-3px);
+  border-color: var(--rc-amber-glow);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--rc-amber-glow) 25%, black);
+}
+
+/* Calendar Lock Overlay */
+.calendar-lock-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.75rem;
+  padding: 2.5rem;
+  text-align: center;
+  border-radius: 20px;
+  color: var(--rc-text);
+  background: color-mix(in srgb, var(--panel-bg) 92%, transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.calendar-lock-overlay p {
+  margin: 0;
+  font-size: 1.05rem;
+  max-width: 360px;
+  line-height: 1.7;
+  font-weight: 600;
+  color: var(--rc-text);
+}
+
+.calendar-lock-overlay .spotify-login-btn {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--spotify-green) 90%, var(--rc-vinyl-black) 10%) 0%, 
+    color-mix(in srgb, var(--spotify-green) 80%, var(--rc-vinyl-black) 20%) 100%);
+  color: white;
+  border: 2px solid color-mix(in srgb, var(--spotify-green) 40%, transparent);
+  padding: 1.1rem 2.25rem;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  box-shadow: 
+    0 6px 20px color-mix(in srgb, var(--spotify-green) 35%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+  margin-top: 0.5rem;
+}
+
+.calendar-lock-overlay .spotify-login-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--spotify-green) 95%, var(--rc-vinyl-black) 5%) 0%, 
+    color-mix(in srgb, var(--spotify-green) 85%, var(--rc-vinyl-black) 15%) 100%);
+  border-color: var(--spotify-green);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 
+    0 10px 30px color-mix(in srgb, var(--spotify-green) 45%, black),
+    0 1px 0 0 rgba(255, 255, 255, 0.25) inset;
+}
+
+.calendar-lock-overlay .spotify-login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.streak-login-note {
+  margin-top: 1.75rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.6;
+  padding: 0 1rem;
+}
+
+/* Streak Footer Legend */
+.streak-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 600;
+  padding-top: 1.25rem;
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 60%, transparent);
+}
+
+.streak-footer .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.streak-footer .legend {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 6px;
+  border: 2px solid;
+}
+
+.streak-footer .legend.completed {
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--spotify-green) 85%, var(--rc-vinyl-black) 15%) 0%, 
+    color-mix(in srgb, var(--spotify-green) 75%, var(--rc-vinyl-black) 25%) 100%);
+  border-color: var(--spotify-green);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--spotify-green) 25%, black);
+}
+
+.streak-footer .legend.pending {
+  background: color-mix(in srgb, var(--panel-bg) 70%, var(--rc-text) 30%);
+  border-color: color-mix(in srgb, var(--panel-border) 100%, transparent);
+}
+
+/* ============================================
+   CONTENT FILTERS SECTION
+   ============================================ */
+
+.content-filters {
+  margin-bottom: 3.5rem;
+}
+
+/* ============================================
+   PERSONAL NOTE
+   ============================================ */
+
+.personal-note {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--spotify-green) 10%, transparent) 0%,
+    color-mix(in srgb, var(--spotify-green) 6%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--spotify-green) 25%, transparent);
+  border-radius: 12px;
+  padding: 1.25rem 1.75rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--spotify-green) 10%, transparent);
+}
+
+.personal-note p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--rc-text);
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.personal-note strong {
+  color: var(--spotify-green);
+  font-weight: 700;
+}
+
+/* ============================================
+   FILTERED CONTENT SECTION
+   ============================================ */
+
+.filtered-content {
+  margin-bottom: 4rem;
+}
+
+.filtered-content > h2 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin: 0 0 3rem 0;
+  color: var(--rc-text);
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.filtered-content > h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    var(--rc-amber-glow) 0%, 
+    var(--rc-crate-wood) 100%);
+  border-radius: 2px;
+}
+
+.content-section {
+  margin-bottom: 4rem;
+}
+
+.content-section:last-child {
+  margin-bottom: 0;
+}
+
+.content-section h3 {
+  font-size: clamp(1.35rem, 2.5vw, 1.65rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 2rem 0;
+  color: var(--rc-text);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.content-section h3::before {
+  content: '';
+  width: 6px;
+  height: 1.5rem;
+  background: linear-gradient(135deg, 
+    var(--rc-amber-glow) 0%, 
+    var(--rc-crate-wood) 100%);
+  border-radius: 3px;
+}
+
+/* ============================================
+   GRIDS
+   ============================================ */
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2.5rem;
+}
+
+.artist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2rem;
+}
+
+/* ============================================
+   LOADING & ERROR STATES
+   ============================================ */
+
+.loading {
+  text-align: center;
+  padding: 6rem 2rem;
+  font-size: 1.2rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.error {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--rc-red) 8%, transparent) 0%,
+    color-mix(in srgb, var(--rc-red) 4%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--rc-red) 20%, transparent);
+  border-radius: 16px;
+  padding: 2.5rem;
+  margin: 3rem auto;
+  max-width: 800px;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--rc-red) 12%, black);
+}
+
+.error h3 {
+  color: var(--rc-red);
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+  font-size: 1.5rem;
+}
+
+.error p {
+  color: var(--rc-text);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.error a {
+  color: var(--rc-amber-glow);
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.error a:hover {
+  color: var(--rc-crate-wood);
+}
+
+.error code {
+  background: color-mix(in srgb, var(--rc-vinyl-black) 30%, transparent);
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: var(--rc-amber-glow);
+  font-weight: 600;
+}
+
+.error ol {
+  text-align: left;
+  line-height: 2;
+  padding-left: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.error ol li {
+  margin-bottom: 0.5rem;
+  color: var(--rc-text);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .album-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 2rem;
+  }
+
+  .artist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .discover {
+    padding: 1.5rem 0 3rem 0;
+  }
+
+  .hero {
+    padding: 2.5rem 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .streak-calendar-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .album-streak-calendar {
+    padding: 2rem;
+  }
+
+  .calendar-grid {
+    gap: 0.35rem;
+  }
+
+  .calendar-cell {
+    font-size: 0.75rem;
+  }
+
+  .calendar-lock-overlay {
+    padding: 2rem;
+    gap: 1.5rem;
+  }
+
+  .calendar-lock-overlay p {
+    font-size: 0.95rem;
+  }
+
+  .calendar-lock-overlay .spotify-login-btn {
+    padding: 0.95rem 2rem;
+    font-size: 1rem;
+  }
+
+  .streak-login-note {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .streak-footer {
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+
+  .content-filters {
+    margin-bottom: 2.5rem;
+  }
+
+  .filtered-content > h2 {
+    margin-bottom: 2.5rem;
+  }
+
+  .content-section {
+    margin-bottom: 3rem;
+  }
+
+  .content-section h3 {
+    margin-bottom: 1.5rem;
+  }
+
+  .album-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.75rem;
+  }
+
+  .artist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .discover {
+    padding: 1rem 0 2.5rem 0;
+  }
+
+  .hero {
+    padding: 2rem 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .streak-calendar-section {
+    margin-bottom: 2rem;
+  }
+
+  .album-streak-calendar {
+    padding: 1.5rem;
+  }
+
+  .streak-title {
+    font-size: 1.15rem;
+  }
+
+  .calendar-weekday {
+    font-size: 0.65rem;
+    padding: 0.35rem 0;
+  }
+
+  .calendar-grid {
+    gap: 0.25rem;
+  }
+
+  .calendar-cell {
+    font-size: 0.7rem;
+    border-width: 1.5px;
+  }
+
+  .calendar-lock-overlay {
+    padding: 1.5rem;
+  }
+
+  .calendar-lock-overlay p {
+    font-size: 0.9rem;
+  }
+
+  .calendar-lock-overlay .spotify-login-btn {
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .streak-footer {
+    font-size: 0.8rem;
+    gap: 1rem;
+  }
+
+  .personal-note {
+    padding: 1rem 1.25rem;
+  }
+
+  .filtered-content > h2 {
+    margin-bottom: 2rem;
+  }
+
+  .content-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .album-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .artist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .error {
+    padding: 2rem 1.5rem;
+  }
+
+  .error h3 {
+    font-size: 1.25rem;
+  }
+
+  .error ol {
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+}
+
+@media (max-width: 360px) {
+  .album-streak-calendar {
+    padding: 1.25rem;
+  }
+
+  .calendar-grid {
+    gap: 0.2rem;
+  }
+
+  .calendar-cell {
+    font-size: 0.65rem;
+  }
+
+  .album-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .artist-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
