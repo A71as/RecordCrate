@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Search, User, LogOut, Moon, Sun, MessageSquare, Menu, X, Disc3 } from 'lucide-react';
-import { useAuth } from '../context/useAuth';
+import { useAuth0 } from '@auth0/auth0-react';
 import { useTheme } from '../context/ThemeContext';
 import '../styles/components/Header.css';
 
 export const Header: React.FC = () => {
-  const { googleUser, logout } = useAuth();
+  const { loginWithRedirect, logout: auth0Logout, user, isAuthenticated } = useAuth0();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -18,9 +18,42 @@ export const Header: React.FC = () => {
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
-  const displayName = googleUser?.name ?? googleUser?.email ?? 'Guest';
-  const avatarUrl = googleUser?.picture;
-  const isAuthenticated = !!googleUser;
+  const handleLogin = async () => {
+    await loginWithRedirect();
+  };
+
+  const handleLogout = () => {
+    auth0Logout({
+      logoutParams: {
+        returnTo: window.location.origin
+      }
+    });
+  };
+
+  const displayName = user?.name ?? user?.email ?? 'Guest';
+  const avatarUrl = user?.picture;
+  
+  // Generate a default avatar with user's initials
+  const getDefaultAvatar = () => {
+    if (!displayName || displayName === 'Guest') return null;
+    const initials = displayName
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+    
+    // Create a data URL for an SVG avatar with initials
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r="20" fill="#c8955f"/>
+        <text x="20" y="20" text-anchor="middle" dy="0.35em" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#ffffff">${initials}</text>
+      </svg>
+    `;
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+  };
+
+  const displayAvatar = avatarUrl || getDefaultAvatar();
 
   return (
     <header className="header">
@@ -87,16 +120,16 @@ export const Header: React.FC = () => {
           {isAuthenticated ? (
             <>
               <div className="user-badge">
-                {avatarUrl && (
+                {displayAvatar && (
                   <img
-                    src={avatarUrl}
+                    src={displayAvatar}
                     alt={displayName}
                     className="user-avatar"
                   />
                 )}
                 <span className="user-name">{displayName}</span>
               </div>
-              <button className="action-btn logout-btn" onClick={logout}>
+              <button className="action-btn logout-btn" onClick={handleLogout}>
                 <LogOut size={16} />
                 <span className="logout-text">Logout</span>
               </button>
@@ -104,7 +137,7 @@ export const Header: React.FC = () => {
           ) : (
             <button
               className="action-btn login-btn"
-              onClick={() => {}}
+              onClick={handleLogin}
             >
               <User size={16} />
               <span>Login</span>

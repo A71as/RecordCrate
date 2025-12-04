@@ -92,9 +92,15 @@ export interface SongRating {
 }
 
 export interface AlbumReview {
-  id: string;
+  id?: string;
+  _id?: string; // MongoDB ID
   albumId: string;
-  userId: string;
+  userId?: string; // Legacy field for localStorage
+  userSpotifyId?: string; // Backend field for user identifier
+  user?: { // Populated user info from backend
+    displayName?: string;
+    avatarUrl?: string;
+  };
   overallRating: number;
   /**
    * Base overall rating (0-100%) before applying any score modifiers.
@@ -117,8 +123,12 @@ export interface AlbumReview {
   songRatings: SongRating[];
   writeup: string;
   createdAt: string;
-  updatedAt: string;
-  album?: SpotifyAlbum;
+  updatedAt?: string;
+  album?: SpotifyAlbum; // Full album object (localStorage format)
+  // Backend metadata fields (flat format from MongoDB)
+  albumName?: string;
+  albumArtists?: string[];
+  albumImage?: string;
 }
 
 export interface Review {

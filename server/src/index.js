@@ -6,11 +6,13 @@ import reviewsRouter from './routes/reviews.js';
 import usersRouter from './routes/users.js';
 import discographyRouter from './routes/discography.js';
 import searchRouter from './routes/search.js';
+import nlsearchRouter from './routes/nlsearch.js';
 import billboardRouter from './routes/billboard.js';
+import authRouter from './routes/auth.js';
 
 const app = express();
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4001;
 const MONGODB_URI = process.env.MONGODB_URI || '';
 // Allow multiple origins in dev. Support comma-separated CORS_ORIGIN.
 const DEFAULT_ORIGINS = ['http://localhost:5175', 'http://127.0.0.1:5175'];
@@ -37,8 +39,10 @@ try {
   // Always mount discography, search, and billboard; they do not require DB
   app.use('/api/discography', discographyRouter);
   app.use('/api/search', searchRouter);
+  app.use('/api/nlsearch', nlsearchRouter);
   app.use('/api/billboard', billboardRouter);
-  console.log('[recordcrate-api] Mounted discography, search, and billboard routes');
+  app.use('/api/auth', authRouter);
+  console.log('[recordcrate-api] Mounted discography, search, nlsearch, billboard, and auth routes');
 } catch (e) {
   console.error('[recordcrate-api] Failed to mount routes:', e);
   process.exit(1);
@@ -74,13 +78,13 @@ async function start() {
 
   if (!MONGODB_URI) {
     console.warn('[recordcrate-api] No MONGODB_URI provided. Starting in discography-only mode.');
-    app.listen(PORT, () => console.log(`API listening (discography-only) on http://localhost:${PORT}`));
+    app.listen(PORT, () => console.log(`API listening (discography-only) on http://127.0.0.1:${PORT}`));
     return;
   }
   await mongoose.connect(MONGODB_URI);
   console.log('Connected to MongoDB');
   mountDbRoutes();
-  app.listen(PORT, () => console.log(`API listening on http://localhost:${PORT}`));
+  app.listen(PORT, () => console.log(`API listening on http://127.0.0.1:${PORT}`));
 }
 
 start().catch((e) => {

@@ -3,13 +3,45 @@ import { User } from '../models/User.js';
 
 const router = express.Router();
 
+// Input validation helpers
+const validateSpotifyId = (id) => {
+  if (!id || typeof id !== 'string') return false;
+  return /^[\w-]{1,50}$/.test(id);
+};
+
+const sanitizeString = (str, maxLength = 200) => {
+  if (!str || typeof str !== 'string') return '';
+  return str.trim().slice(0, maxLength);
+};
+
+const validateUrl = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 // Create or update a user based on Spotify profile
 router.post('/sync', async (req, res) => {
   try {
     const { spotifyId, displayName, avatarUrl } = req.body || {};
-    if (!spotifyId) return res.status(400).json({ error: 'spotifyId required' });
+    
+    if (!validateSpotifyId(spotifyId)) {
+      return res.status(400).json({ error: 'Invalid spotifyId format' });
+    }
 
-    const update = { displayName, avatarUrl };
+    const update = {
+      displayName: sanitizeString(displayName, 100),
+    };
+
+    // Only set avatarUrl if it's a valid URL
+    if (avatarUrl && validateUrl(avatarUrl)) {
+      update.avatarUrl = sanitizeString(avatarUrl, 500);
+    }
+
     const user = await User.findOneAndUpdate(
       { spotifyId },
       { $set: update },
@@ -19,17 +51,22 @@ router.post('/sync', async (req, res) => {
     res.json(user);
   } catch (e) {
     console.error('sync user error', e);
-    res.status(500).json({ error: 'internal_error' });
+    res.status(500).json({ error: 'Failed to sync user' });
   }
 });
 
 router.get('/:spotifyId', async (req, res) => {
   try {
+    if (!validateSpotifyId(req.params.spotifyId)) {
+      return res.status(400).json({ error: 'Invalid spotifyId format' });
+    }
+    
     const user = await User.findOne({ spotifyId: req.params.spotifyId });
-    if (!user) return res.status(404).json({ error: 'not_found' });
+    if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (e) {
-    res.status(500).json({ error: 'internal_error' });
+    console.error('get user error', e);
+    res.status(500).json({ error: 'Failed to get user' });
   }
 });
 

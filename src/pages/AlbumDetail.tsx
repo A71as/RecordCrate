@@ -85,6 +85,8 @@ export const AlbumDetail: React.FC = () => {
         let userId: string | null = null;
         if (isAuthenticated && user) {
           userId = user.sub || null;
+          console.log('[AlbumDetail] Current Auth0 user ID:', userId);
+          console.log('[AlbumDetail] User object:', user);
           setCurrentUserId(userId);
           // best-effort sync with Auth0 user data
           if (userId) {
@@ -103,11 +105,14 @@ export const AlbumDetail: React.FC = () => {
         // Backend-first load if we have a user; otherwise fallback to localStorage
         if (userId) {
           try {
+            console.log('[AlbumDetail] Fetching reviews for user:', userId, 'album:', albumId);
             const serverReviews = (await backend.getAlbumReviews(albumId)) as BackendAlbumReview[];
+            console.log('[AlbumDetail] Server reviews:', serverReviews);
             setReviewCount(Array.isArray(serverReviews) ? serverReviews.length : 0);
             const my = Array.isArray(serverReviews)
               ? serverReviews.find((r) => r.userSpotifyId === userId)
               : null;
+            console.log('[AlbumDetail] My review:', my);
             if (my) {
               const migratedOverall =
                 typeof my.overallRating === 'number' && my.overallRating <= 5
@@ -301,6 +306,7 @@ export const AlbumDetail: React.FC = () => {
     // If logged-in user, persist to backend as source of truth
     if (currentUserId) {
       try {
+        console.log('[AlbumDetail] Saving review for user:', currentUserId, 'album:', album.id);
         await backend.saveReview({
           userSpotifyId: currentUserId,
           albumId: album.id,
@@ -316,6 +322,7 @@ export const AlbumDetail: React.FC = () => {
             image: album.images?.[0]?.url || album.images?.[1]?.url,
           },
         });
+        console.log('[AlbumDetail] Review saved successfully');
         // refresh count from server
         try {
           const list = (await backend.getAlbumReviews(album.id)) as BackendAlbumReview[];
@@ -803,8 +810,8 @@ export const AlbumDetail: React.FC = () => {
               )}
               <div className="review-meta">
                 Reviewed on{" "}
-                {new Date(existingReview.createdAt).toLocaleDateString()}
-                {existingReview.updatedAt !== existingReview.createdAt && (
+                {existingReview.createdAt && new Date(existingReview.createdAt).toLocaleDateString()}
+                {existingReview.updatedAt && existingReview.updatedAt !== existingReview.createdAt && (
                   <span>
                     {" "}
                     • Updated{" "}

@@ -7,6 +7,7 @@ import { Discover } from './pages/Discover';
 import { Discography } from './pages/Discography';
 import { Search } from './pages/Search';
 import { Profile } from './pages/Profile';
+import { UserProfile } from './pages/UserProfile';
 import { Reviews } from './pages/Reviews';
 import { AlbumDetail } from './pages/AlbumDetail';
 import { ArtistDetail } from './pages/ArtistDetail';
@@ -51,6 +52,8 @@ function App() {
       authorizationParams={{
         redirect_uri: `${window.location.origin}/auth/callback`,
       }}
+      cacheLocation="localstorage"
+      useRefreshTokens={true}
     >
       <AuthProvider>
         <Router>
@@ -63,6 +66,7 @@ function App() {
                 <Route path="/discography" element={<Discography />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/user/:userId" element={<UserProfile />} />
                 <Route path="/reviews" element={<Reviews />} />
                 <Route path="/album/:albumId" element={<AlbumDetail />} />
                 <Route path="/artist/:id" element={<ArtistDetail />} />

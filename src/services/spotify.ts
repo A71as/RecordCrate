@@ -9,7 +9,6 @@ import type {
 } from '../types';
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 'http://127.0.0.1:5173/callback';
 
 const SCOPES = [
@@ -21,10 +20,10 @@ const SCOPES = [
 ].join(' ');
 
 // Check if credentials are configured
-const hasCredentials = !!CLIENT_ID && !!CLIENT_SECRET;
+const hasCredentials = !!CLIENT_ID;
 
 if (!hasCredentials) {
-  console.warn('⚠️ Spotify credentials not configured. Please add VITE_SPOTIFY_CLIENT_ID and VITE_SPOTIFY_CLIENT_SECRET to your .env file.');
+  console.warn('⚠️ Spotify credentials not configured. Please add VITE_SPOTIFY_CLIENT_ID to your .env file.');
 }
 
 // DEFAULT_MARKET removed; no longer required in no-auth discography flow.
@@ -45,13 +44,13 @@ class SpotifyService {
       throw new Error('MISSING_CREDENTIALS');
     }
 
+    // Use backend for token generation to avoid exposing client secret
     const response = await axios.post(
-      'https://accounts.spotify.com/api/token',
-      'grant_type=client_credentials',
+      `${API_BASE}/api/auth/spotify/client-token`,
+      {},
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Basic ${btoa(`${CLIENT_ID}:${CLIENT_SECRET}`)}`,
+          'Content-Type': 'application/json',
         },
       }
     );
@@ -546,17 +545,16 @@ class SpotifyService {
     const effectiveRedirect = REDIRECT_URI || 'http://127.0.0.1:5173/callback';
     this.pendingTokenExchange = (async () => {
       try {
+      // Use backend to exchange token securely (no client secret exposure)
       const response = await axios.post(
-        'https://accounts.spotify.com/api/token',
-        new URLSearchParams({
-          grant_type: 'authorization_code',
+        `${API_BASE}/api/auth/spotify/token`,
+        {
           code,
-          redirect_uri: effectiveRedirect,
-        }),
+          redirectUri: effectiveRedirect,
+        },
         {
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Basic ${btoa(`${CLIENT_ID}:${CLIENT_SECRET}`)}`,
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -607,16 +605,15 @@ class SpotifyService {
     if (!this.refreshToken) return null;
 
     try {
+      // Use backend to refresh token securely (no client secret exposure)
       const response = await axios.post(
-        'https://accounts.spotify.com/api/token',
-        new URLSearchParams({
-          grant_type: 'refresh_token',
-          refresh_token: this.refreshToken,
-        }),
+        `${API_BASE}/api/auth/spotify/refresh`,
+        {
+          refreshToken: this.refreshToken,
+        },
         {
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Basic ${btoa(`${CLIENT_ID}:${CLIENT_SECRET}`)}`,
+            'Content-Type': 'application/json',
           },
         }
       );

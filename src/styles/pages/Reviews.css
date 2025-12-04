@@ -307,6 +307,34 @@
   font-weight: 500;
 }
 
+.review-user .user-link {
+  color: var(--rc-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.review-user .user-link:hover {
+  color: var(--rc-accent);
+  text-decoration: underline;
+}
+
+.review-user .user-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--rc-accent);
+  transition: width 0.3s ease;
+}
+
+.review-user .user-link:hover::after {
+  width: 100%;
+}
+
 @media (max-width: 480px) {
   .review-meta {
     flex-direction: column;

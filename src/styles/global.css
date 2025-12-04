@@ -1,8 +1,8 @@
-/* RecordCrate Global Styles - Professional Design System */
+/* RecordCrate Global Styles */
 
 :root {
-    /* Layout */
-    --header-height: 88px;
+    /* Theme tokens - baseline defaults (overrideable) */
+    --header-height: 80px;
     --container-max: 1440px;
     --container-narrow: 960px;
     --border-radius-sm: 8px;
@@ -11,12 +11,12 @@
     --border-radius-xl: 32px;
     --border-radius-full: 9999px;
 
-    /* Spacing scale - Fluid design */
+    /* Spacing scale */
     --space-1: 0.25rem;
     --space-2: 0.5rem;
     --space-3: 1rem;
     --space-4: 1.5rem;
-    --space-5: 2.5rem;
+    --space-5: 2rem;
     --space-6: 4rem;
     --space-7: 6rem;
 
@@ -44,57 +44,51 @@
     --transition-smooth: 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Light theme (default) - Modern Premium Design */
+/* Light theme (default) */
 :root,
 [data-theme="light"] {
-    /* Brand colors - Sophisticated palette */
-    --rc-bg: #fdfcfa;
-    --rc-bg-secondary: #f8f6f3;
-    --rc-grid: rgba(122, 95, 55, 0.04);
-    --rc-text: #1a1715;
+    /* Colors: Light crate theme with brown/wood tones - Enhanced contrast */
+    --rc-bg: #e8ddc5; /* slightly darker cream background for better contrast */
+    --rc-bg-secondary: #f0e6d2;
+    --rc-grid: rgba(139, 111, 71, 0.15); /* more visible wood grain pattern */
+    --rc-text: #2a1f14; /* darker brown text for better readability */
     --rc-text-secondary: #4a4542;
-    
-    /* Accent colors */
-    --rc-primary: #d4955f;
-    --rc-primary-hover: #c17d4a;
-    --rc-primary-light: #f2e5d7;
-    --rc-accent: #8b6f3f;
-    --rc-accent-hover: #6d5539;
-    
-    /* Semantic colors */
-    --rc-red: #dc5849;
+    --rc-red: #b5674a; /* deeper terracotta red */
     --rc-red-light: #fef2f1;
-    --rc-green-1: #7ba86a;
-    --rc-green-2: #5a8449;
+    --rc-green-1: #6b9559; /* more saturated sage green */
+    --rc-green-2: #4a6d3f; /* deeper forest green */
     --rc-green-light: #f3f9f1;
-    --rc-gray: #6d6460;
-    --rc-warm: #b89968;
-    --rc-cream: #faf8f5;
-    --rc-amber-glow: #e8b968;
-    --rc-crate-wood: #9d7d4f;
+    --rc-gray: #6d5539; /* deeper warm brown-gray */
+    --rc-warm: #a8845a; /* darker warm brass/bronze */
+    --rc-cream: #f2ead8; /* creamier highlight */
+    --rc-amber-glow: #c8955f; /* deeper golden amber accent */
+    --rc-crate-wood: #7a5f37; /* darker warm wood accent */
     --rc-bronze: #c8955f;
     --rc-bronze-light: #f2e5d7;
-    
-    /* Spotify */
     --spotify-green: #1db954;
     --spotify-green-hover: #1ed760;
-    
-    /* Additional brand */
+
+    /* Additional brand colors */
     --rc-vinyl-black: #1a1a1d;
     --rc-vinyl-groove: #0d0d0f;
+    --rc-primary: #c8955f; /* same as amber-glow */
+    --rc-primary-hover: #b5845a;
+    --rc-primary-light: #f2e5d7;
+    --rc-accent: #7a5f37; /* same as crate-wood */
+    --rc-accent-hover: #6d5539;
 
     /* Percent indicators */
-    --percent-red: #dc5849;
-    --percent-yellow: #e8b968;
-    --percent-green: #7ba86a;
+    --percent-red: #b5674a;
+    --percent-yellow: #c8955f;
+    --percent-green: #6b9559;
 
-    /* Surface tokens */
-    --panel-bg: #ffffff;
+    /* Panel / surface tokens */
+    --panel-bg: #f0e6d2; /* warmer cream panel with better contrast */
     --panel-bg-hover: #fcfbf9;
-    --panel-border: rgba(122, 95, 55, 0.12);
+    --panel-border: rgba(122, 95, 55, 0.35); /* more visible wood-toned borders */
     --panel-border-hover: rgba(122, 95, 55, 0.24);
-    --muted: #6d6460;
-    --muted-2: #9d9692;
+    --muted: #6d5539; /* deeper warm muted brown for better contrast */
+    --muted-2: #8d7960; /* darker gray-brown for better visibility */
     --muted-3: #c5c1bd;
     
     /* Overlays */
@@ -102,51 +96,53 @@
     --overlay-heavy: rgba(26, 23, 21, 0.85);
 }
 
-/* Dark theme - Luxurious dark mode */
+/* Dark theme */
 [data-theme="dark"] {
-    --rc-bg: #0d0c0b;
+    /* Dark mode colors */
+    --rc-bg: #0f0f0f; /* deep black background */
     --rc-bg-secondary: #151412;
-    --rc-grid: rgba(255, 255, 255, 0.02);
-    --rc-text: #f5f3f0;
+    --rc-grid: rgba(255,255,255,0.03);
+    --rc-text: #f5f5f5; /* light text */
     --rc-text-secondary: #c5c1bd;
-    
-    --rc-primary: #e8b968;
-    --rc-primary-hover: #f2c978;
-    --rc-primary-light: #2a2419;
-    --rc-accent: #b89968;
-    --rc-accent-hover: #c8a978;
-    
     --rc-red: #ff6b6b;
     --rc-red-light: #2a1a1a;
-    --rc-green-1: #8fcc77;
-    --rc-green-2: #6db857;
+    --rc-green-1: #51cf66;
+    --rc-green-2: #37b24d;
     --rc-green-light: #1a2a1a;
-    --rc-gray: #9d9692;
-    --rc-warm: #d4a878;
-    --rc-cream: #1a1816;
-    --rc-amber-glow: #f2c978;
-    --rc-crate-wood: #c8a978;
+    --rc-gray: #6c7a89; /* muted gray for dark mode */
+    --rc-warm: #ffb347; /* brighter gold for dark mode */
+    --rc-cream: #2a2520; /* dark cream accent */
+    --rc-amber-glow: #ffb347; /* brighter amber for visibility */
+    --rc-crate-wood: #d4a574;
     --rc-bronze: #e8b968;
     --rc-bronze-light: #2a2419;
-    
     --spotify-green: #1ed760;
     --spotify-green-hover: #1fdf64;
-    
-    --rc-vinyl-black: #0d0c0b;
-    --rc-vinyl-groove: #06050;
-    
+
+    /* Additional brand colors */
+    --rc-vinyl-black: #1a1a1d;
+    --rc-vinyl-groove: #0d0d0f;
+    --rc-primary: #ffb347; /* same as amber-glow */
+    --rc-primary-hover: #f2c978;
+    --rc-primary-light: #2a2419;
+    --rc-accent: #d4a574; /* same as crate-wood */
+    --rc-accent-hover: #c8a978;
+
+    /* Percent indicators */
     --percent-red: #ff6b6b;
     --percent-yellow: #ffd93d;
-    --percent-green: #8fcc77;
-    
-    --panel-bg: #1a1816;
+    --percent-green: #51cf66;
+
+    /* Panel / surface tokens */
+    --panel-bg: #1a1a1a; /* dark panel */
     --panel-bg-hover: #211f1c;
-    --panel-border: rgba(255, 255, 255, 0.08);
+    --panel-border: rgba(255,255,255,0.1);
     --panel-border-hover: rgba(255, 255, 255, 0.16);
-    --muted: #9d9692;
-    --muted-2: #6d6460;
+    --muted: #a0a0a0;
+    --muted-2: #808080;
     --muted-3: #4a4542;
     
+    /* Overlays */
     --overlay: rgba(13, 12, 11, 0.7);
     --overlay-heavy: rgba(13, 12, 11, 0.92);
 }

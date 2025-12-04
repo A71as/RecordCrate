@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 
-type CompletionStatus = 'completed' | 'pending';
+type CompletionStatus = 'completed' | 'pending' | 'empty';
 
 export interface AlbumStreakCalendarEntry {
   date: string;
@@ -41,15 +41,17 @@ export const AlbumStreakCalendar: React.FC<AlbumStreakCalendarProps> = ({
 
   const daysInMonth = useMemo(() => {
     const totalDays = new Date(targetYear, targetMonth + 1, 0).getDate();
+    const today = toDateKey(new Date());
     return Array.from({ length: totalDays }, (_, index) => {
       const day = index + 1;
       const currentDate = new Date(targetYear, targetMonth, day);
       const key = toDateKey(currentDate);
+      const status = completions.get(key) ?? 'empty';
       return {
         day,
         key,
-        status: completions.get(key) ?? 'pending',
-        isToday: key === toDateKey(new Date()),
+        status,
+        isToday: key === today,
       };
     });
   }, [targetMonth, targetYear, completions]);
@@ -73,30 +75,32 @@ export const AlbumStreakCalendar: React.FC<AlbumStreakCalendarProps> = ({
       {description && <p className="streak-description">{description}</p>}
       <div className="calendar-grid">
         {WEEKDAY_LABELS.map((label) => (
-          <div key={label} className="calendar-weekday">
+          <div key={label} className="weekday-label">
             {label}
           </div>
         ))}
         {Array.from({ length: leadingEmptyCells }).map((_, index) => (
-          <div key={`empty-${index}`} className="calendar-cell empty" />
+          <div key={`empty-${index}`} className="day-cell empty-cell" />
         ))}
         {daysInMonth.map(({ day, key, status, isToday }) => (
-          <button
+          <div
             key={key}
-            type="button"
-            className={`calendar-cell day ${status} ${isToday ? 'today' : ''}`}
-            title={`${key}${status === 'completed' ? ' · logged' : ' · waiting'}`}
-            disabled
+            className={`day-cell ${status}-cell ${isToday ? 'today-cell' : ''}`}
+            title={`${key}${status === 'completed' ? ' · logged' : status === 'pending' ? ' · awaiting log' : ''}`}
           >
-            {day}
-          </button>
+            <span className="day-number">{day}</span>
+          </div>
         ))}
       </div>
       <div className="streak-footer">
-        <span className="legend completed" />
-        <span>Logged recommendation</span>
-        <span className="legend pending" />
-        <span>Awaiting log</span>
+        <div className="legend-item">
+          <span className="legend-box completed-legend" />
+          <span className="legend-text">Logged recommendation</span>
+        </div>
+        <div className="legend-item">
+          <span className="legend-box pending-legend" />
+          <span className="legend-text">Awaiting log</span>
+        </div>
       </div>
     </div>
   );

@@ -19,11 +19,15 @@ export const Reviews: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('[Reviews] Fetching all reviews from backend...');
       const data = await backend.getAllReviews();
+      console.log('[Reviews] Reviews loaded:', data);
+      console.log('[Reviews] Number of reviews:', Array.isArray(data) ? data.length : 0);
       setReviews(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to load reviews:', err);
-      setError('Failed to load reviews. Please try again later.');
+      console.error('[Reviews] Failed to load reviews:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to load reviews: ${errorMessage}. Please ensure the backend server is running.`);
       setReviews([]);
     } finally {
       setLoading(false);
@@ -124,13 +128,15 @@ export const Reviews: React.FC = () => {
 
         <div className="reviews-grid">
           {sortedReviews.map((review) => {
-            // Use stored album metadata from the review
-            const albumName = review.album?.name || 'Unknown Album';
-            const albumArtists = review.album?.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
-            const albumImage = review.album?.images?.[0]?.url || null;
+            // Access album metadata - handle both backend format and local storage format
+            const albumName = review.albumName || review.album?.name || 'Unknown Album';
+            const albumArtists = Array.isArray(review.albumArtists) && review.albumArtists.length > 0
+              ? review.albumArtists.join(', ')
+              : review.album?.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
+            const albumImage = review.albumImage || review.album?.images?.[0]?.url || null;
 
             return (
-              <div key={review.id || `${review.userId}-${review.albumId}`} className="review-card">
+              <div key={review.id || review._id || `${review.userId}-${review.albumId}`} className="review-card">
                 <Link to={`/album/${review.albumId}`} className="review-album-link">
                   {albumImage ? (
                     <img
@@ -183,11 +189,17 @@ export const Reviews: React.FC = () => {
               <div className="review-meta">
                 <div className="review-user">
                   <UserIcon size={16} />
-                  <span>{review.userId}</span>
+                  {review.userSpotifyId ? (
+                    <Link to={`/user/${review.userSpotifyId}`} className="user-link">
+                      {review.user?.displayName || 'Anonymous'}
+                    </Link>
+                  ) : (
+                    <span>{review.user?.displayName || 'Anonymous'}</span>
+                  )}
                 </div>
                 <div className="review-date">
                   <Calendar size={16} />
-                  <span>{formatDate(review.createdAt)}</span>
+                  <span>{formatDate(review.createdAt || review.updatedAt || new Date().toISOString())}</span>
                 </div>
               </div>
 

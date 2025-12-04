@@ -14,6 +14,119 @@ let appAccessTokenExpiry = 0;
 class GeminiNaturalLanguageService {
   constructor() {
     this.genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+    
+    // Artist genre database - add known artists and their genres
+    this.artistGenres = {
+      // Hip-Hop/Rap
+      'kendrick lamar': { 
+        genres: ['hip-hop', 'rap'], 
+        styles: ['conscious rap', 'west coast hip hop', 'jazz rap'], 
+        moods: ['introspective', 'lyrical'],
+        similarArtists: ['J. Cole', 'Vince Staples', 'Joey Bada$$', 'Denzel Curry', 'Isaiah Rashad']
+      },
+      'j cole': { 
+        genres: ['hip-hop', 'rap'], 
+        styles: ['conscious rap', 'southern hip hop'], 
+        moods: ['introspective', 'storytelling'],
+        similarArtists: ['Kendrick Lamar', 'Logic', 'Wale', 'Big K.R.I.T.', 'JID']
+      },
+      'drake': { 
+        genres: ['hip-hop', 'rap', 'r&b'], 
+        styles: ['melodic rap', 'ovo sound'], 
+        moods: ['moody', 'atmospheric'],
+        similarArtists: ['PartyNextDoor', 'Tory Lanez', 'Bryson Tiller', 'The Weeknd', 'Roy Woods']
+      },
+      'tyler the creator': { 
+        genres: ['hip-hop', 'rap'], 
+        styles: ['alternative hip hop', 'neo soul rap'], 
+        moods: ['experimental', 'jazzy'],
+        similarArtists: ['Steve Lacy', 'Kali Uchis', 'Thundercat', 'Mac Miller', 'Childish Gambino']
+      },
+      'kanye west': { 
+        genres: ['hip-hop', 'rap'], 
+        styles: ['alternative hip hop', 'experimental'], 
+        moods: ['bold', 'innovative'],
+        similarArtists: ['Kid Cudi', 'Travis Scott', 'Pusha T', 'Jay-Z', 'Playboi Carti']
+      },
+      
+      // R&B/Soul
+      'frank ocean': { 
+        genres: ['r&b', 'alternative'], 
+        styles: ['alternative r&b', 'neo-soul', 'ambient'], 
+        moods: ['atmospheric', 'introspective'],
+        similarArtists: ['Daniel Caesar', 'Steve Lacy', 'SZA', 'Brent Faiyaz', 'Sampha']
+      },
+      'the weeknd': { 
+        genres: ['r&b', 'pop'], 
+        styles: ['alternative r&b', 'dark pop', 'synth pop'], 
+        moods: ['dark', 'atmospheric'],
+        similarArtists: ['PartyNextDoor', 'Bryson Tiller', 'Tory Lanez', 'DVSN', 'Miguel']
+      },
+      'sza': { 
+        genres: ['r&b', 'neo-soul'], 
+        styles: ['alternative r&b', 'contemporary r&b'], 
+        moods: ['emotional', 'introspective'],
+        similarArtists: ['Summer Walker', 'Jhené Aiko', 'Kehlani', 'H.E.R.', 'Ella Mai']
+      },
+      'daniel caesar': { 
+        genres: ['r&b', 'soul'], 
+        styles: ['contemporary r&b', 'neo-soul'], 
+        moods: ['smooth', 'romantic'],
+        similarArtists: ['Frank Ocean', 'Jordan Rakei', 'Lucky Daye', 'Kiana Ledé', 'Mahalia']
+      },
+      
+      // Indie/Alternative
+      'malcolm todd': { 
+        genres: ['indie', 'alternative', 'pop'], 
+        styles: ['indie pop', 'bedroom pop', 'lo-fi'], 
+        moods: ['dreamy', 'laid-back'],
+        similarArtists: ['Rex Orange County', 'Gus Dapperton', 'Cuco', 'Boy Pablo', 'Clairo']
+      },
+      'rex orange county': { 
+        genres: ['indie', 'alternative', 'pop'], 
+        styles: ['indie pop', 'bedroom pop'], 
+        moods: ['upbeat', 'feel-good'],
+        similarArtists: ['Cuco', 'Omar Apollo', 'Wallows', 'The Marias', 'Gus Dapperton']
+      },
+      'clairo': { 
+        genres: ['indie', 'alternative', 'pop'], 
+        styles: ['bedroom pop', 'indie pop'], 
+        moods: ['dreamy', 'lo-fi'],
+        similarArtists: ['Girl in Red', 'Beabadoobee', 'Chloe Moriondo', 'Conan Gray', 'mxmtoon']
+      },
+      'tame impala': { 
+        genres: ['indie', 'psychedelic', 'rock'], 
+        styles: ['psychedelic pop', 'neo-psychedelia'], 
+        moods: ['dreamy', 'atmospheric'],
+        similarArtists: ['MGMT', 'Unknown Mortal Orchestra', 'Pond', 'Melody\'s Echo Chamber', 'Temples']
+      },
+      'radiohead': { 
+        genres: ['alternative', 'rock'], 
+        styles: ['alternative rock', 'experimental rock', 'art rock'], 
+        moods: ['melancholic', 'atmospheric'],
+        similarArtists: ['Thom Yorke', 'Atoms for Peace', 'Portishead', 'Massive Attack', 'Sigur Rós']
+      },
+      
+      // Pop
+      'taylor swift': { 
+        genres: ['pop', 'country'], 
+        styles: ['pop', 'country pop', 'synth pop'], 
+        moods: ['emotional', 'storytelling'],
+        similarArtists: ['Olivia Rodrigo', 'Sabrina Carpenter', 'Gracie Abrams', 'Conan Gray', 'Phoebe Bridgers']
+      },
+      'billie eilish': { 
+        genres: ['pop', 'alternative'], 
+        styles: ['dark pop', 'electropop', 'bedroom pop'], 
+        moods: ['dark', 'whisper'],
+        similarArtists: ['Finneas', 'Lorde', 'Halsey', 'Melanie Martinez', 'Lana Del Rey']
+      },
+      'ariana grande': { 
+        genres: ['pop', 'r&b'], 
+        styles: ['pop', 'contemporary r&b'], 
+        moods: ['upbeat', 'powerful'],
+        similarArtists: ['Doja Cat', 'Madison Beer', 'Victoria Monét', 'Normani', 'Jhené Aiko']
+      }
+    };
   }
 
   isAvailable() {
@@ -27,97 +140,109 @@ class GeminiNaturalLanguageService {
 
     try {
       const model = this.genAI.getGenerativeModel({ 
-        model: 'gemini-pro',
+        model: 'gemini-2.5-flash',
         generationConfig: {
-          temperature: 0.1, // Low temperature for more consistent, accurate parsing
-          topP: 0.8,
-          topK: 20,
+          temperature: 0.2,
+          topP: 0.9,
+          topK: 40,
         }
       });
 
-      const prompt = `You are a music search query parser. Parse the following natural language music search query into structured data for Spotify API search.
+      const prompt = `Parse this music search query into JSON. Focus on INTENT and provide SPECIFIC recommendations.
 
 Query: "${query}"
 
-CRITICAL INSTRUCTIONS:
-1. Extract EXACT artist/album/song names as they appear in the query
-2. Be PRECISE with search terms - preserve capitalization and full names
-3. Identify the PRIMARY search intent (what the user really wants)
-4. Don't add genres/moods unless explicitly mentioned or strongly implied
-5. For "similar to" queries, the similarTo field should contain the EXACT reference
-6. Convert year mentions (e.g., "2015", "90s", "nineties") to decade format: "2010s", "1990s"
-7. Distinguish between artist search vs their albums/tracks
+RULES:
+1. For "similar to [artist]" or "like [artist]" queries:
+   - Set type to "album" (we want albums similar to that artist)
+   - Set excludeArtist to the artist name
+   - Use your music knowledge to provide 3-5 SPECIFIC artists who sound similar
+   - Add their genre and style descriptors
+   
+2. For "similar to [album] by [artist]" queries:
+   - Set type to "album"
+   - Set excludeArtist to the artist name
+   - Provide 3-5 SPECIFIC albums or artists with similar sound
+   
+3. For "artists like [artist]" queries:
+   - Set type to "artist"
+   - Provide 3-5 SPECIFIC similar artist names
+   
+4. For direct artist/album searches (no "like" or "similar"):
+   - Just extract the exact artist/album name
+   - Don't add recommendations
 
-OUTPUT FORMAT (valid JSON only):
+OUTPUT (JSON only, no markdown):
 {
   "type": "album|artist|track|mixed",
-  "searchTerms": ["exact", "search", "terms"],
-  "genres": ["genre1"] or null,
-  "decades": ["2010s"] or null,
-  "mood": ["mood1"] or null,
-  "similarTo": "Exact Artist - Album Name" or null,
-  "description": "clear description"
+  "searchTerms": ["specific artist/album names for similarity queries, or exact names for direct search"],
+  "similarArtists": ["Artist 1", "Artist 2", "Artist 3"] or null,
+  "genres": ["main genre", "subgenre"] or null,
+  "mood": ["mood1", "mood2"] or null,
+  "similarTo": "Artist Name" or null,
+  "excludeArtist": "Artist Name" or null
 }
 
 EXAMPLES:
 
-Input: "albums like Blonde by Frank Ocean"
-Output: {"type":"album","searchTerms":["frank ocean","blonde"],"genres":null,"decades":null,"mood":null,"similarTo":"Frank Ocean - Blonde","description":"albums similar to Blonde by Frank Ocean"}
+"albums like kendrick lamar"
+{"type":"album","searchTerms":["J. Cole","Vince Staples","Joey Bada$$","Denzel Curry"],"similarArtists":["J. Cole","Vince Staples","Joey Bada$$","Denzel Curry","Isaiah Rashad"],"genres":["hip-hop","conscious rap"],"mood":["introspective","lyrical"],"similarTo":"Kendrick Lamar","excludeArtist":"Kendrick Lamar"}
 
-Input: "Taylor Swift reputation album"
-Output: {"type":"album","searchTerms":["taylor swift","reputation"],"genres":null,"decades":null,"mood":null,"similarTo":null,"description":"Taylor Swift's Reputation album"}
+"artists similar to frank ocean"
+{"type":"artist","searchTerms":["Daniel Caesar","Steve Lacy","SZA","Brent Faiyaz"],"similarArtists":["Daniel Caesar","Steve Lacy","SZA","Brent Faiyaz","Sampha"],"genres":["r&b","alternative r&b"],"mood":["atmospheric","introspective"],"similarTo":"Frank Ocean","excludeArtist":"Frank Ocean"}
 
-Input: "sad indie songs from 2010s"
-Output: {"type":"track","searchTerms":["indie"],"genres":["indie"],"decades":["2010s"],"mood":["sad","melancholic"],"similarTo":null,"description":"sad indie songs from the 2010s"}
+"albums like Blonde by Frank Ocean"
+{"type":"album","searchTerms":["Daniel Caesar","Steve Lacy","Blood Orange","Sampha"],"similarArtists":["Daniel Caesar","Steve Lacy","Blood Orange","Sampha","Kali Uchis"],"genres":["r&b","alternative r&b"],"mood":["atmospheric","introspective"],"similarTo":"Frank Ocean","excludeArtist":"Frank Ocean"}
 
-Input: "The Weeknd"
-Output: {"type":"artist","searchTerms":["the weeknd"],"genres":null,"decades":null,"mood":null,"similarTo":null,"description":"The Weeknd artist"}
+"albums like malcolm todd"
+{"type":"album","searchTerms":["Rex Orange County","Gus Dapperton","Cuco","Boy Pablo"],"similarArtists":["Rex Orange County","Gus Dapperton","Cuco","Boy Pablo","Clairo"],"genres":["indie pop","bedroom pop"],"mood":["dreamy","laid-back"],"similarTo":"Malcolm Todd","excludeArtist":"Malcolm Todd"}
 
-Input: "Kanye West graduation"
-Output: {"type":"album","searchTerms":["kanye west","graduation"],"genres":null,"decades":null,"mood":null,"similarTo":null,"description":"Graduation album by Kanye West"}
+"taylor swift reputation"
+{"type":"album","searchTerms":["taylor swift","reputation"],"similarArtists":null,"genres":null,"mood":null,"similarTo":null,"excludeArtist":null}
 
-Input: "chill lo-fi hip hop beats"
-Output: {"type":"track","searchTerms":["lo-fi","hip hop","beats"],"genres":["hip-hop","lo-fi"],"decades":null,"mood":["chill","relaxing"],"similarTo":null,"description":"chill lo-fi hip hop instrumental beats"}
+"sad indie songs"
+{"type":"track","searchTerms":["Phoebe Bridgers","Bon Iver","Cigarettes After Sex"],"similarArtists":["Phoebe Bridgers","Bon Iver","Cigarettes After Sex"],"genres":["indie"],"mood":["sad","melancholic"],"similarTo":null,"excludeArtist":null}
 
-Input: "90s alternative rock bands"
-Output: {"type":"artist","searchTerms":["alternative rock"],"genres":["alternative","rock"],"decades":["1990s"],"mood":null,"similarTo":null,"description":"alternative rock bands from the 1990s"}
-
-Input: "songs like Blinding Lights"
-Output: {"type":"track","searchTerms":["blinding lights"],"genres":null,"decades":null,"mood":null,"similarTo":"Blinding Lights","description":"songs similar to Blinding Lights"}
-
-Input: "Billie Eilish when we all fall asleep"
-Output: {"type":"album","searchTerms":["billie eilish","when we all fall asleep"],"genres":null,"decades":null,"mood":null,"similarTo":null,"description":"When We All Fall Asleep, Where Do We Go? album by Billie Eilish"}
-
-Input: "upbeat workout music"
-Output: {"type":"track","searchTerms":["workout"],"genres":null,"decades":null,"mood":["upbeat","energetic","motivating"],"similarTo":null,"description":"upbeat energetic workout music"}
-
-GENRE KEYWORDS: pop, rock, hip-hop, rap, indie, electronic, edm, jazz, classical, country, r&b, soul, funk, blues, folk, punk, metal, alternative, reggae, latin, k-pop, disco, house, techno, ambient, lo-fi
-
-MOOD KEYWORDS: sad, happy, upbeat, chill, energetic, mellow, dark, bright, emotional, calm, intense, relaxing, aggressive, romantic, melancholic, nostalgic, dreamy, angry, peaceful, motivating
-
-TIME PERIOD CONVERSION:
-- "2020", "2020s", "twenties" → "2020s"
-- "2015", "2010s", "2010", "tens" → "2010s"  
-- "2005", "2000s", "2000", "aughts" → "2000s"
-- "1995", "1990s", "90s", "nineties" → "1990s"
-- "1985", "1980s", "80s", "eighties" → "1980s"
-- "1975", "1970s", "70s", "seventies" → "1970s"
-- "1965", "1960s", "60s", "sixties" → "1960s"
-
-Return ONLY the JSON object, no markdown, no explanation, no extra text.`;
+Parse: "${query}"`;
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
       let text = response.text().trim();
       
-      // Clean up markdown code blocks if present
       text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       
       try {
         const parsed = JSON.parse(text);
+        
+        console.log('Gemini parsed result:', parsed);
+        
+        // Enhance with local artist database if available
+        if (parsed.similarTo || parsed.excludeArtist) {
+          const artistKey = (parsed.similarTo || parsed.excludeArtist).toLowerCase();
+          console.log('Looking up artist in database:', artistKey);
+          const artistInfo = this.artistGenres[artistKey];
+          
+          if (artistInfo) {
+            console.log('Found in database, enhancing with:', artistInfo);
+            // Use local database as authoritative source for similar artists
+            if (artistInfo.similarArtists && artistInfo.similarArtists.length > 0) {
+              parsed.similarArtists = artistInfo.similarArtists;
+              // Also set searchTerms to similar artists for better queries
+              parsed.searchTerms = artistInfo.similarArtists;
+            }
+            parsed.genres = artistInfo.genres;
+            parsed.mood = artistInfo.moods;
+            // DON'T force type to album if user explicitly wants artists
+            // Only change if it's unclear (like "like [artist]" vs "artists like [artist]")
+          } else {
+            console.log('Artist not found in local database');
+          }
+        }
+        
+        console.log('Final parsed query after enhancement:', parsed);
         return this.validateAndCleanMusicQuery(parsed);
       } catch (parseError) {
-        console.warn('Failed to parse Gemini response as JSON:', text);
+        console.warn('Gemini parse failed, using enhanced fallback');
         return this.basicParseQuery(query);
       }
     } catch (error) {
@@ -129,8 +254,50 @@ Return ONLY the JSON object, no markdown, no explanation, no extra text.`;
   basicParseQuery(query) {
     const lowercaseQuery = query.toLowerCase();
     
-    const genres = ['pop', 'rock', 'hip-hop', 'hip hop', 'rap', 'indie', 'electronic', 'edm', 'jazz', 'classical', 'country', 'r&b', 'soul', 'funk', 'blues', 'folk', 'punk', 'metal', 'alternative', 'reggae', 'latin', 'k-pop', 'kpop', 'disco', 'house', 'techno', 'ambient', 'lo-fi', 'lofi'];
-    const moods = ['sad', 'happy', 'upbeat', 'chill', 'energetic', 'mellow', 'dark', 'bright', 'emotional', 'calm', 'intense', 'relaxing', 'aggressive', 'romantic', 'melancholic', 'nostalgic', 'dreamy', 'angry', 'peaceful'];
+    // Check local artist database first for similarity queries
+    console.log('Checking artist database for query:', query);
+    for (const [artist, info] of Object.entries(this.artistGenres || {})) {
+      // Check for "artists similar to [artist]" or "artists like [artist]"
+      const artistsLikePattern = new RegExp(`artists?\\s+(?:like|similar to|similar|sounds? like)\\s+${artist}`, 'i');
+      // Check for "albums/music/songs like [artist]"
+      const likePattern = new RegExp(`(?:albums?|music|songs?|tracks?)\\s+(?:like|similar to|similar|sounds? like)\\s+${artist}`, 'i');
+      const byPattern = new RegExp(`(?:albums?|music|songs?|tracks?)\\s+(?:like|similar to|similar|sounds? like)\\s+.+?\\s+by\\s+${artist}`, 'i');
+      
+      const capitalizedArtist = artist.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      
+      // If searching for similar ARTISTS (not albums)
+      if (artistsLikePattern.test(lowercaseQuery)) {
+        console.log(`Found artist search in database: ${capitalizedArtist}`, info);
+        return {
+          type: 'artist',
+          searchTerms: info.similarArtists || info.styles,
+          similarArtists: info.similarArtists || null,
+          genres: info.genres,
+          mood: info.moods,
+          similarTo: capitalizedArtist,
+          excludeArtist: capitalizedArtist,
+          description: `artists similar to ${capitalizedArtist}`
+        };
+      }
+      // If searching for similar ALBUMS
+      else if (likePattern.test(lowercaseQuery) || byPattern.test(lowercaseQuery)) {
+        console.log(`Found album search in database: ${capitalizedArtist}`, info);
+        return {
+          type: 'album',
+          searchTerms: info.similarArtists || info.styles,
+          similarArtists: info.similarArtists || null,
+          genres: info.genres,
+          mood: info.moods,
+          similarTo: capitalizedArtist,
+          excludeArtist: capitalizedArtist,
+          description: `albums similar to ${capitalizedArtist}`
+        };
+      }
+    }
+    console.log('No artist match found in database, using generic parsing');
+    
+    const genres = ['bedroom pop', 'synth pop', 'alt pop', 'indie pop', 'pop', 'rock', 'indie rock', 'alt rock', 'hip-hop', 'hip hop', 'rap', 'indie', 'electronic', 'edm', 'jazz', 'classical', 'country', 'r&b', 'neo-soul', 'neo soul', 'soul', 'funk', 'blues', 'folk', 'punk', 'metal', 'alternative', 'reggae', 'latin', 'k-pop', 'kpop', 'disco', 'house', 'techno', 'ambient', 'lo-fi', 'lofi', 'experimental'];
+    const moods = ['sad', 'happy', 'upbeat', 'chill', 'energetic', 'mellow', 'dark', 'bright', 'emotional', 'calm', 'intense', 'relaxing', 'aggressive', 'romantic', 'melancholic', 'nostalgic', 'dreamy', 'angry', 'peaceful', 'atmospheric', 'ethereal', 'moody', 'vibey', 'introspective'];
     const decades = ['2020s', '2010s', '2000s', '1990s', '1980s', '1970s', '1960s'];
     
     const foundGenres = genres.filter(genre => lowercaseQuery.includes(genre));
@@ -155,16 +322,19 @@ Return ONLY the JSON object, no markdown, no explanation, no extra text.`;
     }
 
     let similarTo = null;
+    let excludeArtist = null;
+    
+    // Check for similarity queries
     const likePatterns = [
-      /like\s+(.+?)(?:\s+by\s+|\s+from\s+|$)/i,
-      /similar\s+to\s+(.+?)(?:\s+by\s+|\s+from\s+|$)/i,
-      /sounds?\s+like\s+(.+?)(?:\s+by\s+|\s+from\s+|$)/i
+      /(?:albums?|music|songs?|tracks?|artists?)\s+(?:like|similar to|sounds? like)\s+(.+?)(?:\s+by\s+|\s*$)/i,
+      /(?:like|similar to|sounds? like)\s+(.+?)(?:\s+by\s+|\s*$)/i
     ];
     
     for (const pattern of likePatterns) {
       const match = query.match(pattern);
       if (match && match[1]) {
         similarTo = match[1].trim();
+        excludeArtist = similarTo; // Exclude the reference artist
         break;
       }
     }
@@ -177,18 +347,32 @@ Return ONLY the JSON object, no markdown, no explanation, no extra text.`;
     const words = query.split(/\s+/);
     const searchTerms = [];
     
-    for (const word of words) {
-      const lowerWord = word.toLowerCase().replace(/[^\w]/g, '');
-      if (lowerWord.length > 2 && 
-          !commonWords.includes(lowerWord) && 
-          !foundGenres.some(g => g.replace(/[^\w]/g, '') === lowerWord) && 
-          !foundMoods.includes(lowerWord)) {
-        searchTerms.push(word.replace(/[^\w\s]/g, ''));
+    // If it's a similarity query, focus on genre/style instead of artist name
+    if (similarTo) {
+      // Add genres and moods as search terms
+      searchTerms.push(...foundGenres, ...foundMoods);
+      
+      // If STILL no genres/moods detected, don't add generic fallback
+      // This should rarely happen now with the artist database
+      if (searchTerms.length === 0) {
+        // Just use the similarity search without forcing wrong genres
+        searchTerms.push('new', 'music');
       }
-    }
+    } else {
+      // Normal search - include all relevant terms
+      for (const word of words) {
+        const lowerWord = word.toLowerCase().replace(/[^\w]/g, '');
+        if (lowerWord.length > 2 && 
+            !commonWords.includes(lowerWord) && 
+            !foundGenres.some(g => g.replace(/[^\w]/g, '') === lowerWord) && 
+            !foundMoods.includes(lowerWord)) {
+          searchTerms.push(word.replace(/[^\w\s]/g, ''));
+        }
+      }
 
-    if (artistName && !searchTerms.some(term => term.toLowerCase().includes(artistName.toLowerCase()))) {
-      searchTerms.unshift(artistName);
+      if (artistName && !searchTerms.some(term => term.toLowerCase().includes(artistName.toLowerCase()))) {
+        searchTerms.unshift(artistName);
+      }
     }
 
     return {
@@ -198,6 +382,7 @@ Return ONLY the JSON object, no markdown, no explanation, no extra text.`;
       decades: foundDecades.length > 0 ? foundDecades : null,
       mood: foundMoods.length > 0 ? foundMoods : null,
       similarTo: similarTo || null,
+      excludeArtist: excludeArtist || null,
       description: query
     };
   }
@@ -206,66 +391,66 @@ Return ONLY the JSON object, no markdown, no explanation, no extra text.`;
     return {
       type: ['album', 'artist', 'track', 'mixed'].includes(query.type) ? query.type : 'mixed',
       searchTerms: Array.isArray(query.searchTerms) ? query.searchTerms.slice(0, 5) : [query.searchTerms || ''].filter(Boolean),
+      similarArtists: Array.isArray(query.similarArtists) && query.similarArtists.length > 0 ? query.similarArtists : null,
       genres: Array.isArray(query.genres) && query.genres.length > 0 ? query.genres : null,
-      decades: Array.isArray(query.decades) && query.decades.length > 0 ? query.decades : null,
       mood: Array.isArray(query.mood) && query.mood.length > 0 ? query.mood : null,
       similarTo: typeof query.similarTo === 'string' ? query.similarTo : null,
+      excludeArtist: typeof query.excludeArtist === 'string' ? query.excludeArtist : null,
       description: typeof query.description === 'string' ? query.description : query.searchTerms?.join(' ') || ''
     };
   }
 
   generateSpotifyQuery(musicQuery) {
+    console.log('Generating Spotify query from:', JSON.stringify(musicQuery, null, 2));
     const parts = [];
 
-    // Prioritize "similar to" references first
+    // For similarity queries, use SPECIFIC artist/album names from AI recommendations
     if (musicQuery.similarTo) {
-      parts.push(musicQuery.similarTo);
-    }
-
-    // Add main search terms
-    if (musicQuery.searchTerms.length > 0) {
-      const searchTermString = musicQuery.searchTerms.join(' ');
-      // Only add if not already included in similarTo
-      if (!musicQuery.similarTo || !musicQuery.similarTo.toLowerCase().includes(searchTermString.toLowerCase())) {
-        parts.push(searchTermString);
+      console.log('Building similarity search query');
+      
+      // Priority 1: Use specific artist recommendations from Gemini
+      if (musicQuery.similarArtists && musicQuery.similarArtists.length > 0) {
+        console.log('Using similar artists:', musicQuery.similarArtists);
+        // Simple approach: just list the artist names
+        // Spotify will find albums/tracks by these artists
+        const artistNames = musicQuery.similarArtists
+          .slice(0, 5)
+          .map(artist => artist.replace(/[^\w\s]/g, '').trim())
+          .join(' OR ');
+        parts.push(artistNames);
+      } 
+      // Fallback: Use search terms if available
+      else if (musicQuery.searchTerms && musicQuery.searchTerms.length > 0) {
+        console.log('Using search terms as fallback:', musicQuery.searchTerms);
+        const excludeLC = musicQuery.excludeArtist?.toLowerCase() || '';
+        const relevantTerms = musicQuery.searchTerms.filter(term => {
+          const termLC = term.toLowerCase();
+          return !(excludeLC && (excludeLC.includes(termLC) || termLC.includes(excludeLC)));
+        });
+        parts.push(relevantTerms.slice(0, 5).join(' '));
+      }
+      
+      // Add main genre as additional context (not a field filter)
+      if (musicQuery.genres && musicQuery.genres.length > 0) {
+        console.log('Adding genre context:', musicQuery.genres[0]);
+        parts.push(musicQuery.genres[0]);
+      }
+    } else {
+      // Normal search - include search terms or similar artists
+      if (musicQuery.similarArtists && musicQuery.similarArtists.length > 0) {
+        const artistNames = musicQuery.similarArtists
+          .slice(0, 5)
+          .map(artist => artist.replace(/[^\w\s]/g, '').trim())
+          .join(' OR ');
+        parts.push(artistNames);
+      } else if (musicQuery.searchTerms && musicQuery.searchTerms.length > 0) {
+        parts.push(musicQuery.searchTerms.join(' '));
       }
     }
 
-    // Add genre filters with Spotify's genre syntax
-    if (musicQuery.genres && musicQuery.genres.length > 0) {
-      const genreTerms = musicQuery.genres.map(genre => {
-        // Normalize genre names for Spotify API
-        const normalizedGenre = genre.replace(/&/g, 'and').replace(/\s+/g, '-');
-        return `genre:"${normalizedGenre}"`;
-      });
-      parts.push(...genreTerms);
-    }
-
-    // Add year range filters
-    if (musicQuery.decades && musicQuery.decades.length > 0) {
-      const years = musicQuery.decades.map(decade => {
-        const startYear = parseInt(decade.slice(0, 4));
-        const endYear = startYear + 9;
-        return `year:${startYear}-${endYear}`;
-      });
-      // Use OR for multiple decades
-      if (years.length > 1) {
-        parts.push(`(${years.join(' OR ')})`);
-      } else {
-        parts.push(years[0]);
-      }
-    }
-
-    const query = parts.join(' ').trim();
-    
-    // Fallback to broader search if query is too restrictive or empty
-    if (!query || query.length < 2) {
-      return musicQuery.searchTerms.length > 0 
-        ? musicQuery.searchTerms.join(' ') 
-        : 'popular music';
-    }
-
-    return query;
+    const finalQuery = parts.join(' ').trim() || 'popular';
+    console.log('Generated Spotify query:', finalQuery);
+    return finalQuery;
   }
 }
 
@@ -344,26 +529,32 @@ router.post('/natural-language', async (req, res) => {
     // Search Spotify
     const spotifyResults = await searchSpotify(spotifyQuery, searchType, 20);
 
-    // Extract artist name from similarTo for filtering
-    let excludeArtistName = null;
-    if (musicQuery.similarTo && musicQuery.type === 'album') {
-      // Check if similarTo is just an artist name or "Artist - Album" format
+    // Determine which artist to exclude from results
+    let excludeArtistName = musicQuery.excludeArtist?.toLowerCase() || null;
+
+    // Additional parsing for excludeArtist if not already set
+    if (!excludeArtistName && musicQuery.similarTo) {
+      // Check if similarTo is "Artist - Album" format
       const artistAlbumMatch = musicQuery.similarTo.match(/^(.+?)\s*[-–—]\s*.+$/);
       if (artistAlbumMatch) {
-        // Format: "Artist - Album"
         excludeArtistName = artistAlbumMatch[1].trim().toLowerCase();
       } else {
-        // Might be just an artist name - check if it matches search terms
-        const lowerSimilarTo = musicQuery.similarTo.toLowerCase();
-        // If similarTo doesn't contain common album words, it's likely an artist name
-        if (!lowerSimilarTo.includes('album') && 
-            !lowerSimilarTo.includes('mixtape') && 
-            !lowerSimilarTo.includes('ep') &&
-            musicQuery.searchTerms.some(term => lowerSimilarTo.includes(term.toLowerCase()))) {
-          excludeArtistName = musicQuery.similarTo.toLowerCase();
-        }
+        // Just use the similarTo value directly
+        excludeArtistName = musicQuery.similarTo.toLowerCase();
       }
     }
+
+    // Helper function to check if an artist should be excluded
+    const shouldExcludeArtist = (artistName) => {
+      if (!excludeArtistName) return false;
+      const normalizedArtist = artistName.toLowerCase().trim();
+      const normalizedExclude = excludeArtistName.trim();
+      
+      // Exact match or contains
+      return normalizedArtist === normalizedExclude || 
+             normalizedArtist.includes(normalizedExclude) ||
+             normalizedExclude.includes(normalizedArtist);
+    };
 
     // Format and filter results
     const results = {
@@ -382,24 +573,27 @@ router.post('/natural-language', async (req, res) => {
         external_urls: album.external_urls,
         popularity: album.popularity
       })) || []).filter(album => {
-        // Filter out albums by the same artist when searching "albums like [artist]"
+        // Filter out albums by the excluded artist
         if (excludeArtistName) {
-          return !album.artists.some(artist => 
-            artist.name.toLowerCase().includes(excludeArtistName) || 
-            excludeArtistName.includes(artist.name.toLowerCase())
-          );
+          return !album.artists.some(artist => shouldExcludeArtist(artist.name));
         }
         return true;
       }),
-      artists: spotifyResults.artists?.items?.map(artist => ({
+      artists: (spotifyResults.artists?.items?.map(artist => ({
         id: artist.id,
         name: artist.name,
         images: artist.images,
         genres: artist.genres,
         popularity: artist.popularity,
         external_urls: artist.external_urls
-      })) || [],
-      tracks: spotifyResults.tracks?.items?.map(track => ({
+      })) || []).filter(artist => {
+        // Filter out the excluded artist
+        if (excludeArtistName) {
+          return !shouldExcludeArtist(artist.name);
+        }
+        return true;
+      }),
+      tracks: (spotifyResults.tracks?.items?.map(track => ({
         id: track.id,
         name: track.name,
         artists: track.artists.map(artist => ({
@@ -415,7 +609,13 @@ router.post('/natural-language', async (req, res) => {
         explicit: track.explicit,
         external_urls: track.external_urls,
         popularity: track.popularity
-      })) || []
+      })) || []).filter(track => {
+        // Filter out tracks by the excluded artist
+        if (excludeArtistName) {
+          return !track.artists.some(artist => shouldExcludeArtist(artist.name));
+        }
+        return true;
+      })
     };
 
     console.log('Search results:', {

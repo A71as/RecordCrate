@@ -278,6 +278,10 @@ VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id
 VITE_SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
 VITE_SPOTIFY_REDIRECT_URI=http://localhost:5175/callback
 
+# Auth0 Configuration (Required for user authentication)
+VITE_AUTH0_DOMAIN=your-tenant.auth0.com
+VITE_AUTH0_CLIENT_ID=your_auth0_client_id
+
 # Google Gemini AI (Optional - for natural language search)
 VITE_GEMINI_API_KEY=your_gemini_api_key
 ```
@@ -311,6 +315,34 @@ GEMINI_API_KEY=your_gemini_api_key
    - **App Name**: RecordCrate Local
    - **Redirect URI**: `http://localhost:5175/callback`
 5. Copy **Client ID** and **Client Secret** to your `.env` files
+
+#### **Auth0 Authentication**
+1. Visit [Auth0 Dashboard](https://manage.auth0.com/dashboard)
+2. Create a free account or log in
+3. Create a new **Regular Web Application**
+4. Navigate to **Settings** tab
+5. Configure the following URLs with **comma-separated values**:
+   
+   **Allowed Callback URLs:**
+   ```
+   http://localhost:5173/auth/callback, http://127.0.0.1:5173/auth/callback, https://your-site.netlify.app/auth/callback
+   ```
+   
+   **Allowed Logout URLs:**
+   ```
+   http://localhost:5173, http://127.0.0.1:5173, https://your-site.netlify.app
+   ```
+   
+   **Allowed Web Origins:**
+   ```
+   http://localhost:5173, http://127.0.0.1:5173, https://your-site.netlify.app
+   ```
+
+6. Copy **Domain** and **Client ID** to your `.env` file:
+   - `VITE_AUTH0_DOMAIN=your-tenant.auth0.com`
+   - `VITE_AUTH0_CLIENT_ID=your_client_id_here`
+
+7. **Important**: Replace `your-site.netlify.app` with your actual Netlify domain once deployed
 
 #### **Google Gemini AI** (Optional)
 1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
@@ -707,10 +739,18 @@ RecordCrate is optimized for Netlify with automatic SPA routing.
    VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id
    VITE_SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
    VITE_SPOTIFY_REDIRECT_URI=https://your-site.netlify.app/callback
+   VITE_AUTH0_DOMAIN=your-tenant.auth0.com
+   VITE_AUTH0_CLIENT_ID=your_auth0_client_id
    VITE_GEMINI_API_KEY=your_gemini_api_key
    ```
 
-5. **Deploy**
+5. **Update Auth0 Allowed URLs**
+   
+   Once your Netlify site is deployed, update your Auth0 application settings:
+   - Add `https://your-actual-site.netlify.app/auth/callback` to **Allowed Callback URLs**
+   - Add `https://your-actual-site.netlify.app` to **Allowed Logout URLs** and **Allowed Web Origins**
+
+6. **Deploy**
    
    Click **"Deploy site"** - automatic deployments trigger on every push to `main`
 
