@@ -82,27 +82,60 @@ body {
 
 /* Page containers don't need additional padding since they're wrapped in .main-content */
 
-/* Profile Spotify Data Sections */
-.top-artists-section,
-.top-tracks-section,
-.followed-artists-section {
-  margin-top: 3rem;
+/* RecordCrate App Styles - Modern & Elegant */
+
+/* Smooth scrollbar styling */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
 }
 
-.top-artists-section h2,
-.top-tracks-section h2,
-.followed-artists-section h2 {
+::-webkit-scrollbar-track {
+  background: var(--rc-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-3);
+  border-radius: var(--border-radius-full);
+  border: 3px solid var(--rc-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--rc-primary);
+}
+
+/* Selection styling */
+::selection {
+  background: color-mix(in srgb, var(--rc-primary) 25%, transparent);
   color: var(--rc-text);
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
+}
+
+::-moz-selection {
+  background: color-mix(in srgb, var(--rc-primary) 25%, transparent);
+  color: var(--rc-text);
+}
+
+/* Ensure smooth rendering */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
 }
 
 /* Artists Grid */
 .artists-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 1.5rem;
+  gap: clamp(1rem, 2vw, 1.5rem);
 }
 
 .mini-artist-card {
@@ -111,16 +144,17 @@ body {
   align-items: center;
   text-decoration: none;
   color: var(--rc-text);
-  transition: all 0.2s ease;
-  padding: 1rem;
-  background-color: var(--panel-bg);
-  border-radius: 12px;
+  transition: all var(--transition-smooth);
+  padding: var(--space-4);
+  background: var(--panel-bg);
+  border-radius: var(--border-radius-md);
   border: 1px solid var(--panel-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .mini-artist-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(20, 184, 166, 0.1);
+  box-shadow: var(--shadow-lg);
   border-color: var(--rc-primary);
 }
 
@@ -129,8 +163,9 @@ body {
   height: 80px;
   border-radius: 50%;
   overflow: hidden;
-  margin-bottom: 0.75rem;
-  background-color: var(--rc-bg);
+  margin-bottom: var(--space-3);
+  background: var(--rc-bg);
+  box-shadow: var(--shadow-md);
 }
 
 .artist-image img {
