@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { SpotifyTrack } from '../types';
 import '../styles/components/BillboardTrackList.css';
