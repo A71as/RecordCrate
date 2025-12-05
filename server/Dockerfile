@@ -9,10 +9,9 @@ RUN npm install --omit=dev
 
 # Copy source
 COPY src ./src
-COPY .env.example ./
 
 # Expose port
-EXPOSE 4000
+EXPOSE 4001
 
 # Default envs (override in runtime)
 ENV NODE_ENV=production
