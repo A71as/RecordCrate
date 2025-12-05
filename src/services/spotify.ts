@@ -44,21 +44,29 @@ class SpotifyService {
       throw new Error('MISSING_CREDENTIALS');
     }
 
-    // Use backend for token generation to avoid exposing client secret
-    const response = await axios.post(
-      `${API_BASE}/api/auth/spotify/client-token`,
-      {},
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    try {
+      // Use backend for token generation to avoid exposing client secret
+      const response = await axios.post(
+        `${API_BASE}/api/auth/spotify/client-token`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000, // 10 second timeout
+        }
+      );
+
+      this.accessToken = response.data.access_token;
+      this.tokenExpiry = Date.now() + response.data.expires_in * 1000;
+
+      return this.accessToken!;
+    } catch (error) {
+      if (import.meta.env.MODE === 'development') {
+        console.error('Failed to get Spotify access token:', error);
       }
-    );
-
-    this.accessToken = response.data.access_token;
-    this.tokenExpiry = Date.now() + response.data.expires_in * 1000;
-
-    return this.accessToken!;
+      throw new Error('MISSING_CREDENTIALS');
+    }
   }
 
   async getAvailableGenres(): Promise<string[]> {
