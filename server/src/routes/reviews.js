@@ -181,6 +181,19 @@ router.get('/user/:spotifyId', async (req, res) => {
   }
 });
 
+
+// Also allow fetch by plain review id at /:reviewId for simple lookups (used by edge functions)
+router.get('/:reviewId', async (req, res) => {
+  try {
+    const review = await AlbumReview.findById(req.params.reviewId).lean();
+    if (!review) return res.status(404).json({ error: 'Review does not exist' });
+    res.json(review);
+  } catch (error) {
+    console.error('get review by id error', error);
+    res.status(500).json({ error: 'Database failed' });
+  }
+});
+
 // Recent reviews feed
 router.get('/', async (_req, res) => {
   try {

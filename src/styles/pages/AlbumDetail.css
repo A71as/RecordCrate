@@ -512,6 +512,106 @@
   box-shadow: 0 8px 24px color-mix(in srgb, black 15%, transparent);
 }
 
+/* Share panel (portal) */
+.share-panel {
+  background: var(--panel-bg, #2f3b44);
+  border: 1px solid #754b27;
+  padding: 0.6rem;
+  border-radius: 10px;
+  box-shadow: 0 14px 36px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+  min-width: 260px;
+  position: fixed;
+  z-index: 9999;
+}
+
+.share-panel input[readonly] {
+  background: #eadcc9;
+  border: 1px solid #c6a77a;
+  color: #2a1a10;
+}
+
+.share-panel .share-copy-btn {
+  background: linear-gradient(135deg, #915e2f 0%, #6f4321 100%);
+  border: 1px solid rgba(0,0,0,0.12);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+}
+
+/* Social icons: don't apply the copy/button styles to the share provider buttons.
+   Let their own icon graphics (round icons) show through cleanly. */
+.share-panel .socials > * {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.share-panel .socials > * > svg {
+  display: block;
+}
+
+/* layout classes moved from inline styles in AlbumDetail.tsx */
+.share-panel .share-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.share-panel .share-title {
+  font-size: 14px;
+  opacity: 0.95;
+}
+.share-panel .share-close-btn {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+}
+.share-panel .share-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  align-items: center;
+}
+.share-panel .share-url-input {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: transparent;
+  color: inherit;
+}
+.share-panel .socials {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  align-items: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  .share-panel {
+    background: color-mix(in srgb, var(--panel-bg) 78%, black 22%);
+    border: 1px solid color-mix(in srgb, var(--panel-border) 36%, white 8%);
+    color: #fff;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+  }
+
+  .share-panel input[readonly] {
+    background: color-mix(in srgb, var(--panel-bg) 76%, black 24%);
+    border-color: color-mix(in srgb, var(--panel-border) 36%, white 8%);
+    color: #fff;
+  }
+
+  .share-panel .share-copy-btn {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--panel-bg) 72%, var(--rc-amber-glow) 28%) 0%, var(--panel-bg) 100%);
+    color: #fff;
+  }
+}
+
 .review-section h2 {
   margin: 0 0 2rem 0;
   color: var(--rc-text);

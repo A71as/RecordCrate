@@ -1,12 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from "react-router-dom";
-import { Star, ArrowLeft, Clock } from "lucide-react";
+import { Star, ArrowLeft, Clock, Share2, X } from "lucide-react";
+import {
+  TwitterShareButton,
+  FacebookShareButton,
+  FacebookIcon,
+} from 'react-share';
 import { spotifyService } from "../services/spotify";
 import { backend } from "../services/backend";
 import { StarRating } from "../components/StarRating";
 import type { SpotifyAlbum, SongRating, AlbumReview } from "../types";
 import { useAuth0 } from '@auth0/auth0-react';
 import '../styles/pages/AlbumDetail.css';
+
+// react-share's TS types may not include all optional provider props in some versions;
+// cast a local alias to any so we can pass `quote`/`hashtag` without TS errors.
+const FbBtn: any = FacebookShareButton;
 
 type ModifierState = {
   emotionalStoryConnection: number;
@@ -55,6 +65,11 @@ export const AlbumDetail: React.FC = () => {
   const [isReviewing, setIsReviewing] = useState(false);
   const [existingReview, setExistingReview] = useState<AlbumReview | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
+  const [showSharePanel, setShowSharePanel] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const shareButtonRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const [panelPos, setPanelPos] = useState<{ left: number; top: number; width: number } | null>(null);
   // Score modifiers: signed percentages (-10..+10) per category
   const [modifiers, setModifiers] = useState<ModifierState>({
     emotionalStoryConnection: 0,
@@ -440,6 +455,83 @@ export const AlbumDetail: React.FC = () => {
     }
   };
 
+  // Position the share panel using the share button's bounding rect so the popup is rendered in a portal
+  // condensed: compute and set panel position, clamped to viewport
+  const computePanelPos = () => {
+    const btn = shareButtonRef.current;
+    if (!btn) return null;
+    const rect = btn.getBoundingClientRect();
+    const minWidth = Math.max(260, rect.width);
+    let left = rect.left;
+    // clamp horizontal to viewport with 8px margin
+    left = Math.min(Math.max(left, 8), Math.max(8, window.innerWidth - minWidth - 8));
+    const top = Math.max(8, rect.top + rect.height + 8);
+    return { left, top, width: rect.width };
+  };
+
+  useLayoutEffect(() => {
+    if (!showSharePanel) return;
+    const pos = computePanelPos();
+    if (pos) setPanelPos(pos);
+  }, [showSharePanel]);
+
+  // Close on outside click or Escape
+  useEffect(() => {
+    if (!showSharePanel) return;
+    const onMousedown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (panelRef.current && panelRef.current.contains(target)) return;
+      if (shareButtonRef.current && shareButtonRef.current.contains(target)) return;
+      setShowSharePanel(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowSharePanel(false);
+    };
+    document.addEventListener('mousedown', onMousedown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onMousedown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [showSharePanel]);
+
+  // Close the share panel on any user scroll/gesture (smaller, capture-based approach)
+  useEffect(() => {
+    if (!showSharePanel) return;
+    const close = () => setShowSharePanel(false);
+    // capture-phase listeners catch scroll gestures inside nested containers
+    document.addEventListener('wheel', close, { passive: true, capture: true });
+    document.addEventListener('touchstart', close, { passive: true, capture: true });
+    // fallback for scrolling that bubbles to window
+    window.addEventListener('scroll', close, { passive: true });
+    return () => {
+      document.removeEventListener('wheel', close, { capture: true } as any);
+      document.removeEventListener('touchstart', close, { capture: true } as any);
+      window.removeEventListener('scroll', close);
+    };
+  }, [showSharePanel]);
+
+  // Recompute position on resize (throttled)
+  useEffect(() => {
+    if (!showSharePanel) return;
+    let raf = 0 as number | null;
+    const onResize = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const pos = computePanelPos();
+        if (pos) setPanelPos(pos);
+        raf = null;
+      });
+    };
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, [showSharePanel]);
+
   if (loading) return <div className="loading">Loading album...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!album) return <div className="error">Album not found</div>;
@@ -528,7 +620,7 @@ export const AlbumDetail: React.FC = () => {
               </div>
             )}
 
-            <div className="album-actions">
+            <div className="album-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <button
                 className="review-button"
                 onClick={() => canRate && setIsReviewing(!isReviewing)}
@@ -537,6 +629,88 @@ export const AlbumDetail: React.FC = () => {
                 <Star size={20} />
                 {reviewButtonLabel}
               </button>
+
+              {/* Share control placed next to the Edit/Write review button */}
+              {existingReview?.id && typeof window !== 'undefined' && (
+                <div style={{ position: 'relative' }}>
+                  <button
+                    ref={shareButtonRef}
+                    className="review-button share-button"
+                    onClick={() => {
+                      setShowSharePanel((s) => !s);
+                      setCopyStatus('idle');
+                    }}
+                    aria-expanded={showSharePanel}
+                  >
+                    <Share2 size={20} />
+                    Share
+                  </button>
+
+                  {showSharePanel && panelPos && createPortal(
+                    <div
+                      ref={panelRef}
+                      className="share-panel"
+                      style={{
+                        left: panelPos.left,
+                        top: panelPos.top,
+                      }}
+                    >
+                      <div className="share-header">
+                        <div className="share-title">Share URL</div>
+                        <button
+                          onClick={() => setShowSharePanel(false)}
+                          aria-label="Close share panel"
+                          className="share-close-btn"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <div className="share-row">
+                        <input
+                          readOnly
+                          value={`${window.location.origin}/og/review/${existingReview.id}`}
+                          className="share-url-input"
+                        />
+                        <button
+                          className="share-copy-btn"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(`${window.location.origin}/og/review/${existingReview.id}`);
+                              setCopyStatus('copied');
+                            } catch (err) {
+                              setCopyStatus('failed');
+                            }
+                          }}
+                          title="Copy link"
+                        >
+                          {copyStatus === 'copied' ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+
+                      <div className="socials">
+                        <TwitterShareButton
+                          url={`${window.location.origin}/og/review/${existingReview.id}`}
+                          title={`My ${existingReview.overallRating}% review of ${album.name}`}
+                        >
+                          {/* Render X icon (visual swap) while keeping Twitter share behavior */}
+                          <div style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <X size={24} />
+                          </div>
+                        </TwitterShareButton>
+                        <FbBtn
+                          url={`${window.location.origin}/og/review/${existingReview.id}`}
+                          quote={`My ${existingReview.overallRating}% review of ${album.name} on RecordCrate — read it: ${window.location.origin}/og/review/${existingReview.id}`}
+                          hashtag="#RecordCrate"
+                        >
+                          <FacebookIcon size={32} round />
+                        </FbBtn>
+                      </div>
+                    </div>,
+                    document.body
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
