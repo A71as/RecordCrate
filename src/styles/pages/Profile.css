@@ -143,6 +143,8 @@
 
 .toggle-switch {
     position: relative;
+    display: inline-flex;
+    align-items: center;
     width: 56px;
     height: 30px;
     background: color-mix(in srgb, var(--panel-border) 50%, transparent);
@@ -151,6 +153,7 @@
     cursor: pointer;
     transition: all 0.3s ease;
     flex-shrink: 0;
+    padding: 0;
 }
 
 .toggle-switch:hover {
@@ -172,18 +175,19 @@
 
 .toggle-slider {
     position: absolute;
-    top: 3px;
+    top: 50%;
     left: 3px;
+    transform: translateY(-50%);
     width: 24px;
     height: 24px;
     background: white;
     border-radius: 50%;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .toggle-switch.active .toggle-slider {
-    transform: translateX(26px);
+    left: calc(100% - 27px);
 }
 
 .privacy-note {

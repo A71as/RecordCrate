@@ -658,11 +658,11 @@ export const AlbumDetail: React.FC = () => {
                   </div>
                 </div>
                 <div className="rating-scale-guide">
-                  <span className="scale-label">90-100%: Masterpiece</span>
-                  <span className="scale-label">70-89%: Great</span>
-                  <span className="scale-label">50-69%: Good</span>
-                  <span className="scale-label">30-49%: Fair</span>
                   <span className="scale-label">0-29%: Poor</span>
+                  <span className="scale-label">30-49%: Fair</span>
+                  <span className="scale-label">50-69%: Good</span>
+                  <span className="scale-label">70-89%: Great</span>
+                  <span className="scale-label">90-100%: Masterpiece</span>
                 </div>
                 <input
                   id="overall-percent"
