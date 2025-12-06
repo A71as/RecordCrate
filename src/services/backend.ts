@@ -17,7 +17,7 @@ export type SaveReviewPayload = {
   albumMeta?: { name?: string; artists?: string[]; image?: string };
 };
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:4001';
+const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 logger.debug('[backend] Using API_BASE:', API_BASE);
 
 async function jsonFetch<T = unknown>(path: string, init?: RequestInit): Promise<T> {

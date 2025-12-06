@@ -1,4 +1,4 @@
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:4000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 import axios from 'axios';
 import type {
   DiscographyEntry,
@@ -9,7 +9,7 @@ import type {
 } from '../types';
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 'http://127.0.0.1:5173/callback';
+const REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
 
 const SCOPES = [
   'user-read-private',
@@ -533,7 +533,7 @@ class SpotifyService {
   // OAuth Authentication Methods
   getAuthUrl(): string {
     // Always use 127.0.0.1 (Spotify requirement) not localhost
-    const runtimeRedirect = REDIRECT_URI || 'http://127.0.0.1:5173/callback';
+    const runtimeRedirect = REDIRECT_URI;
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: CLIENT_ID,
@@ -550,7 +550,7 @@ class SpotifyService {
       return this.pendingTokenExchange;
     }
     // Always use 127.0.0.1 (Spotify requirement) not localhost
-    const effectiveRedirect = REDIRECT_URI || 'http://127.0.0.1:5173/callback';
+    const effectiveRedirect = REDIRECT_URI;
     this.pendingTokenExchange = (async () => {
       try {
       // Use backend to exchange token securely (no client secret exposure)
