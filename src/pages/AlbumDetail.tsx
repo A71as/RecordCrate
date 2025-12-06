@@ -153,6 +153,11 @@ export const AlbumDetail: React.FC = () => {
         setLoading(true);
         setError(null);
         const albumData = await spotifyService.getAlbumWithTracks(albumId);
+        if (!albumData) {
+          setError('Failed to load album');
+          setLoading(false);
+          return;
+        }
         setAlbum(albumData);
 
         // Use Auth0 authenticated user for backend sync
@@ -225,7 +230,7 @@ export const AlbumDetail: React.FC = () => {
                 writeup: my.writeup || '',
                 createdAt: my.createdAt || new Date().toISOString(),
                 updatedAt: my.updatedAt || my.createdAt || new Date().toISOString(),
-                album: albumData,
+                album: albumData || undefined,
               };
               setExistingReview(mapped);
               setOverallRating(baseOverall);
