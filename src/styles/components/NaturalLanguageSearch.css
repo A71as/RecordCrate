@@ -314,9 +314,10 @@
 }
 
 .search-results-section {
-  margin-top: 2.5rem;
-  padding-top: 2rem;
-  border-top: 1px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
+  max-width: 1400px;
+  width: 100%;
+  margin: 2.5rem auto 0;
+  padding: 2rem 1.5rem 0;
 }
 
 .search-interpretation {
@@ -577,6 +578,45 @@
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--rc-green-1);
+}
+
+/* Results Grid Layouts */
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2rem 1.5rem;
+  width: 100%;
+}
+
+.artist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 2rem 1.5rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .album-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem 1rem;
+  }
+
+  .artist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .album-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem 0.75rem;
+  }
+
+  .artist-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem 0.75rem;
+  }
 }
 
 /* Responsive Design */
