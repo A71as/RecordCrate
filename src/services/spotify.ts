@@ -135,7 +135,7 @@ class SpotifyService {
         }
       );
 
-      const albums = response.data.albums.items;
+      const albums = response.data?.albums?.items || [];
       this.albumCache.set(cacheKey, albums);
       return albums;
     } catch (error) {
@@ -193,7 +193,7 @@ class SpotifyService {
         }
       );
 
-      const artists = response.data.artists.items;
+      const artists = response.data?.artists?.items || [];
       this.artistCache.set(cacheKey, artists);
       return artists;
     } catch (error) {
@@ -224,7 +224,7 @@ class SpotifyService {
         }
       );
 
-      const tracks = response.data.tracks.items;
+      const tracks = response.data?.tracks?.items || [];
       this.trackCache.set(cacheKey, tracks);
       return tracks;
     } catch (error) {
@@ -319,7 +319,7 @@ class SpotifyService {
       }
     );
 
-    return response.data.albums.items;
+    return response.data?.albums?.items || [];
   }
 
   async getNewReleasesByTimeframe(timeframe: 'week' | 'month' | 'year'): Promise<SpotifyAlbum[]> {
@@ -355,7 +355,7 @@ class SpotifyService {
     );
 
     // Filter albums by exact date range
-    const albums = response.data.albums.items.filter((album: SpotifyAlbum) => {
+    const albums = (response.data?.albums?.items || []).filter((album: SpotifyAlbum) => {
       const releaseDate = new Date(album.release_date);
       return releaseDate >= startDate && releaseDate <= now;
     });
@@ -575,7 +575,7 @@ class SpotifyService {
           }
         );
 
-        for (const artist of response.data.artists.items) {
+        for (const artist of (response.data?.artists?.items || [])) {
           if (!artistIds.has(artist.id)) {
             artistIds.add(artist.id);
             artists.push(artist);
@@ -914,7 +914,7 @@ class SpotifyService {
         }
       );
 
-      return response.data.artists.items;
+      return response.data?.artists?.items || [];
     } catch (error) {
       console.error('Failed to get followed artists:', error);
       return [];
