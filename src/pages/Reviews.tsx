@@ -315,11 +315,17 @@ export const Reviews: React.FC = () => {
               id: shareReview.albumId,
               name: shareReview.albumName || shareReview.album?.name || 'Unknown Album',
               artists: shareReview.albumArtists
-                ? shareReview.albumArtists.map((name: string) => ({ name }))
-                : shareReview.album?.artists || [{ name: 'Unknown Artist' }],
+                ? shareReview.albumArtists.map((name: string, idx: number) => ({ 
+                    id: `artist-${idx}`, 
+                    name 
+                  }))
+                : shareReview.album?.artists || [{ id: 'unknown', name: 'Unknown Artist' }],
               images: shareReview.albumImage
                 ? [{ url: shareReview.albumImage, height: 640, width: 640 }]
                 : shareReview.album?.images || [],
+              release_date: shareReview.album?.release_date || '',
+              total_tracks: shareReview.album?.total_tracks || 0,
+              external_urls: shareReview.album?.external_urls || { spotify: '' },
             }}
             userName={shareReview.user?.displayName || 'Anonymous'}
             onClose={() => setShareReview(null)}
