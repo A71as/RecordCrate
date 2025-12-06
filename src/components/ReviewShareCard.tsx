@@ -40,11 +40,11 @@ export const ReviewShareCard: React.FC<ReviewShareCardProps> = ({
     canvas.width = width;
     canvas.height = height;
 
-    // Background gradient
+    // Background gradient - RecordCrate dark chocolate brown theme
     const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, '#1a1a2e');
-    gradient.addColorStop(0.5, '#16213e');
-    gradient.addColorStop(1, '#0f3460');
+    gradient.addColorStop(0, '#1a1310');
+    gradient.addColorStop(0.5, '#231916');
+    gradient.addColorStop(1, '#2d2119');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
@@ -142,7 +142,7 @@ export const ReviewShareCard: React.FC<ReviewShareCardProps> = ({
       ctx.fillText(`Review by ${userName}`, contentX, bottomY);
 
       // RecordCrate branding
-      ctx.fillStyle = '#e94560';
+      ctx.fillStyle = '#e8b968';
       ctx.font = 'bold 32px system-ui, -apple-system, sans-serif';
       const brandText = 'RecordCrate';
       const brandWidth = ctx.measureText(brandText).width;

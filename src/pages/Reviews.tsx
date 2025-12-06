@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Calendar, User as UserIcon, Music } from 'lucide-react';
+import { Star, Calendar, User as UserIcon, Music, Share2 } from 'lucide-react';
 import { backend } from '../services/backend';
+import { ReviewShareCard } from '../components/ReviewShareCard';
 import type { AlbumReview } from '../types';
 import { ReviewGridSkeleton } from '../components/ReviewCardSkeleton';
 import '../styles/pages/Reviews.css';
@@ -11,6 +12,8 @@ export const Reviews: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'recent' | 'top-rated' | 'most-discussed'>('recent');
+  const [shareReview, setShareReview] = useState<AlbumReview | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const loadReviews = async () => {
     try {
@@ -56,17 +59,62 @@ export const Reviews: React.FC = () => {
     return `hsl(${hue}, 100%, 45%)`;
   };
 
-  const sortedReviews = [...reviews].sort((a, b) => {
+  // Optimized sorting with useMemo to prevent unnecessary re-sorts
+  const sortedReviews = useMemo(() => {
+    const reviewsCopy = [...reviews];
+    
     switch (filter) {
       case 'top-rated':
-        return (b.overallRating || 0) - (a.overallRating || 0);
+        return reviewsCopy.sort((a, b) => {
+          const ratingDiff = (b.overallRating || 0) - (a.overallRating || 0);
+          // Secondary sort by date if ratings are equal
+          if (ratingDiff === 0) {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }
+          return ratingDiff;
+        });
+      
       case 'most-discussed':
-        return (b.writeup?.length || 0) - (a.writeup?.length || 0);
+        return reviewsCopy.sort((a, b) => {
+          const lengthDiff = (b.writeup?.length || 0) - (a.writeup?.length || 0);
+          // Secondary sort by rating if writeup lengths are equal
+          if (lengthDiff === 0) {
+            return (b.overallRating || 0) - (a.overallRating || 0);
+          }
+          return lengthDiff;
+        });
+      
       case 'recent':
       default:
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return reviewsCopy.sort((a, b) => {
+          const dateA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+          const dateB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+          return dateB - dateA;
+        });
     }
-  });
+  }, [reviews, filter]);
+
+  // Calculate filter statistics
+  const filterStats = useMemo(() => {
+    const topRated = reviews.filter(r => (r.overallRating || 0) >= 80);
+    const withDiscussion = reviews.filter(r => (r.writeup?.length || 0) > 100);
+    
+    return {
+      total: reviews.length,
+      topRated: topRated.length,
+      withDiscussion: withDiscussion.length,
+    };
+  }, [reviews]);
+
+  const handleFilterChange = (newFilter: typeof filter) => {
+    if (newFilter === filter) return;
+    
+    setIsTransitioning(true);
+    setFilter(newFilter);
+    
+    // Reset transition after animation
+    setTimeout(() => setIsTransitioning(false), 300);
+  };
 
   if (loading) {
     return (
@@ -98,24 +146,36 @@ export const Reviews: React.FC = () => {
           <div className="reviews-filters">
             <button
               className={`filter-btn ${filter === 'recent' ? 'active' : ''}`}
-              onClick={() => setFilter('recent')}
+              onClick={() => handleFilterChange('recent')}
+              aria-label={`Sort by recent reviews (${filterStats.total} total)`}
             >
               <Calendar size={18} />
-              Recent
+              <span className="filter-btn-text">
+                Recent
+                <span className="filter-count">{filterStats.total}</span>
+              </span>
             </button>
             <button
               className={`filter-btn ${filter === 'top-rated' ? 'active' : ''}`}
-              onClick={() => setFilter('top-rated')}
+              onClick={() => handleFilterChange('top-rated')}
+              aria-label={`Sort by top rated reviews (${filterStats.topRated} highly rated)`}
             >
               <Star size={18} />
-              Top Rated
+              <span className="filter-btn-text">
+                Top Rated
+                <span className="filter-count">{filterStats.topRated}</span>
+              </span>
             </button>
             <button
               className={`filter-btn ${filter === 'most-discussed' ? 'active' : ''}`}
-              onClick={() => setFilter('most-discussed')}
+              onClick={() => handleFilterChange('most-discussed')}
+              aria-label={`Sort by most discussed reviews (${filterStats.withDiscussion} detailed)`}
             >
               <UserIcon size={18} />
-              Most Discussed
+              <span className="filter-btn-text">
+                Most Discussed
+                <span className="filter-count">{filterStats.withDiscussion}</span>
+              </span>
             </button>
           </div>
         </div>
@@ -152,7 +212,7 @@ export const Reviews: React.FC = () => {
           </div>
         )}
 
-        <div className="reviews-grid">
+        <div className={`reviews-grid ${isTransitioning ? 'transitioning' : ''}`}>
           {sortedReviews.map((review) => {
             // Access album metadata - handle both backend format and local storage format
             const albumName = review.albumName || review.album?.name || 'Unknown Album';
@@ -230,13 +290,41 @@ export const Reviews: React.FC = () => {
                 </div>
               </div>
 
-              <Link to={`/album/${review.albumId}`} className="view-album-btn">
-                View Album
-              </Link>
+              <div className="review-card-actions">
+                <Link to={`/album/${review.albumId}`} className="view-album-btn">
+                  View Album
+                </Link>
+                <button 
+                  className="share-review-btn"
+                  onClick={() => setShareReview(review)}
+                  aria-label="Share review"
+                >
+                  <Share2 size={18} />
+                  Share
+                </button>
+              </div>
             </div>
           );
         })}
         </div>
+
+        {shareReview && (
+          <ReviewShareCard
+            review={shareReview}
+            album={{
+              id: shareReview.albumId,
+              name: shareReview.albumName || shareReview.album?.name || 'Unknown Album',
+              artists: shareReview.albumArtists
+                ? shareReview.albumArtists.map((name: string) => ({ name }))
+                : shareReview.album?.artists || [{ name: 'Unknown Artist' }],
+              images: shareReview.albumImage
+                ? [{ url: shareReview.albumImage, height: 640, width: 640 }]
+                : shareReview.album?.images || [],
+            }}
+            userName={shareReview.user?.displayName || 'Anonymous'}
+            onClose={() => setShareReview(null)}
+          />
+        )}
       </div>
     </div>
   );

@@ -203,10 +203,7 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
             </div>
           ) : (
             <div className="results-summary">
-              <div className="results-count">
-                <span className="count-number">{totalResults}</span>
-                <span className="count-label">Results Found</span>
-              </div>
+              <span className="total-count">{totalResults} Total Results</span>
               <div className="results-breakdown">
                 {results.albums.length > 0 && <span className="breakdown-item">{results.albums.length} Albums</span>}
                 {results.artists.length > 0 && <span className="breakdown-item">{results.artists.length} Artists</span>}
@@ -218,8 +215,7 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           {results.albums.length > 0 && (
             <div className="results-section albums-section" role="region" aria-labelledby="albums-heading">
               <div className="section-header">
-                <h3 id="albums-heading">Albums</h3>
-                <span className="section-count" aria-label={`${results.albums.length} albums found`}>{results.albums.length}</span>
+                <h3 id="albums-heading">Albums ({results.albums.length})</h3>
               </div>
               <div className="album-grid">
                 {results.albums.map((album) => (
@@ -232,8 +228,7 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           {results.artists.length > 0 && (
             <div className="results-section artists-section" role="region" aria-labelledby="artists-heading">
               <div className="section-header">
-                <h3 id="artists-heading">Artists</h3>
-                <span className="section-count" aria-label={`${results.artists.length} artists found`}>{results.artists.length}</span>
+                <h3 id="artists-heading">Artists ({results.artists.length})</h3>
               </div>
               <div className="artist-grid">
                 {results.artists.map((artist) => (
@@ -246,8 +241,7 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           {results.tracks.length > 0 && (
             <div className="results-section tracks-section" role="region" aria-labelledby="tracks-heading">
               <div className="section-header">
-                <h3 id="tracks-heading">Tracks</h3>
-                <span className="section-count" aria-label={`${results.tracks.length} tracks found`}>{results.tracks.length}</span>
+                <h3 id="tracks-heading">Tracks ({results.tracks.length})</h3>
               </div>
               <TrackSearchResults tracks={results.tracks} />
             </div>

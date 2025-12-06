@@ -1,10 +1,18 @@
-﻿import React from 'react';
+﻿import React, { useEffect } from 'react';
 import { useBillboardInfiniteScroll } from '../hooks/useBillboardInfiniteScroll';
 import { BillboardTrackList } from '../components/BillboardTrackList';
+import { billboardService } from '../services/billboard';
 import '../styles/pages/TrendingCharts.css';
 
 export const TrendingCharts: React.FC = () => {
   const billboardData = useBillboardInfiniteScroll();
+
+  // Prefetch Billboard data on mount to warm up cache
+  useEffect(() => {
+    billboardService.getBillboardHot100().catch(err => {
+      console.warn('Prefetch failed:', err);
+    });
+  }, []);
 
   return (
     <div className="trending-charts-page">

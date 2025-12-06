@@ -94,8 +94,8 @@
     align-items: center;
     background: var(--panel-bg);
     border-radius: var(--border-radius-full);
-    padding: clamp(1.5rem, 3vw, 1.75rem) clamp(1.75rem, 3.5vw, 2.25rem);
-    gap: 1rem;
+    padding: clamp(1.5rem, 3vw, 1.75rem) clamp(2.25rem, 4vw, 3rem);
+    gap: 1.25rem;
     border: 2px solid var(--panel-border);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 

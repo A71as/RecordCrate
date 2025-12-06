@@ -243,8 +243,8 @@
     font-weight: 700;
     text-align: center;
     font-variant-numeric: tabular-nums;
-    background: var(--rc-cream);
-    border: 2px solid var(--rc-amber-glow);
+    background: color-mix(in srgb, var(--rc-primary) 12%, var(--panel-bg));
+    border: 2px solid color-mix(in srgb, var(--rc-primary) 35%, transparent);
     border-radius: 50px;
     min-width: 60px;
     min-height: 40px;
@@ -252,7 +252,7 @@
     align-items: center;
     justify-content: center;
     margin: 0 auto;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     letter-spacing: 0.5px;
 }
 

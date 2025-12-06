@@ -17,15 +17,20 @@ export const useBillboardInfiniteScroll = () => {
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(0);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const isInitialLoadRef = useRef(true);
 
-  // Initial load
+  // Initial load - increased batch size for faster perceived loading
   useEffect(() => {
     const initialLoad = async () => {
+      if (!isInitialLoadRef.current) return;
+      isInitialLoadRef.current = false;
+      
       setLoading(true);
       setError(null);
 
       try {
-        const result = await billboardService.getBillboardTracksWithSpotifyData(0, 20);
+        // Load first 30 tracks (increased from 20) for better initial experience
+        const result = await billboardService.getBillboardTracksWithSpotifyData(0, 30);
         setTracks(result.tracks);
         setHasMore(result.hasMore);
         setTotal(result.total);
@@ -41,14 +46,15 @@ export const useBillboardInfiniteScroll = () => {
     initialLoad();
   }, []);
 
-  // Load more function
+  // Load more function - increased batch size
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
 
     setLoading(true);
 
     try {
-      const result = await billboardService.getBillboardTracksWithSpotifyData(page, 20);
+      // Load 30 tracks at a time (increased from 20) for smoother scrolling
+      const result = await billboardService.getBillboardTracksWithSpotifyData(page, 30);
       setTracks((prev) => [...prev, ...result.tracks]);
       setHasMore(result.hasMore);
       setPage((prev) => prev + 1);
@@ -76,7 +82,7 @@ export const useBillboardInfiniteScroll = () => {
         }
       },
       {
-        rootMargin: '400px', // Start loading before user reaches the bottom
+        rootMargin: '600px', // Increased from 400px - start loading earlier
       }
     );
 

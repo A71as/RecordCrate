@@ -182,19 +182,21 @@ export const MusicFilterBar: React.FC<MusicFilterBarProps> = ({
   return (
     <section className={className ? `music-filter-bar ${className}` : 'music-filter-bar'}>
       <div className="filter-header">
-        <div className="filter-label">{label}</div>
-        {totalResults !== undefined && (
-          <div className="filter-results-count">
-            <span className="total-count">{totalResults} Total Results</span>
-            {(albumCount !== undefined || artistCount !== undefined || trackCount !== undefined) && (
-              <span className="breakdown">
-                {albumCount !== undefined && albumCount > 0 && <span className="count-item">{albumCount} Albums</span>}
-                {artistCount !== undefined && artistCount > 0 && <span className="count-item">{artistCount} Artists</span>}
-                {trackCount !== undefined && trackCount > 0 && <span className="count-item">{trackCount} Tracks</span>}
-              </span>
-            )}
-          </div>
-        )}
+        <div className="filter-label-with-count">
+          <span className="filter-label">{label}</span>
+          {totalResults !== undefined && (
+            <>
+              <span className="total-count">{totalResults} Total Results</span>
+              {(albumCount !== undefined || artistCount !== undefined || trackCount !== undefined) && (
+                <span className="breakdown">
+                  {albumCount !== undefined && albumCount > 0 && <span className="count-item">{albumCount} Albums</span>}
+                  {artistCount !== undefined && artistCount > 0 && <span className="count-item">{artistCount} Artists</span>}
+                  {trackCount !== undefined && trackCount > 0 && <span className="count-item">{trackCount} Tracks</span>}
+                </span>
+              )}
+            </>
+          )}
+        </div>
       </div>
       <div className="filter-grid">
         <FilterDropdown

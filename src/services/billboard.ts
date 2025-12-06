@@ -14,7 +14,74 @@ class BillboardService {
     timestamp: number;
   } | null = null;
 
-  private readonly CACHE_DURATION = 1000 * 60 * 60 * 6; // 6 hours - refresh more often for current chart
+  private spotifyMatchCache: Map<string, SpotifyTrack | null> = new Map();
+  private readonly CACHE_DURATION = 1000 * 60 * 60 * 24; // 24 hours - Billboard updates weekly
+  private readonly STORAGE_KEY = 'billboard_hot100_cache';
+  private readonly SPOTIFY_MATCH_KEY = 'billboard_spotify_matches';
+
+  constructor() {
+    this.loadFromStorage();
+  }
+
+  /**
+   * Load cached data from localStorage
+   */
+  private loadFromStorage(): void {
+    try {
+      // Load Billboard tracks cache
+      const storedCache = localStorage.getItem(this.STORAGE_KEY);
+      if (storedCache) {
+        const parsed = JSON.parse(storedCache);
+        if (parsed && parsed.tracks && parsed.timestamp) {
+          // Check if cache is still valid
+          if (Date.now() - parsed.timestamp < this.CACHE_DURATION) {
+            this.cache = parsed;
+            console.log('✅ Loaded Billboard cache from localStorage:', parsed.tracks.length, 'tracks');
+          } else {
+            console.log('🕐 Billboard cache expired, will fetch fresh data');
+            localStorage.removeItem(this.STORAGE_KEY);
+          }
+        }
+      }
+
+      // Load Spotify matches cache
+      const storedMatches = localStorage.getItem(this.SPOTIFY_MATCH_KEY);
+      if (storedMatches) {
+        const parsed = JSON.parse(storedMatches);
+        if (parsed && parsed.timestamp && Date.now() - parsed.timestamp < this.CACHE_DURATION) {
+          this.spotifyMatchCache = new Map(Object.entries(parsed.matches));
+          console.log('✅ Loaded', this.spotifyMatchCache.size, 'Spotify matches from localStorage');
+        } else {
+          localStorage.removeItem(this.SPOTIFY_MATCH_KEY);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load Billboard cache from localStorage:', error);
+    }
+  }
+
+  /**
+   * Save cache to localStorage
+   */
+  private saveToStorage(): void {
+    try {
+      // Save Billboard tracks
+      if (this.cache) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.cache));
+      }
+
+      // Save Spotify matches
+      if (this.spotifyMatchCache.size > 0) {
+        const matchesObj = Object.fromEntries(this.spotifyMatchCache);
+        localStorage.setItem(this.SPOTIFY_MATCH_KEY, JSON.stringify({
+          matches: matchesObj,
+          timestamp: Date.now(),
+        }));
+      }
+    } catch (error) {
+      console.warn('Failed to save Billboard cache to localStorage:', error);
+    }
+  }
 
   /**
    * Fetch Billboard Hot 100 from backend API (bypasses CORS issues)
@@ -81,17 +148,33 @@ class BillboardService {
   }
 
   /**
-   * Get Billboard Hot 100 tracks (cached)
+   * Get Billboard Hot 100 tracks (cached with stale-while-revalidate)
    */
   async getBillboardHot100(): Promise<BillboardTrack[]> {
+    const now = Date.now();
+    
     // Check cache
-    if (this.cache && Date.now() - this.cache.timestamp < this.CACHE_DURATION) {
-      console.log('Using cached Billboard data');
+    if (this.cache && now - this.cache.timestamp < this.CACHE_DURATION) {
+      console.log('✅ Using cached Billboard data');
       return this.cache.tracks;
     }
 
-    // Fetch new data
-    console.log('Fetching fresh Billboard Hot 100 data...');
+    // If cache is stale but exists, return it while fetching fresh data in background
+    if (this.cache && this.cache.tracks.length > 0) {
+      console.log('⚡ Returning stale cache, refreshing in background...');
+      // Return cached data immediately
+      const staleData = this.cache.tracks;
+      
+      // Refresh in background (don't await)
+      this.refreshBillboardData().catch(err => {
+        console.warn('Background refresh failed:', err);
+      });
+      
+      return staleData;
+    }
+
+    // No cache at all, fetch fresh data
+    console.log('📡 Fetching fresh Billboard Hot 100 data...');
     const tracks = await this.scrapeBillboardHot100();
     
     if (tracks.length === 0) {
@@ -104,7 +187,26 @@ class BillboardService {
       timestamp: Date.now(),
     };
 
+    // Persist to localStorage
+    this.saveToStorage();
+
     return tracks;
+  }
+
+  /**
+   * Background refresh of Billboard data
+   */
+  private async refreshBillboardData(): Promise<void> {
+    const tracks = await this.scrapeBillboardHot100();
+    
+    if (tracks.length > 0) {
+      this.cache = {
+        tracks,
+        timestamp: Date.now(),
+      };
+      this.saveToStorage();
+      console.log('✅ Background refresh complete');
+    }
   }
 
   /**
@@ -127,8 +229,8 @@ class BillboardService {
       // Get the tracks for this page
       const tracksToMatch = billboardTracks.slice(startIndex, endIndex);
       
-      // Process tracks in parallel batches of 5 for faster loading
-      const batchSize = 5;
+      // Process tracks in parallel batches of 10 for faster loading (increased from 5)
+      const batchSize = 10;
       const results: (SpotifyTrack | BillboardTrack)[] = [];
       
       for (let i = 0; i < tracksToMatch.length; i += batchSize) {
@@ -138,16 +240,42 @@ class BillboardService {
         const batchResults = await Promise.all(
           batch.map(async (track) => {
             try {
+              // Check cache first using unique key
+              const cacheKey = `${track.title.toLowerCase()}::${track.artist.toLowerCase()}`;
+              const cachedMatch = this.spotifyMatchCache.get(cacheKey);
+              
+              if (cachedMatch !== undefined) {
+                // Use cached result (can be null if no match was found previously)
+                if (cachedMatch) {
+                  const spotifyTrack = { ...cachedMatch };
+                  (spotifyTrack as any).billboardRank = track.rank;
+                  (spotifyTrack as any).isSpotifyMatched = true;
+                  return spotifyTrack;
+                } else {
+                  // Previously determined no match exists
+                  return {
+                    ...track,
+                    isSpotifyMatched: false,
+                    billboardRank: track.rank,
+                  } as any;
+                }
+              }
+
+              // Not in cache, search Spotify
               const query = `track:${track.title} artist:${track.artist}`;
               const searchResults = await spotifyService.searchTracks(query);
               
               if (searchResults.length > 0) {
                 const spotifyTrack = searchResults[0];
+                // Cache the match
+                this.spotifyMatchCache.set(cacheKey, spotifyTrack);
                 // Mark as matched and add Billboard rank
                 (spotifyTrack as any).billboardRank = track.rank;
                 (spotifyTrack as any).isSpotifyMatched = true;
                 return spotifyTrack;
               } else {
+                // Cache the non-match to avoid searching again
+                this.spotifyMatchCache.set(cacheKey, null);
                 // Return Billboard track as placeholder
                 console.log(`No Spotify match for: #${track.rank}: ${track.title} by ${track.artist}`);
                 return {
@@ -170,6 +298,9 @@ class BillboardService {
         
         results.push(...batchResults);
       }
+
+      // Save Spotify matches to localStorage for future use
+      this.saveToStorage();
       
       return {
         tracks: results,
