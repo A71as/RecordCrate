@@ -3,6 +3,7 @@ import { Sparkles, X, Loader } from 'lucide-react';
 import { AlbumCard } from '../components/AlbumCard';
 import { ArtistCard } from '../components/ArtistCard';
 import { TrackSearchResults } from '../components/TrackSearchResults';
+import { AlbumCardSkeleton } from '../components/AlbumCardSkeleton';
 import { useSpotify } from '../hooks/useSpotify';
 import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack } from '../types';
 
@@ -72,9 +73,27 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           Discover music through conversational queries — find albums, artists, and tracks using natural language descriptions
         </p>
         <div className="example-queries">
-          <div className="example-query">"upbeat indie rock from the 2000s"</div>
-          <div className="example-query">"artists similar to Radiohead"</div>
-          <div className="example-query">"melancholic R&B albums like Blonde"</div>
+          <button 
+            type="button"
+            onClick={() => { setQuery('upbeat indie rock from the 2000s'); inputRef.current?.focus(); }}
+            className="example-query"
+          >
+            "upbeat indie rock from the 2000s"
+          </button>
+          <button 
+            type="button"
+            onClick={() => { setQuery('artists similar to Radiohead'); inputRef.current?.focus(); }}
+            className="example-query"
+          >
+            "artists similar to Radiohead"
+          </button>
+          <button 
+            type="button"
+            onClick={() => { setQuery('melancholic R&B albums like Blonde'); inputRef.current?.focus(); }}
+            className="example-query"
+          >
+            "melancholic R&B albums like Blonde"
+          </button>
         </div>
         
         <form onSubmit={handleSearch} className="search-form">
@@ -112,16 +131,47 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
         </form>
       </div>
 
+      {/* ARIA live region for screen reader announcements */}
+      <div 
+        role="status" 
+        aria-live="polite" 
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {loading && 'Searching for music...'}
+        {!loading && hasSearched && totalResults > 0 && `Found ${totalResults} results`}
+        {!loading && hasSearched && totalResults === 0 && 'No results found'}
+        {error && `Error: ${error}`}
+      </div>
+
       {error && (
-        <div className="error-message">
+        <div className="error-message" role="alert">
           <p>Error: {error}</p>
         </div>
       )}
 
-      {hasSearched && !loading && (
+      {loading && hasSearched && (
         <div className="search-results-section">
+          <div className="results-summary skeleton-summary">
+            <div className="skeleton-text skeleton-count skeleton-shimmer"></div>
+          </div>
+          <div className="results-section">
+            <div className="section-header">
+              <div className="skeleton-text skeleton-section-title skeleton-shimmer"></div>
+            </div>
+            <div className="album-grid">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <AlbumCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hasSearched && !loading && (
+        <div className="search-results-section" role="region" aria-label="Search results">
           {searchDescription && (
-            <div className="search-interpretation">
+            <div className="search-interpretation" role="region" aria-label="AI query interpretation">
               <div className="interpretation-header">
                 <Sparkles size={16} />
                 <span>Query Analysis</span>
@@ -166,10 +216,10 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           )}
 
           {results.albums.length > 0 && (
-            <div className="results-section albums-section">
+            <div className="results-section albums-section" role="region" aria-labelledby="albums-heading">
               <div className="section-header">
-                <h3>Albums</h3>
-                <span className="section-count">{results.albums.length}</span>
+                <h3 id="albums-heading">Albums</h3>
+                <span className="section-count" aria-label={`${results.albums.length} albums found`}>{results.albums.length}</span>
               </div>
               <div className="album-grid">
                 {results.albums.map((album) => (
@@ -180,10 +230,10 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           )}
 
           {results.artists.length > 0 && (
-            <div className="results-section artists-section">
+            <div className="results-section artists-section" role="region" aria-labelledby="artists-heading">
               <div className="section-header">
-                <h3>Artists</h3>
-                <span className="section-count">{results.artists.length}</span>
+                <h3 id="artists-heading">Artists</h3>
+                <span className="section-count" aria-label={`${results.artists.length} artists found`}>{results.artists.length}</span>
               </div>
               <div className="artist-grid">
                 {results.artists.map((artist) => (
@@ -194,10 +244,10 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           )}
 
           {results.tracks.length > 0 && (
-            <div className="results-section tracks-section">
+            <div className="results-section tracks-section" role="region" aria-labelledby="tracks-heading">
               <div className="section-header">
-                <h3>Tracks</h3>
-                <span className="section-count">{results.tracks.length}</span>
+                <h3 id="tracks-heading">Tracks</h3>
+                <span className="section-count" aria-label={`${results.tracks.length} tracks found`}>{results.tracks.length}</span>
               </div>
               <TrackSearchResults tracks={results.tracks} />
             </div>

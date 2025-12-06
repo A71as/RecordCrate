@@ -1,0 +1,96 @@
+/* Track List Skeleton Styles */
+
+.track-search-results.skeleton {
+  pointer-events: none;
+  user-select: none;
+}
+
+.track-result-item.skeleton-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: transparent;
+  border: none;
+}
+
+.track-result-item.skeleton-item .track-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--panel-bg) 0%,
+    color-mix(in srgb, var(--panel-bg) 95%, var(--rc-text) 5%) 50%,
+    var(--panel-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+.track-result-item.skeleton-item .track-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.track-result-item.skeleton-item .skeleton-track-name {
+  width: 60%;
+  height: 1em;
+  background: linear-gradient(
+    90deg,
+    var(--panel-bg) 0%,
+    color-mix(in srgb, var(--panel-bg) 95%, var(--rc-text) 5%) 50%,
+    var(--panel-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.track-result-item.skeleton-item .skeleton-artist-name {
+  width: 40%;
+  height: 0.85em;
+  background: linear-gradient(
+    90deg,
+    var(--panel-bg) 0%,
+    color-mix(in srgb, var(--panel-bg) 95%, var(--rc-text) 5%) 50%,
+    var(--panel-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.track-result-item.skeleton-item .skeleton-duration {
+  width: 40px;
+  height: 0.85em;
+  background: linear-gradient(
+    90deg,
+    var(--panel-bg) 0%,
+    color-mix(in srgb, var(--panel-bg) 95%, var(--rc-text) 5%) 50%,
+    var(--panel-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+    opacity: 0.6;
+  }
+}

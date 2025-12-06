@@ -1,0 +1,48 @@
+/* Artist Card Skeleton Styles */
+
+.artist-card.skeleton {
+  pointer-events: none;
+  user-select: none;
+}
+
+.artist-card.skeleton .artist-image {
+  background: linear-gradient(
+    90deg,
+    var(--panel-bg) 0%,
+    color-mix(in srgb, var(--panel-bg) 95%, var(--rc-text) 5%) 50%,
+    var(--panel-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.artist-card.skeleton .artist-name.skeleton-text {
+  height: 1.2em;
+  background: linear-gradient(
+    90deg,
+    var(--panel-bg) 0%,
+    color-mix(in srgb, var(--panel-bg) 95%, var(--rc-text) 5%) 50%,
+    var(--panel-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  margin-top: 0.75rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+    opacity: 0.6;
+  }
+}
