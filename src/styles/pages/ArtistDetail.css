@@ -57,7 +57,7 @@
 .artist-image {
   width: clamp(180px, 25vw, 240px);
   height: clamp(180px, 25vw, 240px);
-  border-radius: 50%;
+  border-radius: 50% !important;
   object-fit: cover;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.25),
@@ -65,7 +65,7 @@
     0 0 0 4px color-mix(in srgb, var(--rc-primary) 20%, transparent);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid var(--panel-bg);
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1 / 1 !important;
 }
 
 .artist-image:hover {

@@ -6,7 +6,8 @@ const router = express.Router();
 // Input validation helpers
 const validateSpotifyId = (id) => {
   if (!id || typeof id !== 'string') return false;
-  return /^[\w-]{1,50}$/.test(id);
+  // Allow word characters, hyphens, and pipes (for Auth0 format like "auth0|123456")
+  return /^[\w|:-]{1,100}$/.test(id);
 };
 
 const sanitizeString = (str, maxLength = 200) => {

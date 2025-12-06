@@ -144,21 +144,32 @@ router.get('/album/:albumId', async (req, res) => {
     // Populate user information
     const reviewsWithUsers = await Promise.all(
       reviews.map(async (review) => {
+        const baseReview = {
+          ...review,
+          // Transform album data to match frontend expectations
+          album: {
+            id: review.albumId,
+            name: review.albumName || 'Unknown Album',
+            artists: (review.albumArtists || []).map(name => ({ name })),
+            images: review.albumImage ? [{ url: review.albumImage }] : []
+          }
+        };
+        
         const user = await User.findOne({ spotifyId: review.userSpotifyId });
         if (!user) {
-          return { ...review, user: null };
+          return { ...baseReview, user: null };
         }
         
         // Respect anonymity preference
         if (user.displayAsAnonymous) {
           return {
-            ...review,
+            ...baseReview,
             user: { displayName: 'Anonymous', avatarUrl: null, isAnonymous: true }
           };
         }
         
         return {
-          ...review,
+          ...baseReview,
           user: { displayName: user.displayName, avatarUrl: user.avatarUrl, isAnonymous: false }
         };
       })
@@ -192,20 +203,31 @@ router.get('/user/:spotifyId', async (req, res) => {
     // Populate user information
     const user = await User.findOne({ spotifyId: req.params.spotifyId });
     const reviewsWithUser = reviews.map(review => {
+      const baseReview = {
+        ...review,
+        // Transform album data to match frontend expectations
+        album: {
+          id: review.albumId,
+          name: review.albumName || 'Unknown Album',
+          artists: (review.albumArtists || []).map(name => ({ name })),
+          images: review.albumImage ? [{ url: review.albumImage }] : []
+        }
+      };
+      
       if (!user) {
-        return { ...review, user: null };
+        return { ...baseReview, user: null };
       }
       
       // Respect anonymity preference
       if (user.displayAsAnonymous) {
         return {
-          ...review,
+          ...baseReview,
           user: { displayName: 'Anonymous', avatarUrl: null, isAnonymous: true }
         };
       }
       
       return {
-        ...review,
+        ...baseReview,
         user: { displayName: user.displayName, avatarUrl: user.avatarUrl, isAnonymous: false }
       };
     });
@@ -230,21 +252,32 @@ router.get('/', async (_req, res) => {
     
     // Attach user info to each review
     const reviewsWithUsers = reviews.map(review => {
+      const baseReview = {
+        ...review,
+        // Transform album data to match frontend expectations
+        album: {
+          id: review.albumId,
+          name: review.albumName || 'Unknown Album',
+          artists: (review.albumArtists || []).map(name => ({ name })),
+          images: review.albumImage ? [{ url: review.albumImage }] : []
+        }
+      };
+      
       const user = userMap.get(review.userSpotifyId);
       if (!user) {
-        return { ...review, user: null };
+        return { ...baseReview, user: null };
       }
       
       // Respect anonymity preference
       if (user.displayAsAnonymous) {
         return {
-          ...review,
+          ...baseReview,
           user: { displayName: 'Anonymous', avatarUrl: null, isAnonymous: true }
         };
       }
       
       return {
-        ...review,
+        ...baseReview,
         user: { displayName: user.displayName, avatarUrl: user.avatarUrl, isAnonymous: false }
       };
     });

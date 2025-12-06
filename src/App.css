@@ -239,11 +239,13 @@ button {
 .artist-image {
   width: 80px;
   height: 80px;
-  border-radius: 50%;
+  border-radius: 50% !important;
   overflow: hidden;
   margin-bottom: var(--space-3);
   background: var(--rc-bg);
   box-shadow: var(--shadow-md);
+  aspect-ratio: 1 / 1 !important;
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {
@@ -264,6 +266,7 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50% !important;
 }
  
 .discography-card-media {
