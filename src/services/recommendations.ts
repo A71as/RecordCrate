@@ -62,15 +62,21 @@ class RecommendationService {
       }
     }
 
-    // Add some discovery - new releases for variety
+    // Add some discovery - new releases for variety (only truly recent albums)
     try {
       const newReleases = await spotifyService.getNewReleases(10);
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      
       newReleases.forEach((album, index) => {
         if (!reviews.some(r => r.albumId === album.id)) {
+          const releaseDate = new Date(album.release_date);
+          const isActuallyNew = releaseDate >= threeMonthsAgo;
+          
           recommendations.push({
             item: album,
             score: 50 - index,
-            reason: 'New release you might like'
+            reason: isActuallyNew ? 'New release you might like' : 'Discovery recommendation'
           });
         }
       });
