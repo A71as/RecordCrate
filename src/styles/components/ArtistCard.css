@@ -53,8 +53,8 @@
 .artist-image {
     position: relative;
     width: 70%;
-    aspect-ratio: 1;
-    overflow: visible;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
     background: linear-gradient(135deg, 
         color-mix(in srgb, var(--rc-primary) 8%, var(--panel-bg)) 0%,
         color-mix(in srgb, var(--rc-accent) 6%, var(--panel-bg)) 100%);
@@ -70,6 +70,7 @@
     object-position: center;
     transition: transform 0.4s ease;
     border-radius: 50%;
+    display: block;
 }
 
 .artist-card:hover .artist-image img {
