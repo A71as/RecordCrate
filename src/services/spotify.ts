@@ -304,7 +304,7 @@ class SpotifyService {
       }
     );
 
-    return response.data.tracks;
+    return response.data?.tracks || [];
   }
 
   async getNewReleases(limit: number = 20): Promise<SpotifyAlbum[]> {
@@ -383,7 +383,7 @@ class SpotifyService {
     const albumIds = new Set<string>();
 
     // Get tracks from featured playlists and extract unique albums
-    for (const playlist of playlistsResponse.data.playlists.items.slice(0, 3)) {
+    for (const playlist of (playlistsResponse.data?.playlists?.items || []).slice(0, 3)) {
       try {
         const tracksResponse = await axios.get(
           `https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=50`,
@@ -394,7 +394,7 @@ class SpotifyService {
           }
         );
 
-        for (const item of tracksResponse.data.items) {
+        for (const item of (tracksResponse.data?.items || [])) {
           if (item.track && item.track.album && !albumIds.has(item.track.album.id)) {
             albumIds.add(item.track.album.id);
             albums.push(item.track.album);
@@ -794,7 +794,7 @@ class SpotifyService {
       }
     );
 
-    return response.data.items;
+    return response.data?.items || [];
   }
 
   // Enhanced personal data methods with real user data
@@ -829,7 +829,7 @@ class SpotifyService {
       const albums: SpotifyAlbum[] = [];
       const albumIds = new Set<string>();
 
-      for (const track of response.data.items) {
+      for (const track of (response.data?.items || [])) {
         if (!albumIds.has(track.album.id)) {
           albumIds.add(track.album.id);
           albums.push(track.album);
@@ -870,7 +870,7 @@ class SpotifyService {
         }
       );
 
-      return response.data.items;
+      return response.data?.items || [];
     } catch (error) {
       console.error('Failed to get personal top artists:', error);
       return this.getTopArtists();
@@ -892,7 +892,7 @@ class SpotifyService {
         }
       );
 
-      return response.data.items;
+      return response.data?.items || [];
     } catch (error) {
       console.error('Failed to get personal top tracks:', error);
       return [];
