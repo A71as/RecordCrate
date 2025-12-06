@@ -367,11 +367,10 @@ export const AlbumDetail: React.FC = () => {
     // keep saturation and lightness consistent
     return `hsl(${hue}, 100%, 45%)`;
   };
-  const reviewButtonLabel = canRate
-    ? existingReview
-      ? "Edit Review"
-      : "Write Review"
-    : "Login to Review";
+
+  const handleStartReview = () => {
+    setIsReviewing(true);
+  };
 
   const handleCancelReview = () => {
     setIsReviewing(false);
@@ -539,7 +538,7 @@ export const AlbumDetail: React.FC = () => {
               <span className="track-count-badge">{trackCount} songs</span>
             </div>
             <div className="tracklist">
-              {album.tracks.items.map((track, index) => (
+              {album.tracks.items.map((track, _index) => (
                 <div key={track.id} className="track-item">
                   <div className="track-number-col">
                     <span className="track-number">{track.track_number}</span>

@@ -10,7 +10,7 @@ import { useSpotify } from '../hooks/useSpotify';
 import { spotifyService } from '../services/spotify';
 import { recommendationService } from '../services/recommendations';
 import { dailyRecommendationService, type DailyRecommendation } from '../services/dailyRecommendation';
-import type { SpotifyAlbum, SpotifyArtist, FilterType, AlbumReview } from '../types';
+import type { SpotifyAlbum, SpotifyArtist, FilterType } from '../types';
 import type { RecommendationScore } from '../services/recommendations';
 import '../styles/pages/Discover.css';
 
@@ -25,7 +25,6 @@ export const Discover: React.FC = () => {
     albums: RecommendationScore[];
     artists: RecommendationScore[];
   }>({ albums: [], artists: [] });
-  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [dailyRecommendation, setDailyRecommendation] = useState<DailyRecommendation | null>(null);
   const [dailyAlbum, setDailyAlbum] = useState<SpotifyAlbum | null>(null);
   const [loadingDaily, setLoadingDaily] = useState(false);
@@ -62,14 +61,11 @@ export const Discover: React.FC = () => {
   // Load personalized recommendations
   useEffect(() => {
     const fetchRecommendations = async () => {
-      setLoadingRecommendations(true);
       try {
         const recs = await recommendationService.getPersonalizedFeed(20);
         setRecommendations(recs);
       } catch (err) {
         console.error('Failed to load recommendations:', err);
-      } finally {
-        setLoadingRecommendations(false);
       }
     };
 
