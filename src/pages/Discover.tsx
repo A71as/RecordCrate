@@ -6,7 +6,7 @@ import { AlbumCard } from '../components/AlbumCard';
 import { ArtistCard } from '../components/ArtistCard';
 import { FilterTabs } from '../components/FilterTabs';
 import { AlbumGridSkeleton } from '../components/AlbumCardSkeleton';
-import AlbumStreakCalendar, { type AlbumStreakCalendar Entry } from '../components/AlbumStreakCalendar';
+import AlbumStreakCalendar, { type AlbumStreakCalendarEntry } from '../components/AlbumStreakCalendar';
 import { useSpotify } from '../hooks/useSpotify';
 import { spotifyService } from '../services/spotify';
 import { backend } from '../services/backend';
