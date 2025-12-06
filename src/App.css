@@ -783,13 +783,13 @@ button {
 
 .search-input-group.natural-language {
   background: linear-gradient(135deg, var(--panel-bg) 0%, rgba(123, 168, 106, 0.05) 100%);
-  border: 2px solid rgba(123, 168, 106, 0.2);
-  box-shadow: 0 4px 20px rgba(123, 168, 106, 0.1);
+  border: 1px solid rgba(123, 168, 106, 0.15);
+  box-shadow: 0 2px 12px rgba(123, 168, 106, 0.08);
 }
 
 .search-input-group.natural-language:focus-within {
-  border-color: var(--rc-green-1);
-  box-shadow: 0 4px 24px rgba(123, 168, 106, 0.2);
+  border-color: rgba(123, 168, 106, 0.3);
+  box-shadow: 0 2px 16px rgba(123, 168, 106, 0.12);
 }
 
 .natural-language-icon {

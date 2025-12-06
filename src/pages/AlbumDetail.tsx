@@ -675,15 +675,6 @@ export const AlbumDetail: React.FC = () => {
                   aria-valuetext={`${overallRating} percent`}
                   aria-label="Base album rating from 0 to 100 percent"
                 />
-                <div className="rating-bar-preview">
-                  <div 
-                    className="rating-bar-fill" 
-                    style={{ 
-                      width: `${overallRating}%`,
-                      background: percentColor(overallRating)
-                    }} 
-                  />
-                </div>
               </div>
 
               <div className="modifiers-section">
@@ -702,7 +693,7 @@ export const AlbumDetail: React.FC = () => {
                     <label>
                       Emotional/Story Connection
                       <span className="help-tooltip" title="How well does the album connect emotionally? Does it tell a compelling story or evoke strong feelings?">
-                        <HelpCircle size={16} />
+                        <HelpCircle size={22} />
                       </span>
                     </label>
                     <div className="modifier-control">
@@ -728,7 +719,7 @@ export const AlbumDetail: React.FC = () => {
                     <label>
                       Cohesion & Flow
                       <span className="help-tooltip" title="How well do the songs flow together? Is the track sequencing effective? Does the album feel cohesive?">
-                        <HelpCircle size={16} />
+                        <HelpCircle size={22} />
                       </span>
                     </label>
                     <div className="modifier-control">
@@ -754,7 +745,7 @@ export const AlbumDetail: React.FC = () => {
                     <label>
                       Artist Identity & Originality
                       <span className="help-tooltip" title="Does the artist demonstrate a unique voice? Is the work original and distinctive? How well does it represent their identity?">
-                        <HelpCircle size={16} />
+                        <HelpCircle size={22} />
                       </span>
                     </label>
                     <div className="modifier-control">
@@ -780,7 +771,7 @@ export const AlbumDetail: React.FC = () => {
                     <label>
                       Visual/Aesthetic Ecosystem
                       <span className="help-tooltip" title="Consider album artwork, music videos, artist branding, and overall aesthetic presentation. Does the visual identity enhance the musical experience?">
-                        <HelpCircle size={16} />
+                        <HelpCircle size={22} />
                       </span>
                     </label>
                     <div className="modifier-control">

@@ -99,14 +99,14 @@
     padding: 1.25rem 1.5rem;
     background: var(--panel-bg);
     border-radius: var(--border-radius-lg);
-    border: 2px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
+    border: 1px solid color-mix(in srgb, var(--panel-border) 40%, transparent);
     transition: all 0.3s ease;
     margin-bottom: var(--space-3);
 }
 
 .privacy-toggle-card:hover {
-    border-color: var(--rc-primary);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    border-color: color-mix(in srgb, var(--rc-primary) 50%, transparent);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .privacy-toggle-info {
