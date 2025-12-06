@@ -1,5 +1,6 @@
 import React from 'react';
 import type { SpotifyTrack } from '../types';
+import { logger } from '../utils/logger';
 import '../styles/components/TrackSearchResults.css';
 
 interface TrackSearchResultsProps {

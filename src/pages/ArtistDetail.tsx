@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { spotifyService } from '../services/spotify';
+import { logger } from '../utils/logger';
 import type { SpotifyArtist, SpotifyAlbum, SpotifyTrack } from '../types';
 import '../styles/pages/ArtistDetail.css';
 

@@ -333,9 +333,6 @@ export const AlbumDetail: React.FC = () => {
       logger.debug('[AlbumDetail] Marked today\'s recommendation as reviewed');
     }
     
-    if (!currentUserId) {
-      setReviewCount(savedReviews.filter((r: AlbumReview) => r.albumId === album.id).length);
-    }
     setExistingReview(review);
     setIsReviewing(false);
   };
@@ -401,10 +398,6 @@ export const AlbumDetail: React.FC = () => {
         setReviewCount(Array.isArray(list) ? list.length : 0);
       } catch {
         setReviewCount(0);
-      }
-      
-      if (!currentUserId) {
-        setReviewCount(filtered.filter((r: AlbumReview) => r.albumId === album.id).length);
       }
 
       // Reset state

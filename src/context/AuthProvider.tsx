@@ -4,6 +4,7 @@ import React, {
   useState,
 } from 'react';
 import { spotifyService } from '../services/spotify';
+import { logger } from '../utils/logger';
 import { AuthContext } from './AuthContext';
 import type { AuthContextValue } from './AuthContext';
 

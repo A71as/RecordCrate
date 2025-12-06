@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '../utils/logger';
 
 export const Auth0Callback = () => {
   const { isLoading, error, isAuthenticated } = useAuth0();
