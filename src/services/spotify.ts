@@ -289,7 +289,7 @@ class SpotifyService {
       }
     );
 
-    return response.data.items;
+    return response.data?.items || [];
   }
 
   async getArtistTopTracks(id: string): Promise<SpotifyTrack[]> {
