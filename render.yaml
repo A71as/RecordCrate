@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: recordcrate-api
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
+      - key: AUTH0_DOMAIN
+        sync: false
+      - key: AUTH0_CLIENT_ID
+        sync: false
+      - key: AUTH0_CLIENT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

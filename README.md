@@ -711,6 +711,40 @@ Server health check.
 
 ## 🚢 Deployment
 
+**📚 Complete deployment guides available:**
+- **[QUICKSTART.md](QUICKSTART.md)** - Fast setup checklist (5 minutes)
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Comprehensive deployment documentation
+
+### **Recommended Stack: Render + Netlify**
+
+RecordCrate is optimized for zero-cost deployment using:
+- **Backend**: Render (Free tier with auto-sleep)
+- **Frontend**: Netlify (Free tier with 100GB bandwidth)
+- **Database**: MongoDB Atlas (Free M0 tier)
+
+### **Quick Deploy**
+
+1. **Backend on Render**
+   ```bash
+   # render.yaml is already configured
+   # Just connect your repo and deploy
+   ```
+
+2. **Frontend on Netlify**
+   ```bash
+   # netlify.toml is already configured
+   # Connect repo and add environment variables
+   ```
+
+See [QUICKSTART.md](QUICKSTART.md) for step-by-step instructions.
+
+---
+
+### **Alternative: AWS Deployment**
+
+<details>
+<summary>Click to expand AWS deployment instructions</summary>
+
 ### **Frontend Deployment (Netlify)**
 
 RecordCrate is optimized for Netlify with automatic SPA routing.
@@ -846,6 +880,8 @@ docker run -p 4001:4001 --env-file .env recordcrate-api
    ```
    mongodb+srv://username:password@cluster.mongodb.net/recordcrate?retryWrites=true&w=majority
    ```
+
+</details>
 
 ---
 

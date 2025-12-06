@@ -22,7 +22,37 @@ const ORIGINS = CORS_ORIGIN
   ? CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
   : DEFAULT_ORIGINS;
 
-app.use(cors({ origin: ORIGINS, credentials: true }));
+// CORS configuration with wildcard support for Netlify deploy previews
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    // Check exact matches first
+    if (ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Support wildcard patterns (e.g., https://deploy-preview-*--recordcrate.netlify.app)
+    const wildcardMatch = ORIGINS.some(allowed => {
+      if (allowed.includes('*')) {
+        const pattern = allowed.replace(/\*/g, '.*').replace(/\./g, '\\.');
+        const regex = new RegExp(`^${pattern}$`);
+        return regex.test(origin);
+      }
+      return false;
+    });
+    
+    if (wildcardMatch) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '1mb' }));
 
 // Add error handling middleware BEFORE routes
@@ -32,7 +62,15 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, service: 'recordcrate-api', time: new Date().toISOString() });
+  const healthcheck = {
+    uptime: process.uptime(),
+    status: 'ok',
+    service: 'recordcrate-api',
+    timestamp: new Date().toISOString(),
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    environment: process.env.NODE_ENV || 'development'
+  };
+  res.json(healthcheck);
 });
 
 // Wrap route mounting in try-catch
