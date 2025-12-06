@@ -267,8 +267,12 @@ const DiscoverPage: React.FC = () => {
                 </div>
               ) : dailyAlbum && dailyRecommendation ? (
                 <div className="aotd-content">
-                  <div className="aotd-album">
-                    <AlbumCard album={dailyAlbum} />
+                  <div className="aotd-album" onClick={() => navigate(`/album/${dailyAlbum.id}`)}>
+                    <img 
+                      src={dailyAlbum.images?.[0]?.url || '/placeholder-album.png'} 
+                      alt={dailyAlbum.name}
+                      className="aotd-cover"
+                    />
                   </div>
                   <div className="aotd-info">
                     <h3>{dailyAlbum.name}</h3>
