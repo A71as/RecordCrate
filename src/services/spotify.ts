@@ -308,26 +308,32 @@ class SpotifyService {
   }
 
   async getNewReleases(limit: number = 20): Promise<SpotifyAlbum[]> {
-    const token = await this.getAccessToken();
+    try {
+      const token = await this.getAccessToken();
 
-    const response = await axios.get(
-      `https://api.spotify.com/v1/browse/new-releases?limit=${limit}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      const response = await axios.get(
+        `https://api.spotify.com/v1/browse/new-releases?limit=${limit}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    return response.data?.albums?.items || [];
+      return response.data?.albums?.items || [];
+    } catch (error) {
+      console.error('getNewReleases failed:', error);
+      return [];
+    }
   }
 
   async getNewReleasesByTimeframe(timeframe: 'week' | 'month' | 'year'): Promise<SpotifyAlbum[]> {
-    const token = await this.getAccessToken();
+    try {
+      const token = await this.getAccessToken();
 
-    // Calculate date range based on timeframe
-    const now = new Date();
-    const startDate = new Date();
+      // Calculate date range based on timeframe
+      const now = new Date();
+      const startDate = new Date();
 
     switch (timeframe) {
       case 'week':
@@ -360,52 +366,61 @@ class SpotifyService {
       return releaseDate >= startDate && releaseDate <= now;
     });
 
-    // Sort by release date (newest first)
-    return albums.sort((a: SpotifyAlbum, b: SpotifyAlbum) =>
-      new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
-    ).slice(0, 20);
+      // Sort by release date (newest first)
+      return albums.sort((a: SpotifyAlbum, b: SpotifyAlbum) =>
+        new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
+      ).slice(0, 20);
+    } catch (error) {
+      console.error('getNewReleasesByTimeframe failed:', error);
+      return [];
+    }
   }
 
   async getPopularAlbums(): Promise<SpotifyAlbum[]> {
-    const token = await this.getAccessToken();
+    try {
+      const token = await this.getAccessToken();
 
-    // Get featured playlists which often contain popular albums
-    const playlistsResponse = await axios.get(
-      'https://api.spotify.com/v1/browse/featured-playlists?limit=10',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const albums: SpotifyAlbum[] = [];
-    const albumIds = new Set<string>();
-
-    // Get tracks from featured playlists and extract unique albums
-    for (const playlist of (playlistsResponse.data?.playlists?.items || []).slice(0, 3)) {
-      try {
-        const tracksResponse = await axios.get(
-          `https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=50`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        for (const item of (tracksResponse.data?.items || [])) {
-          if (item.track && item.track.album && !albumIds.has(item.track.album.id)) {
-            albumIds.add(item.track.album.id);
-            albums.push(item.track.album);
-          }
+      // Get featured playlists which often contain popular albums
+      const playlistsResponse = await axios.get(
+        'https://api.spotify.com/v1/browse/featured-playlists?limit=10',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      } catch (error) {
-        console.warn('Failed to fetch playlist tracks:', error);
-      }
-    }
+      );
 
-    return albums.slice(0, 20);
+      const albums: SpotifyAlbum[] = [];
+      const albumIds = new Set<string>();
+
+      // Get tracks from featured playlists and extract unique albums
+      for (const playlist of (playlistsResponse.data?.playlists?.items || []).slice(0, 3)) {
+        try {
+          const tracksResponse = await axios.get(
+            `https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=50`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          for (const item of (tracksResponse.data?.items || [])) {
+            if (item.track && item.track.album && !albumIds.has(item.track.album.id)) {
+              albumIds.add(item.track.album.id);
+              albums.push(item.track.album);
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to fetch playlist tracks:', error);
+        }
+      }
+
+      return albums.slice(0, 20);
+    } catch (error) {
+      console.error('getPopularAlbums failed:', error);
+      return [];
+    }
   }
 
   private parseCsvLine(line: string): string[] {
