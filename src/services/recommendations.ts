@@ -52,7 +52,7 @@ class RecommendationService {
               recommendations.push({
                 item: album,
                 score: 70 + (review.overallRating * 2),
-                reason: `Because you rated ${review.album?.name || 'this album'} ${review.overallRating}/10`
+                reason: `Because you rated ${review.album?.name || 'this album'} ${Math.round(review.overallRating)}%`
               });
             }
           });
@@ -105,7 +105,7 @@ class RecommendationService {
       }));
     }
 
-    const artistFrequency = new Map<string, { artist: SpotifyArtist; count: number; avgRating: number }>();
+    const artistFrequency = new Map<string, { artistId: string; artistName: string; count: number; avgRating: number }>();
 
     // Count and rate artists from reviews
     reviews.forEach(review => {
@@ -118,7 +118,8 @@ class RecommendationService {
           existing.avgRating = (existing.avgRating + review.overallRating) / 2;
         } else {
           artistFrequency.set(artist.id, {
-            artist: artist as SpotifyArtist,
+            artistId: artist.id,
+            artistName: artist.name,
             count: 1,
             avgRating: review.overallRating
           });
@@ -126,15 +127,30 @@ class RecommendationService {
       });
     });
 
-    // Convert to recommendations
-    const recommendations: RecommendationScore[] = Array.from(artistFrequency.values())
-      .map(({ artist, count, avgRating }) => ({
-        item: artist,
-        score: (count * 10) + (avgRating * 5),
-        reason: `You've reviewed ${count} album${count > 1 ? 's' : ''} by this artist`
-      }))
-      .sort((a, b) => b.score - a.score)
+    // Fetch full artist data and convert to recommendations
+    const recommendations: RecommendationScore[] = [];
+    const topArtists = Array.from(artistFrequency.values())
+      .sort((a, b) => {
+        const scoreA = (a.count * 10) + (a.avgRating * 5);
+        const scoreB = (b.count * 10) + (b.avgRating * 5);
+        return scoreB - scoreA;
+      })
       .slice(0, limit);
+
+    for (const { artistId, count } of topArtists) {
+      try {
+        const artistData = await spotifyService.getArtist(artistId);
+        if (artistData) {
+          recommendations.push({
+            item: artistData,
+            score: (count * 10),
+            reason: `You've reviewed ${count} album${count > 1 ? 's' : ''} by this artist`
+          });
+        }
+      } catch (error) {
+        console.error(`Error fetching artist ${artistId}:`, error);
+      }
+    }
 
     return recommendations;
   }

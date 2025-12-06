@@ -91,6 +91,8 @@ const DiscoverPage: React.FC = () => {
         }
         
         const recs = await recommendationService.getPersonalizedFeed(userReviews, 20);
+        logger.debug('[Discover] Recommendations loaded:', recs);
+        logger.debug('[Discover] Artist recommendations count:', recs.artists?.length || 0);
         setRecommendations(recs);
       } catch (err) {
         logger.error('Failed to load recommendations:', err);

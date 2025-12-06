@@ -52,8 +52,8 @@
 
 .artist-image {
     position: relative;
-    width: 70%;
-    max-width: 200px;
+    width: clamp(140px, 70%, 200px);
+    height: clamp(140px, 70%, 200px);
     aspect-ratio: 1 / 1;
     overflow: hidden;
     background: linear-gradient(135deg, 
