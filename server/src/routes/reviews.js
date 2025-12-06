@@ -7,8 +7,8 @@ const router = express.Router();
 // Input validation helpers
 const validateSpotifyId = (id) => {
   if (!id || typeof id !== 'string') return false;
-  // Spotify IDs are alphanumeric with some special chars
-  return /^[\w-]{1,50}$/.test(id);
+  // Accept Spotify IDs and Auth0 IDs (which may contain pipe characters)
+  return /^[\w\-|]{1,100}$/.test(id);
 };
 
 const validateRating = (rating) => {
