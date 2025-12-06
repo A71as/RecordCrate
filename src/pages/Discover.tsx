@@ -31,6 +31,7 @@ export const Discover: React.FC = () => {
   const [dailyRecommendation, setDailyRecommendation] = useState<DailyRecommendation | null>(null);
   const [dailyAlbum, setDailyAlbum] = useState<SpotifyAlbum | null>(null);
   const [loadingDaily, setLoadingDaily] = useState(false);
+  const [hasReviewedToday, setHasReviewedToday] = useState(false);
   const ALBUMS_PER_PAGE = 10;
   const { loading, error, getFilteredContent } = useSpotify();
   const { isAuthenticated, loginWithRedirect, user } = useAuth0();
@@ -97,6 +98,12 @@ export const Discover: React.FC = () => {
       
       setLoadingDaily(true);
       try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Check if already reviewed today
+        const reviewed = dailyRecommendationService.hasReviewedForDate(today);
+        setHasReviewedToday(reviewed);
+        
         const recommendation = await dailyRecommendationService.getTodayRecommendation(user.sub);
         if (recommendation) {
           setDailyRecommendation(recommendation);
@@ -108,7 +115,6 @@ export const Discover: React.FC = () => {
             setDailyAlbum(foundAlbum);
             
             // Update the cached recommendation with the Spotify album ID
-            const today = new Date().toISOString().split('T')[0];
             dailyRecommendationService.updateAlbumId(today, foundAlbum.id);
           }
         }
@@ -259,9 +265,15 @@ export const Discover: React.FC = () => {
                     <h3>{dailyAlbum.name}</h3>
                     <p className="aotd-artist">{dailyAlbum.artists?.[0]?.name || 'Unknown Artist'}</p>
                     <p className="aotd-reason">{dailyRecommendation.reason}</p>
-                    <p className="aotd-cta">
-                      Review this album today to keep your streak going! 🔥
-                    </p>
+                    {hasReviewedToday ? (
+                      <p className="aotd-cta reviewed">
+                        ✅ Great job! You've already reviewed today's album!
+                      </p>
+                    ) : (
+                      <p className="aotd-cta">
+                        Review this album today to keep your streak going! 🔥
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (

@@ -358,16 +358,6 @@ export const Search: React.FC = () => {
                   />
                 </div>
               </form>
-
-              {hasSearched && !loading && (albumResults.length > 0 || artistResults.length > 0 || trackResults.length > 0) && (
-                <div className="results-stats">
-                  <div className="stats-group">
-                    {albumResults.length > 0 && <span className="stat-item">{albumResults.length} Albums</span>}
-                    {artistResults.length > 0 && <span className="stat-item">{artistResults.length} Artists</span>}
-                    {trackResults.length > 0 && <span className="stat-item">{trackResults.length} Tracks</span>}
-                  </div>
-                </div>
-              )}
             </>
           )}
         </div>

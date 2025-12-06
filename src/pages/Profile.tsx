@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Music, Star, Calendar } from 'lucide-react';
+import { User, Music, Star, Calendar, Eye, EyeOff } from 'lucide-react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { backend } from '../services/backend';
 import { logger } from '../utils/logger';
@@ -10,6 +10,8 @@ import '../styles/pages/Profile.css';
 export const Profile: React.FC = () => {
   const [reviews, setReviews] = useState<AlbumReview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [displayAsAnonymous, setDisplayAsAnonymous] = useState(false);
+  const [updatingPreference, setUpdatingPreference] = useState(false);
 
   const { loginWithRedirect, user, isAuthenticated, isLoading } = useAuth0();
 
@@ -25,6 +27,14 @@ export const Profile: React.FC = () => {
         const data = await backend.getUserReviews(user.sub);
         const reviewsArray = Array.isArray(data) ? data : [];
         setReviews(reviewsArray);
+        
+        // Load user preferences
+        try {
+          const userPrefs = await backend.getUserPreferences(user.sub);
+          setDisplayAsAnonymous(userPrefs.displayAsAnonymous || false);
+        } catch (err) {
+          logger.error('Profile: Error loading user preferences:', err);
+        }
       } catch (err) {
         logger.error('Profile: Error loading reviews:', err);
         setReviews([]);
@@ -40,6 +50,24 @@ export const Profile: React.FC = () => {
 
   const handleLogin = () => {
     loginWithRedirect();
+  };
+
+  const handleToggleAnonymity = async () => {
+    if (!user?.sub) return;
+    
+    setUpdatingPreference(true);
+    const newValue = !displayAsAnonymous;
+    
+    try {
+      await backend.updateUserPreferences(user.sub, { displayAsAnonymous: newValue });
+      setDisplayAsAnonymous(newValue);
+      logger.debug('[Profile] Updated anonymity preference to:', newValue);
+    } catch (err) {
+      logger.error('[Profile] Error updating anonymity preference:', err);
+      alert('Failed to update preference. Please try again.');
+    } finally {
+      setUpdatingPreference(false);
+    }
   };
 
   if (isLoading || loading) {
@@ -142,9 +170,35 @@ export const Profile: React.FC = () => {
               </div>
             </div>
           </div>
+          
+          <div className="privacy-settings">
+            <div className="privacy-toggle-card">
+              <div className="privacy-toggle-info">
+                <div className="privacy-toggle-icon">
+                  {displayAsAnonymous ? <EyeOff size={20} /> : <Eye size={20} />}
+                </div>
+                <div className="privacy-toggle-text">
+                  <h3>Display Preference</h3>
+                  <p>{displayAsAnonymous ? 'Reviews shown as Anonymous' : 'Reviews shown with your name'}</p>
+                </div>
+              </div>
+              <button
+                className={`toggle-switch ${displayAsAnonymous ? 'active' : ''}`}
+                onClick={handleToggleAnonymity}
+                disabled={updatingPreference}
+                aria-label={displayAsAnonymous ? 'Switch to show name' : 'Switch to anonymous'}
+              >
+                <span className="toggle-slider"></span>
+              </button>
+            </div>
+            <p className="privacy-note">
+              When enabled, your reviews will be displayed as "Anonymous" instead of your name. 
+              This setting affects how others see your reviews across the platform.
+            </p>
+          </div>
         </div>
 
-        <div className="profile-content">
+        <div className="profile-content">"
           <section className="reviews-section">
             <h2>Your Album Reviews</h2>
             {reviews.length === 0 ? (

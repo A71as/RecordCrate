@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { logger } from '../utils/logger';
-import { Star, ArrowLeft, Clock, Share2 } from "lucide-react";
+import { Star, ArrowLeft, Clock, Share2, AlertCircle, Loader2, HelpCircle } from "lucide-react";
 import { spotifyService } from "../services/spotify";
 import { backend } from "../services/backend";
 import { dailyRecommendationService } from "../services/dailyRecommendation";
@@ -59,6 +59,9 @@ export const AlbumDetail: React.FC = () => {
   const [existingReview, setExistingReview] = useState<AlbumReview | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
   const [showShareCard, setShowShareCard] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   // Score modifiers: signed percentages (-10..+10) per category
   const [modifiers, setModifiers] = useState<ModifierState>({
     emotionalStoryConnection: 0,
@@ -74,6 +77,72 @@ export const AlbumDetail: React.FC = () => {
       setIsReviewing(false);
     }
   }, [canRate, isReviewing]);
+
+  // Auto-save draft to localStorage
+  useEffect(() => {
+    if (!albumId || !currentUserId || !isReviewing) return;
+    
+    const draftKey = `review-draft-${albumId}-${currentUserId}`;
+    const timeoutId = setTimeout(() => {
+      try {
+        localStorage.setItem(draftKey, JSON.stringify({
+          overallRating,
+          modifiers,
+          songRatings,
+          writeup,
+          timestamp: Date.now()
+        }));
+        logger.debug('[AlbumDetail] Draft auto-saved');
+      } catch (err) {
+        logger.error('[AlbumDetail] Failed to save draft:', err);
+      }
+    }, 1000); // Debounce 1 second
+    
+    return () => clearTimeout(timeoutId);
+  }, [albumId, currentUserId, isReviewing, overallRating, modifiers, songRatings, writeup]);
+
+  // Load draft on review start
+  useEffect(() => {
+    if (!albumId || !currentUserId || !isReviewing || existingReview) return;
+    
+    const draftKey = `review-draft-${albumId}-${currentUserId}`;
+    try {
+      const draftStr = localStorage.getItem(draftKey);
+      if (draftStr) {
+        const draft = JSON.parse(draftStr);
+        const ageMinutes = (Date.now() - draft.timestamp) / 60000;
+        
+        // Only restore drafts less than 24 hours old
+        if (ageMinutes < 1440) {
+          setOverallRating(draft.overallRating || 0);
+          setModifiers(draft.modifiers || {
+            emotionalStoryConnection: 0,
+            cohesionAndFlow: 0,
+            artistIdentityOriginality: 0,
+            visualAestheticEcosystem: 0,
+          });
+          setSongRatings(draft.songRatings || {});
+          setWriteup(draft.writeup || '');
+          logger.debug('[AlbumDetail] Draft restored from', Math.round(ageMinutes), 'minutes ago');
+        } else {
+          localStorage.removeItem(draftKey);
+        }
+      }
+    } catch (err) {
+      logger.error('[AlbumDetail] Failed to load draft:', err);
+    }
+  }, [albumId, currentUserId, isReviewing, existingReview]);
+
+  // Track unsaved changes
+  useEffect(() => {
+    if (!isReviewing) {
+      setHasUnsavedChanges(false);
+      return;
+    }
+    
+    const hasChanges = overallRating > 0 || writeup.trim().length > 0 || Object.keys(songRatings).length > 0;
+    setHasUnsavedChanges(hasChanges);
+  }, [isReviewing, overallRating, writeup, songRatings]);
 
   useEffect(() => {
     const fetchAlbum = async () => {
@@ -294,6 +363,9 @@ export const AlbumDetail: React.FC = () => {
       return;
     }
 
+    setIsSaving(true);
+    setSaveError(null);
+
     try {
       logger.debug('[AlbumDetail] Saving review for user:', currentUserId, 'album:', album.id);
       await backend.saveReview({
@@ -313,6 +385,10 @@ export const AlbumDetail: React.FC = () => {
       });
       logger.debug('[AlbumDetail] Review saved successfully');
       
+      // Clear draft from localStorage on successful save
+      const draftKey = `review-draft-${album.id}-${currentUserId}`;
+      localStorage.removeItem(draftKey);
+      
       // Refresh count from server
       try {
         const list = (await backend.getAlbumReviews(album.id)) as BackendAlbumReview[];
@@ -320,22 +396,25 @@ export const AlbumDetail: React.FC = () => {
       } catch {
         // ignore refresh count errors
       }
+      
+      // Check if this album was today's daily recommendation and mark it as reviewed
+      const today = new Date().toISOString().split('T')[0];
+      if (dailyRecommendationService.isRecommendationForDate(today, album.id)) {
+        dailyRecommendationService.markAsReviewed(today, album.id, review.id);
+        logger.debug('[AlbumDetail] Marked today\'s recommendation as reviewed');
+      }
+      
+      setExistingReview(review);
+      setIsReviewing(false);
+      setHasUnsavedChanges(false);
     } catch (e) {
       logger.error('Failed to save review:', e);
-      const errorMessage = e instanceof Error ? e.message : 'Unknown error occurred';
-      alert(`Failed to save review: ${errorMessage}`);
-      return;
+      const errorMessage = e instanceof Error ? e.message : 'Network error occurred';
+      setSaveError(`Failed to save review: ${errorMessage}. Your work is saved locally - please try again.`);
+      // Keep form open so user can retry
+    } finally {
+      setIsSaving(false);
     }
-    
-    // Check if this album was today's daily recommendation and mark it as reviewed
-    const today = new Date().toISOString().split('T')[0];
-    if (dailyRecommendationService.isRecommendationForDate(today, album.id)) {
-      dailyRecommendationService.markAsReviewed(today, album.id, review.id);
-      logger.debug('[AlbumDetail] Marked today\'s recommendation as reviewed');
-    }
-    
-    setExistingReview(review);
-    setIsReviewing(false);
   };
 
   // color gradient helper: returns an rgb string interpolated from red (0%) -> yellow (50%) -> green (100%)
@@ -353,7 +432,18 @@ export const AlbumDetail: React.FC = () => {
   }, []);
 
   const handleCancelReview = useCallback(() => {
+    // Confirm if there are unsaved changes
+    if (hasUnsavedChanges) {
+      const confirmCancel = window.confirm(
+        "You have unsaved changes. Are you sure you want to cancel? Your work is auto-saved and will be restored if you start reviewing again."
+      );
+      if (!confirmCancel) return;
+    }
+    
     setIsReviewing(false);
+    setSaveError(null);
+    setHasUnsavedChanges(false);
+    
     if (existingReview) {
       const base = typeof existingReview.baseOverallRating === 'number'
         ? Math.round(existingReview.baseOverallRating)
@@ -382,7 +472,7 @@ export const AlbumDetail: React.FC = () => {
         visualAestheticEcosystem: 0,
       });
     }
-  }, [existingReview]);
+  }, [existingReview, hasUnsavedChanges]);
 
   const handleDeleteReview = useCallback(async () => {
     if (!album || !existingReview || !currentUserId) return;
@@ -523,19 +613,19 @@ export const AlbumDetail: React.FC = () => {
                       ))}
                     </div>
                   </div>
-                  <div className="track-duration-col">
-                    <Clock size={14} />
-                    <span>{formatDuration(track.duration_ms)}</span>
-                  </div>
                   {isReviewing && canRate && (
                     <div className="track-rating-col">
                       <StarRating
                         rating={songRatings[track.id] || 0}
                         onRatingChange={(r) => handleSongRatingChange(track.id, r)}
-                        size={18}
+                        size={24}
                       />
                     </div>
                   )}
+                  <div className="track-duration-col">
+                    <Clock size={14} />
+                    <span>{formatDuration(track.duration_ms)}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -549,6 +639,16 @@ export const AlbumDetail: React.FC = () => {
               <p className="review-subtitle">Share your detailed thoughts on this album</p>
             </div>
             
+            {saveError && (
+              <div className="error-banner" role="alert">
+                <AlertCircle size={20} />
+                <span>{saveError}</span>
+                <button onClick={handleSaveReview} className="retry-btn">
+                  Retry
+                </button>
+              </div>
+            )}
+            
             <div className="review-form">
               <div className="overall-rating-section">
                 <div className="rating-header">
@@ -556,6 +656,13 @@ export const AlbumDetail: React.FC = () => {
                   <div className="rating-display">
                     <span className="rating-percent">{overallRating}%</span>
                   </div>
+                </div>
+                <div className="rating-scale-guide">
+                  <span className="scale-label">90-100%: Masterpiece</span>
+                  <span className="scale-label">70-89%: Great</span>
+                  <span className="scale-label">50-69%: Good</span>
+                  <span className="scale-label">30-49%: Fair</span>
+                  <span className="scale-label">0-29%: Poor</span>
                 </div>
                 <input
                   id="overall-percent"
@@ -565,6 +672,8 @@ export const AlbumDetail: React.FC = () => {
                   value={overallRating}
                   onChange={(e) => handleOverallRatingChange(Number(e.target.value))}
                   className="rating-slider"
+                  aria-valuetext={`${overallRating} percent`}
+                  aria-label="Base album rating from 0 to 100 percent"
                 />
                 <div className="rating-bar-preview">
                   <div 
@@ -590,13 +699,19 @@ export const AlbumDetail: React.FC = () => {
                 
                 <div className="modifier-grid">
                   <div className="modifier-card">
-                    <label>Emotional/Story Connection</label>
+                    <label>
+                      Emotional/Story Connection
+                      <span className="help-tooltip" title="How well does the album connect emotionally? Does it tell a compelling story or evoke strong feelings?">
+                        <HelpCircle size={16} />
+                      </span>
+                    </label>
                     <div className="modifier-control">
                       <button
                         type="button"
                         className="modifier-btn minus"
                         onClick={() => adjustModifier('emotionalStoryConnection', -2.5)}
                         disabled={modifiers.emotionalStoryConnection <= -5}
+                        aria-label="Decrease emotional connection rating"
                       >−</button>
                       <span className="modifier-value">{formatSigned(modifiers.emotionalStoryConnection)}</span>
                       <button
@@ -604,18 +719,25 @@ export const AlbumDetail: React.FC = () => {
                         className="modifier-btn plus"
                         onClick={() => adjustModifier('emotionalStoryConnection', 2.5)}
                         disabled={modifiers.emotionalStoryConnection >= 5}
+                        aria-label="Increase emotional connection rating"
                       >+</button>
                     </div>
                   </div>
                   
                   <div className="modifier-card">
-                    <label>Cohesion & Flow</label>
+                    <label>
+                      Cohesion & Flow
+                      <span className="help-tooltip" title="How well do the songs flow together? Is the track sequencing effective? Does the album feel cohesive?">
+                        <HelpCircle size={16} />
+                      </span>
+                    </label>
                     <div className="modifier-control">
                       <button
                         type="button"
                         className="modifier-btn minus"
                         onClick={() => adjustModifier('cohesionAndFlow', -2.5)}
                         disabled={modifiers.cohesionAndFlow <= -5}
+                        aria-label="Decrease cohesion rating"
                       >−</button>
                       <span className="modifier-value">{formatSigned(modifiers.cohesionAndFlow)}</span>
                       <button
@@ -623,18 +745,25 @@ export const AlbumDetail: React.FC = () => {
                         className="modifier-btn plus"
                         onClick={() => adjustModifier('cohesionAndFlow', 2.5)}
                         disabled={modifiers.cohesionAndFlow >= 5}
+                        aria-label="Increase cohesion rating"
                       >+</button>
                     </div>
                   </div>
                   
                   <div className="modifier-card">
-                    <label>Artist Identity & Originality</label>
+                    <label>
+                      Artist Identity & Originality
+                      <span className="help-tooltip" title="Does the artist demonstrate a unique voice? Is the work original and distinctive? How well does it represent their identity?">
+                        <HelpCircle size={16} />
+                      </span>
+                    </label>
                     <div className="modifier-control">
                       <button
                         type="button"
                         className="modifier-btn minus"
                         onClick={() => adjustModifier('artistIdentityOriginality', -2.5)}
                         disabled={modifiers.artistIdentityOriginality <= -5}
+                        aria-label="Decrease originality rating"
                       >−</button>
                       <span className="modifier-value">{formatSigned(modifiers.artistIdentityOriginality)}</span>
                       <button
@@ -642,18 +771,25 @@ export const AlbumDetail: React.FC = () => {
                         className="modifier-btn plus"
                         onClick={() => adjustModifier('artistIdentityOriginality', 2.5)}
                         disabled={modifiers.artistIdentityOriginality >= 5}
+                        aria-label="Increase originality rating"
                       >+</button>
                     </div>
                   </div>
                   
                   <div className="modifier-card">
-                    <label>Visual/Aesthetic Ecosystem</label>
+                    <label>
+                      Visual/Aesthetic Ecosystem
+                      <span className="help-tooltip" title="Consider album artwork, music videos, artist branding, and overall aesthetic presentation. Does the visual identity enhance the musical experience?">
+                        <HelpCircle size={16} />
+                      </span>
+                    </label>
                     <div className="modifier-control">
                       <button
                         type="button"
                         className="modifier-btn minus"
                         onClick={() => adjustModifier('visualAestheticEcosystem', -2.5)}
                         disabled={modifiers.visualAestheticEcosystem <= -5}
+                        aria-label="Decrease visual aesthetic rating"
                       >−</button>
                       <span className="modifier-value">{formatSigned(modifiers.visualAestheticEcosystem)}</span>
                       <button
@@ -661,6 +797,7 @@ export const AlbumDetail: React.FC = () => {
                         className="modifier-btn plus"
                         onClick={() => adjustModifier('visualAestheticEcosystem', 2.5)}
                         disabled={modifiers.visualAestheticEcosystem >= 5}
+                        aria-label="Increase visual aesthetic rating"
                       >+</button>
                     </div>
                   </div>
@@ -668,7 +805,13 @@ export const AlbumDetail: React.FC = () => {
                 
                 <div className="final-score-preview">
                   <span className="final-score-label">Final Score:</span>
-                  <span className="final-score-value">{adjustedOverall()}%</span>
+                  <span 
+                    className="final-score-value"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    {adjustedOverall()}%
+                  </span>
                   <div className="final-score-breakdown">
                     {overallRating}% base {totalModifier() !== 0 && `${formatSigned(totalModifier())} adjustment`}
                   </div>
@@ -689,13 +832,14 @@ export const AlbumDetail: React.FC = () => {
                 <div 
                   id="char-count"
                   className="character-count"
+                  aria-live="polite"
                   style={{ 
                     color: writeup.length > 1300 ? 'var(--rc-red)' : 'var(--muted)',
                     fontWeight: writeup.length > 1300 ? '600' : '400'
                   }}
                 >
                   {writeup.length} / 1400 characters
-                  {writeup.length > 1300 && ' - Approaching limit!'}
+                  {writeup.length > 1300 && <span className="warning-text"> - Approaching limit!</span>}
                 </div>
               </div>
 
@@ -706,11 +850,20 @@ export const AlbumDetail: React.FC = () => {
                 <button
                   className="save-btn btn btn-primary"
                   onClick={handleSaveReview}
-                  disabled={!canRate || overallRating === 0}
+                  disabled={!canRate || overallRating === 0 || isSaving}
                   title={overallRating === 0 ? 'Please set an overall rating' : 'Save your review'}
                 >
-                  <Star size={18} fill="currentColor" />
-                  {overallRating === 0 ? 'Set Rating First' : 'Save Review'}
+                  {isSaving ? (
+                    <>
+                      <Loader2 size={18} className="spinning" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Star size={18} fill="currentColor" />
+                      {overallRating === 0 ? 'Set Rating First' : 'Save Review'}
+                    </>
+                  )}
                 </button>
               </div>
             </div>

@@ -48,6 +48,12 @@ export const backend = {
   async syncUser(user: { spotifyId: string; displayName?: string; avatarUrl?: string }) {
     return jsonFetch('/api/users/sync', { method: 'POST', body: JSON.stringify(user) });
   },
+  async updateUserPreferences(spotifyId: string, preferences: { displayAsAnonymous?: boolean }) {
+    return jsonFetch(`/api/users/${spotifyId}/preferences`, { method: 'PATCH', body: JSON.stringify(preferences) });
+  },
+  async getUserPreferences(spotifyId: string) {
+    return jsonFetch(`/api/users/${spotifyId}`);
+  },
   async saveReview(payload: SaveReviewPayload) {
     return jsonFetch('/api/reviews', { method: 'POST', body: JSON.stringify(payload) });
   },

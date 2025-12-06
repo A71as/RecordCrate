@@ -5,6 +5,7 @@ const UserSchema = new mongoose.Schema(
     spotifyId: { type: String, required: true, unique: true, index: true },
     displayName: { type: String },
     avatarUrl: { type: String },
+    displayAsAnonymous: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

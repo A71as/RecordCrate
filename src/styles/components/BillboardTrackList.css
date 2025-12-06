@@ -256,6 +256,13 @@
     letter-spacing: 0.5px;
 }
 
+.explicit-badge-container {
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .explicit-badge {
     width: 24px;
     height: 24px;

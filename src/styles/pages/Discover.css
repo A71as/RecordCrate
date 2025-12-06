@@ -77,7 +77,7 @@
     color-mix(in srgb, var(--rc-accent) 6%, transparent) 100%);
   border: 2px solid color-mix(in srgb, var(--rc-primary) 20%, transparent);
   border-radius: 24px;
-  padding: 2rem;
+  padding: 1.5rem;
   margin-bottom: 2rem;
   box-shadow: 
     0 8px 24px color-mix(in srgb, var(--rc-primary) 15%, black),
@@ -86,29 +86,29 @@
 
 .aotd-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .aotd-header h2 {
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-size: clamp(1.5rem, 2.5vw, 1.875rem);
   font-weight: 700;
   background: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
 .aotd-subtitle {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: var(--muted);
   font-weight: 500;
 }
 
 .aotd-content {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 2rem;
+  grid-template-columns: 200px 1fr;
+  gap: 1.5rem;
   align-items: start;
 }
 
@@ -117,39 +117,47 @@
 }
 
 .aotd-info h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--rc-text);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.3;
 }
 
 .aotd-artist {
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: var(--muted);
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .aotd-reason {
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 0.9375rem;
+  line-height: 1.5;
   color: color-mix(in srgb, var(--rc-text) 85%, transparent);
-  padding: 1rem;
+  padding: 0.875rem;
   background: color-mix(in srgb, var(--panel-bg) 40%, transparent);
   border-left: 3px solid var(--rc-accent);
   border-radius: 8px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.875rem;
 }
 
 .aotd-cta {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--rc-primary);
-  padding: 0.75rem 1rem;
+  padding: 0.625rem 0.875rem;
   background: color-mix(in srgb, var(--rc-primary) 12%, transparent);
   border-radius: 12px;
   text-align: center;
   border: 1px solid color-mix(in srgb, var(--rc-primary) 25%, transparent);
+  margin: 0;
+}
+
+.aotd-cta.reviewed {
+  color: var(--spotify-green);
+  background: color-mix(in srgb, var(--spotify-green) 12%, transparent);
+  border-color: color-mix(in srgb, var(--spotify-green) 25%, transparent);
 }
 
 .aotd-loading,
@@ -167,16 +175,16 @@
 @media (max-width: 768px) {
   .aotd-content {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
   
   .aotd-album {
-    max-width: 280px;
+    max-width: 200px;
     margin: 0 auto;
   }
   
   .album-of-the-day {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 }
 

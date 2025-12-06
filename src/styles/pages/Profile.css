@@ -84,6 +84,116 @@
     color: var(--rc-primary);
 }
 
+/* Privacy Settings */
+.privacy-settings {
+    margin-top: var(--space-5);
+    position: relative;
+    z-index: 1;
+}
+
+.privacy-toggle-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: 1.25rem 1.5rem;
+    background: var(--panel-bg);
+    border-radius: var(--border-radius-lg);
+    border: 2px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
+    transition: all 0.3s ease;
+    margin-bottom: var(--space-3);
+}
+
+.privacy-toggle-card:hover {
+    border-color: var(--rc-primary);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.privacy-toggle-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex: 1;
+}
+
+.privacy-toggle-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--rc-primary) 15%, transparent);
+    color: var(--rc-primary);
+    flex-shrink: 0;
+}
+
+.privacy-toggle-text h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    color: var(--rc-text);
+}
+
+.privacy-toggle-text p {
+    font-size: 0.875rem;
+    color: var(--muted);
+    margin: 0;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 56px;
+    height: 30px;
+    background: color-mix(in srgb, var(--panel-border) 50%, transparent);
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.toggle-switch:hover {
+    background: color-mix(in srgb, var(--panel-border) 70%, transparent);
+}
+
+.toggle-switch.active {
+    background: var(--rc-primary);
+}
+
+.toggle-switch.active:hover {
+    background: color-mix(in srgb, var(--rc-primary) 85%, black);
+}
+
+.toggle-switch:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.active .toggle-slider {
+    transform: translateX(26px);
+}
+
+.privacy-note {
+    font-size: 0.875rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0;
+    padding-left: calc(40px + var(--space-3));
+}
+
 /* Login Prompt - Elegant Design */
 .login-prompt {
     max-width: 600px;
@@ -274,10 +384,20 @@
     color: inherit;
 }
 
-.review-album-art img {
+.review-album-art {
     width: 100%;
     aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--rc-gray);
+    position: relative;
+}
+
+.review-album-art img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1;
     object-fit: cover;
+    display: block;
 }
 
 .review-details {

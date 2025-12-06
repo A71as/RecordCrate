@@ -142,9 +142,11 @@ export const BillboardTrackList: React.FC<BillboardTrackListProps> = ({
                 {formatDuration(spotifyTrack.duration_ms)}
               </div>
 
-              {spotifyTrack.explicit && (
-                <div className="explicit-badge">E</div>
-              )}
+              <div className="explicit-badge-container">
+                {spotifyTrack.explicit && (
+                  <div className="explicit-badge">E</div>
+                )}
+              </div>
 
               <a
                 href={spotifyTrack.external_urls.spotify}

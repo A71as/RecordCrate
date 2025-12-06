@@ -70,4 +70,36 @@ router.get('/:spotifyId', async (req, res) => {
   }
 });
 
+// Update user preferences
+router.patch('/:spotifyId/preferences', async (req, res) => {
+  try {
+    if (!validateSpotifyId(req.params.spotifyId)) {
+      return res.status(400).json({ error: 'Invalid spotifyId format' });
+    }
+
+    const { displayAsAnonymous } = req.body || {};
+    
+    if (displayAsAnonymous !== undefined && typeof displayAsAnonymous !== 'boolean') {
+      return res.status(400).json({ error: 'displayAsAnonymous must be a boolean' });
+    }
+
+    const update = {};
+    if (displayAsAnonymous !== undefined) {
+      update.displayAsAnonymous = displayAsAnonymous;
+    }
+
+    const user = await User.findOneAndUpdate(
+      { spotifyId: req.params.spotifyId },
+      { $set: update },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (e) {
+    console.error('update user preferences error', e);
+    res.status(500).json({ error: 'Failed to update preferences' });
+  }
+});
+
 export default router;
