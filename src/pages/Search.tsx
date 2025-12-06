@@ -382,6 +382,10 @@ export const Search: React.FC = () => {
               decades={availableDecades}
               label="Refine Results"
               className="search-filter-controls"
+              totalResults={filteredAlbumResults.length + filteredArtistResults.length + filteredTrackResults.length}
+              albumCount={filteredAlbumResults.length}
+              artistCount={filteredArtistResults.length}
+              trackCount={filteredTrackResults.length}
             />
 
             {filteredAlbumResults.length > 0 && (

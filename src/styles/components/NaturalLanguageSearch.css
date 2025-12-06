@@ -1,4 +1,132 @@
 /* Natural Language Search Styles - Professional Edition */
+
+/* Sage Green Color Variables */
+:root {
+  --sage-green-1: #87a878;
+  --sage-green-2: #6b8e5f;
+  --sage-green-3: #9db88d;
+  --sage-green-accent: #a8c69f;
+  --sage-green-dark: #556b4d;
+}
+
+/* Sage Green Transition Animations */
+@keyframes sageGreenFade {
+  0% {
+    filter: hue-rotate(0deg) saturate(1);
+  }
+  100% {
+    filter: hue-rotate(40deg) saturate(1.15);
+  }
+}
+
+@keyframes sageTextTransition {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes sageGlowPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(135, 168, 120, 0.25),
+      0 0 40px rgba(135, 168, 120, 0.15),
+      inset 0 0 20px rgba(135, 168, 120, 0.08);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(135, 168, 120, 0.4),
+      0 0 60px rgba(135, 168, 120, 0.25),
+      inset 0 0 30px rgba(135, 168, 120, 0.15);
+  }
+}
+
+/* Apply sage green theme when active */
+.natural-language-search.sage-active {
+  animation: sageGreenFade 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.natural-language-search.sage-active .search-title h1 {
+  background: linear-gradient(135deg, 
+    var(--sage-green-2) 0%, 
+    var(--sage-green-1) 30%,
+    var(--sage-green-accent) 60%,
+    var(--sage-green-3) 100%) !important;
+  background-size: 200% 200%;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  animation: sageTextTransition 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px rgba(135, 168, 120, 0.3));
+}
+
+.natural-language-search.sage-active .section-header h3 {
+  background: linear-gradient(135deg, 
+    var(--sage-green-dark) 0%, 
+    var(--sage-green-2) 50%,
+    var(--sage-green-1) 100%) !important;
+  background-size: 200% 200%;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  animation: sageTextTransition 3s ease-in-out infinite;
+}
+
+.natural-language-search.sage-active .interpretation-header {
+  color: var(--sage-green-2) !important;
+}
+
+.natural-language-search.sage-active .count-number {
+  background: linear-gradient(135deg, 
+    var(--sage-green-2) 0%, 
+    var(--sage-green-1) 50%,
+    var(--sage-green-accent) 100%) !important;
+  background-size: 200% 200%;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  animation: sageTextTransition 3s ease-in-out infinite;
+}
+
+.natural-language-search.sage-active .search-button,
+.natural-language-search.sage-active .natural-language-button {
+  background: linear-gradient(135deg, var(--sage-green-2) 0%, var(--sage-green-1) 100%) !important;
+  box-shadow: 
+    0 8px 24px rgba(135, 168, 120, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  animation: sageGlowPulse 2.5s ease-in-out infinite;
+}
+
+.natural-language-search.sage-active .search-input-group:focus-within {
+  border-color: var(--sage-green-1) !important;
+  box-shadow: 
+    0 12px 32px rgba(135, 168, 120, 0.2),
+    0 0 0 4px rgba(135, 168, 120, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.natural-language-search.sage-active .search-interpretation {
+  border-color: var(--sage-green-1) !important;
+  background: linear-gradient(135deg,
+    rgba(135, 168, 120, 0.1) 0%,
+    rgba(135, 168, 120, 0.05) 100%) !important;
+}
+
+.natural-language-search.sage-active .sparkles-icon {
+  color: var(--sage-green-1);
+  filter: drop-shadow(0 0 16px rgba(135, 168, 120, 0.5));
+}
+
+.natural-language-search.sage-active .section-count {
+  background: linear-gradient(135deg, var(--sage-green-2) 0%, var(--sage-green-1) 100%) !important;
+  box-shadow: 0 4px 12px rgba(135, 168, 120, 0.3) !important;
+}
+
 .natural-language-search {
   width: 100%;
   min-height: calc(100vh - var(--header-height));

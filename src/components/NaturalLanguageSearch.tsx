@@ -27,6 +27,7 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
   });
   const [hasSearched, setHasSearched] = useState(false);
   const [searchDescription, setSearchDescription] = useState('');
+  const [sageActive, setSageActive] = useState(false);
   const { loading, error, naturalLanguageSearch } = useSpotify();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -34,6 +35,9 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
     e.preventDefault();
     if (!query.trim()) return;
 
+    // Activate sage green transition
+    setSageActive(true);
+    
     setHasSearched(true);
     const searchResults = await naturalLanguageSearch(query);
     setResults(searchResults);
@@ -51,7 +55,7 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
   const totalResults = results.albums.length + results.artists.length + results.tracks.length;
 
   return (
-    <div className="natural-language-search">
+    <div className={`natural-language-search${sageActive ? ' sage-active' : ''}`}>
       <div className="search-header">
         <div className="search-title-row">
           <div className="search-title">

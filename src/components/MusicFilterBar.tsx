@@ -98,6 +98,10 @@ interface MusicFilterBarProps {
   decades?: string[];
   label?: string;
   className?: string;
+  totalResults?: number;
+  albumCount?: number;
+  artistCount?: number;
+  trackCount?: number;
 }
 
 const ratingOptions: DropdownOption[] = [
@@ -123,6 +127,10 @@ export const MusicFilterBar: React.FC<MusicFilterBarProps> = ({
   decades = [],
   label = 'Browse By',
   className,
+  totalResults,
+  albumCount,
+  artistCount,
+  trackCount,
 }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
@@ -173,7 +181,21 @@ export const MusicFilterBar: React.FC<MusicFilterBarProps> = ({
 
   return (
     <section className={className ? `music-filter-bar ${className}` : 'music-filter-bar'}>
-      <div className="filter-label">{label}</div>
+      <div className="filter-header">
+        <div className="filter-label">{label}</div>
+        {totalResults !== undefined && (
+          <div className="filter-results-count">
+            <span className="total-count">{totalResults} Total Results</span>
+            {(albumCount !== undefined || artistCount !== undefined || trackCount !== undefined) && (
+              <span className="breakdown">
+                {albumCount !== undefined && albumCount > 0 && <span className="count-item">{albumCount} Albums</span>}
+                {artistCount !== undefined && artistCount > 0 && <span className="count-item">{artistCount} Artists</span>}
+                {trackCount !== undefined && trackCount > 0 && <span className="count-item">{trackCount} Tracks</span>}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
       <div className="filter-grid">
         <FilterDropdown
           id="genre"
