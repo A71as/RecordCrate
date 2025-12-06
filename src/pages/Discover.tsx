@@ -50,7 +50,7 @@ export const Discover: React.FC = () => {
     const fetchContent = async () => {
       const { albums: fetchedAlbums, artists: fetchedArtists} = 
         await getFilteredContent(activeFilter);
-      setAlbums(fetchedAlbums);
+      setAlbums(fetchedAlbums || []);
       setArtists(fetchedArtists || []);
       setAlbumPage(1);
     };
@@ -183,24 +183,27 @@ export const Discover: React.FC = () => {
     );
   }
   
-  // Only show detailed error in development - in production just continue to show the page
-  if (error && import.meta.env.MODE === 'development') {
-    return (
-      <div className="error" style={{ maxWidth: '700px', margin: '2rem auto', padding: '2rem', borderRadius: '12px' }}>
-        <h3 style={{ marginBottom: '1rem', color: 'var(--rc-red)' }}>⚠️ Spotify API Setup Required</h3>
-        <p style={{ marginBottom: '1.5rem', lineHeight: '1.6' }}>
-          To view music content on this page, you need to set up Spotify API credentials.
-        </p>
-        <p style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>
-          Check the .env.example file for setup instructions.
-        </p>
-      </div>
-    );
-  }
+  // Show error message but don't prevent page from rendering
+  const hasError = error !== null;
 
   return (
     <div className="discover">
       <div className="container">
+        {hasError && (
+          <div className="error-banner" style={{ 
+            background: 'rgba(238, 92, 92, 0.1)', 
+            border: '1px solid rgba(238, 92, 92, 0.3)',
+            borderRadius: '8px',
+            padding: '1rem',
+            marginBottom: '2rem',
+            textAlign: 'center'
+          }}>
+            <p style={{ margin: 0, color: 'var(--rc-text)' }}>
+              ⚠️ Unable to load Spotify content. Some features may be unavailable.
+            </p>
+          </div>
+        )}
+        
         <section className="hero">
           <h1>Discover Music</h1>
           <p>Explore new releases, popular albums, and personalized recommendations</p>
@@ -226,7 +229,7 @@ export const Discover: React.FC = () => {
                   </div>
                   <div className="aotd-info">
                     <h3>{dailyAlbum.name}</h3>
-                    <p className="aotd-artist">{dailyAlbum.artists[0]?.name}</p>
+                    <p className="aotd-artist">{dailyAlbum.artists?.[0]?.name || 'Unknown Artist'}</p>
                     <p className="aotd-reason">{dailyRecommendation.reason}</p>
                     <p className="aotd-cta">
                       Review this album today to keep your streak going! 🔥
