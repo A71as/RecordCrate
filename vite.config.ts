@@ -15,8 +15,6 @@ export default defineConfig({
         manualChunks: {
           // Vendor chunk for React and related libraries
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          // Vendor chunk for UI libraries
-          'vendor-ui': ['html-to-image'],
           // Vendor chunk for HTTP client
           'vendor-http': ['axios'],
         },
