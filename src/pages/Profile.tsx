@@ -30,7 +30,7 @@ export const Profile: React.FC = () => {
         
         // Load user preferences
         try {
-          const userPrefs = await backend.getUserPreferences(user.sub);
+          const userPrefs = await backend.getUserPreferences(user.sub) as { displayAsAnonymous?: boolean };
           setDisplayAsAnonymous(userPrefs.displayAsAnonymous || false);
         } catch (err) {
           logger.error('Profile: Error loading user preferences:', err);
