@@ -82,7 +82,7 @@ export const ArtistSearchResults: React.FC<ArtistSearchResultsProps> = ({
     // Show results if we have them
     if (results.length > 0) {
         return (
-            <div className="search-results">
+            <div className="artist-results">
                 <div className="carousel-header">
                     <h2>Artists ({results.length})</h2>
                     {results.length > 3 && (

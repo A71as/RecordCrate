@@ -65,8 +65,13 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           )}
         </div>
         <p className="search-subtitle">
-          Search using natural language like "albums like Blonde by Frank Ocean" or "sad indie music from the 2010s"
+          Discover music through conversational queries — find albums, artists, and tracks using natural language descriptions
         </p>
+        <div className="example-queries">
+          <div className="example-query">"upbeat indie rock from the 2000s"</div>
+          <div className="example-query">"artists similar to Radiohead"</div>
+          <div className="example-query">"melancholic R&B albums like Blonde"</div>
+        </div>
         
         <form onSubmit={handleSearch} className="search-form">
           <div className="search-input-container">
@@ -113,28 +118,55 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
         <div className="search-results-section">
           {searchDescription && (
             <div className="search-interpretation">
-              <p><strong>Interpreted as:</strong> {searchDescription}</p>
-              {results.spotifyQuery && results.spotifyQuery !== query && (
-                <p className="spotify-query"><strong>Spotify Query:</strong> {results.spotifyQuery}</p>
-              )}
+              <div className="interpretation-header">
+                <Sparkles size={16} />
+                <span>Query Analysis</span>
+              </div>
+              <div className="interpretation-content">
+                <p className="interpretation-text">{searchDescription}</p>
+                {results.spotifyQuery && results.spotifyQuery !== query && (
+                  <p className="spotify-query"><code>{results.spotifyQuery}</code></p>
+                )}
+              </div>
             </div>
           )}
 
           {totalResults === 0 ? (
             <div className="no-results">
-              <Sparkles size={48} className="no-results-icon" />
-              <h3>No results found</h3>
-              <p>Try rephrasing your search or being more specific about what you're looking for.</p>
+              <div className="no-results-icon-wrapper">
+                <Sparkles size={56} className="no-results-icon" />
+              </div>
+              <h3>No Matches Found</h3>
+              <p>Refine your query with different keywords, genres, or time periods to discover relevant music.</p>
+              <div className="search-tips">
+                <h4>Search Tips:</h4>
+                <ul>
+                  <li>Include specific genres, moods, or time periods</li>
+                  <li>Reference similar artists or albums</li>
+                  <li>Use descriptive terms like "upbeat," "melancholic," or "experimental"</li>
+                </ul>
+              </div>
             </div>
           ) : (
             <div className="results-summary">
-              <h2>Found {totalResults} results</h2>
+              <div className="results-count">
+                <span className="count-number">{totalResults}</span>
+                <span className="count-label">Results Found</span>
+              </div>
+              <div className="results-breakdown">
+                {results.albums.length > 0 && <span className="breakdown-item">{results.albums.length} Albums</span>}
+                {results.artists.length > 0 && <span className="breakdown-item">{results.artists.length} Artists</span>}
+                {results.tracks.length > 0 && <span className="breakdown-item">{results.tracks.length} Tracks</span>}
+              </div>
             </div>
           )}
 
           {results.albums.length > 0 && (
-            <div className="results-section">
-              <h3>Albums ({results.albums.length})</h3>
+            <div className="results-section albums-section">
+              <div className="section-header">
+                <h3>Albums</h3>
+                <span className="section-count">{results.albums.length}</span>
+              </div>
               <div className="album-grid">
                 {results.albums.map((album) => (
                   <AlbumCard key={album.id} album={album} />
@@ -144,8 +176,11 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           )}
 
           {results.artists.length > 0 && (
-            <div className="results-section">
-              <h3>Artists ({results.artists.length})</h3>
+            <div className="results-section artists-section">
+              <div className="section-header">
+                <h3>Artists</h3>
+                <span className="section-count">{results.artists.length}</span>
+              </div>
               <div className="artist-grid">
                 {results.artists.map((artist) => (
                   <ArtistCard key={artist.id} artist={artist} />
@@ -155,8 +190,11 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
           )}
 
           {results.tracks.length > 0 && (
-            <div className="results-section">
-              <h3>Tracks ({results.tracks.length})</h3>
+            <div className="results-section tracks-section">
+              <div className="section-header">
+                <h3>Tracks</h3>
+                <span className="section-count">{results.tracks.length}</span>
+              </div>
               <TrackSearchResults tracks={results.tracks} />
             </div>
           )}

@@ -98,53 +98,53 @@
 
 /* Dark theme */
 [data-theme="dark"] {
-    /* Dark mode colors */
-    --rc-bg: #0f0f0f; /* deep black background */
-    --rc-bg-secondary: #151412;
-    --rc-grid: rgba(255,255,255,0.03);
-    --rc-text: #f5f5f5; /* light text */
-    --rc-text-secondary: #c5c1bd;
-    --rc-red: #ff6b6b;
-    --rc-red-light: #2a1a1a;
-    --rc-green-1: #51cf66;
-    --rc-green-2: #37b24d;
-    --rc-green-light: #1a2a1a;
-    --rc-gray: #6c7a89; /* muted gray for dark mode */
-    --rc-warm: #ffb347; /* brighter gold for dark mode */
-    --rc-cream: #2a2520; /* dark cream accent */
-    --rc-amber-glow: #ffb347; /* brighter amber for visibility */
-    --rc-crate-wood: #d4a574;
+    /* Dark chocolate brown backgrounds with light cream text for proper contrast */
+    --rc-bg: #1a1310; /* dark chocolate brown background */
+    --rc-bg-secondary: #231916;
+    --rc-grid: rgba(200, 149, 95, 0.08);
+    --rc-text: #e8ddc5; /* light cream text for proper contrast (WCAG AA compliant) */
+    --rc-text-secondary: #c5b8a3;
+    --rc-red: #d4826f; /* lighter terracotta for visibility on dark */
+    --rc-red-light: #2d1f1c;
+    --rc-green-1: #8bae7a; /* lighter sage green for contrast */
+    --rc-green-2: #6a9059; /* lighter forest green */
+    --rc-green-light: #242d21;
+    --rc-gray: #b39a7f; /* lighter warm brown-gray for readability */
+    --rc-warm: #d4a574; /* brighter warm brass/bronze */
+    --rc-cream: #f0e6d2; /* light cream accent */
+    --rc-amber-glow: #e8b968; /* brighter golden amber for visibility */
+    --rc-crate-wood: #c8955f; /* brighter warm wood */
     --rc-bronze: #e8b968;
-    --rc-bronze-light: #2a2419;
+    --rc-bronze-light: #332519;
     --spotify-green: #1ed760;
-    --spotify-green-hover: #1fdf64;
+    --spotify-green-hover: #2be870;
 
     /* Additional brand colors */
-    --rc-vinyl-black: #1a1a1d;
-    --rc-vinyl-groove: #0d0d0f;
-    --rc-primary: #ffb347; /* same as amber-glow */
+    --rc-vinyl-black: #0d0a08;
+    --rc-vinyl-groove: #0a0806;
+    --rc-primary: #e8b968; /* brighter for visibility */
     --rc-primary-hover: #f2c978;
-    --rc-primary-light: #2a2419;
-    --rc-accent: #d4a574; /* same as crate-wood */
-    --rc-accent-hover: #c8a978;
+    --rc-primary-light: #332519;
+    --rc-accent: #c8955f; /* brighter warm wood */
+    --rc-accent-hover: #d4a574;
 
-    /* Percent indicators */
-    --percent-red: #ff6b6b;
-    --percent-yellow: #ffd93d;
-    --percent-green: #51cf66;
+    /* Percent indicators - brightened for dark mode */
+    --percent-red: #d4826f;
+    --percent-yellow: #e8b968;
+    --percent-green: #8bae7a;
 
-    /* Panel / surface tokens */
-    --panel-bg: #1a1a1a; /* dark panel */
-    --panel-bg-hover: #211f1c;
-    --panel-border: rgba(255,255,255,0.1);
-    --panel-border-hover: rgba(255, 255, 255, 0.16);
-    --muted: #a0a0a0;
-    --muted-2: #808080;
-    --muted-3: #4a4542;
+    /* Panel / surface tokens - dark chocolate browns */
+    --panel-bg: #2d2119; /* dark chocolate panel */
+    --panel-bg-hover: #382820;
+    --panel-border: rgba(200, 149, 95, 0.25);
+    --panel-border-hover: rgba(200, 149, 95, 0.4);
+    --muted: #b39a7f; /* lighter for readability */
+    --muted-2: #9d8770; /* lighter gray-brown */
+    --muted-3: #6d5d4f;
     
-    /* Overlays */
-    --overlay: rgba(13, 12, 11, 0.7);
-    --overlay-heavy: rgba(13, 12, 11, 0.92);
+    /* Overlays - dark chocolate overlays */
+    --overlay: rgba(26, 19, 16, 0.85);
+    --overlay-heavy: rgba(26, 19, 16, 0.95);
 }
 
 /* Global Reset & Base Styles */

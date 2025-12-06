@@ -6,7 +6,13 @@
 /* Component Styles */
 @import './components/Header.css';
 @import './components/SearchDropdown.css';
+@import './components/SearchResults.css';
 @import './components/TrackSearchResults.css';
+@import './components/AlbumCard.css';
+@import './components/ArtistCard.css';
+@import './components/NaturalLanguageSearch.css';
+@import './components/AlbumCardSkeleton.css';
+@import './components/ReviewShareCard.css';
 
 /* Page Styles */
 @import './pages/Search.css';

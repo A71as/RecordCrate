@@ -4,7 +4,7 @@ import { AuthProvider } from './context/AuthProvider';
 import { Header } from './components/Header';
 import { Home } from './pages/Home';
 import { Discover } from './pages/Discover';
-import { Discography } from './pages/Discography';
+import { TrendingCharts } from './pages/TrendingCharts';
 import { Search } from './pages/Search';
 import { Profile } from './pages/Profile';
 import { UserProfile } from './pages/UserProfile';
@@ -63,7 +63,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/discover" element={<Discover />} />
-                <Route path="/discography" element={<Discography />} />
+                <Route path="/trending" element={<TrendingCharts />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/user/:userId" element={<UserProfile />} />

@@ -307,7 +307,7 @@ button {
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: center;
 }
 
@@ -331,7 +331,9 @@ button {
 
 .about-hero p {
   max-width: 660px;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--rc-text) 85%, var(--muted) 15%);
+  font-size: 1.125rem;
+  line-height: 1.7;
 }
 
 .about-cards-section {
@@ -384,7 +386,8 @@ button {
 }
 
 .about-card p {
-  color: var(--muted);
+  color: color-mix(in srgb, var(--rc-text) 75%, var(--muted) 25%);
+  line-height: 1.6;
 }
 
 .about-rating-section {
@@ -403,7 +406,9 @@ button {
 }
 
 .rating-section-header p {
-  color: var(--muted);
+  color: color-mix(in srgb, var(--rc-text) 80%, var(--muted) 20%);
+  font-size: 1.0625rem;
+  line-height: 1.65;
 }
 
 .rating-grid {
@@ -438,7 +443,8 @@ button {
 }
 
 .rating-card p {
-  color: var(--muted);
+  color: color-mix(in srgb, var(--rc-text) 75%, var(--muted) 25%);
+  line-height: 1.6;
 }
 
 .rating-card ul {
@@ -446,8 +452,9 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  color: color-mix(in srgb, var(--muted) 88%, white 12%);
+  color: color-mix(in srgb, var(--rc-text) 70%, var(--muted) 30%);
   padding-left: 0;
+  line-height: 1.5;
 }
 
 .rating-card ul li {
@@ -468,9 +475,10 @@ button {
   align-items: flex-start;
   padding: 1rem 1.25rem;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--rc-primary) 12%, transparent);
-  color: color-mix(in srgb, var(--rc-primary) 16%, white 84%);
-  border: 1px solid color-mix(in srgb, var(--rc-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--rc-primary) 18%, var(--panel-bg));
+  color: color-mix(in srgb, var(--rc-text) 90%, var(--rc-primary) 10%);
+  border: 1px solid color-mix(in srgb, var(--rc-primary) 40%, transparent);
+  line-height: 1.6;
 }
 
 .rating-note p {
@@ -539,11 +547,12 @@ button {
 }
 
 .tracks-list .track-number {
-  font-size: 0.9rem;
-  color: var(--muted);
-  font-weight: 600;
+  font-size: 1rem;
+  color: var(--rc-text);
+  font-weight: 700;
   min-width: 2rem;
   margin-right: 1rem;
+  opacity: 0.85;
 }
 
 .tracks-list .track-info {

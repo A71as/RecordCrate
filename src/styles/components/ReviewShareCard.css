@@ -1,0 +1,259 @@
+/* Review Share Card Modal */
+.review-share-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.review-share-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+}
+
+.review-share-content {
+  position: relative;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--panel-bg) 98%, var(--rc-primary) 2%),
+    var(--panel-bg));
+  border: 2px solid color-mix(in srgb, var(--rc-primary) 20%, transparent);
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px color-mix(in srgb, var(--rc-primary) 10%, transparent) inset;
+}
+
+.review-share-close {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: color-mix(in srgb, var(--rc-red) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rc-red) 30%, transparent);
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--rc-red);
+  transition: all 0.2s ease;
+}
+
+.review-share-close:hover {
+  background: color-mix(in srgb, var(--rc-red) 25%, transparent);
+  border-color: var(--rc-red);
+  transform: scale(1.05);
+}
+
+.review-share-content h2 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.review-share-preview {
+  background: color-mix(in srgb, var(--panel-bg) 50%, transparent);
+  border: 2px solid color-mix(in srgb, var(--panel-border) 30%, transparent);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-card-preview {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.generating-loader {
+  text-align: center;
+  padding: 3rem;
+  color: var(--muted);
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.generating-loader p {
+  animation: pulse-text 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-text {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.review-share-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.share-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 14px;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.share-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.share-action-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.share-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.share-action-btn:disabled:hover {
+  transform: none;
+}
+
+.download-btn {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--rc-accent) 20%, transparent),
+    color-mix(in srgb, var(--rc-accent) 10%, transparent));
+  border-color: color-mix(in srgb, var(--rc-accent) 40%, transparent);
+  color: var(--rc-accent);
+}
+
+.download-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--rc-accent) 30%, transparent),
+    color-mix(in srgb, var(--rc-accent) 20%, transparent));
+  border-color: var(--rc-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--rc-accent) 25%, black);
+}
+
+.share-btn {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--rc-primary) 20%, transparent),
+    color-mix(in srgb, var(--rc-primary) 10%, transparent));
+  border-color: color-mix(in srgb, var(--rc-primary) 40%, transparent);
+  color: var(--rc-primary);
+}
+
+.share-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--rc-primary) 30%, transparent),
+    color-mix(in srgb, var(--rc-primary) 20%, transparent));
+  border-color: var(--rc-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--rc-primary) 25%, black);
+}
+
+.link-btn {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--spotify-green) 20%, transparent),
+    color-mix(in srgb, var(--spotify-green) 10%, transparent));
+  border-color: color-mix(in srgb, var(--spotify-green) 40%, transparent);
+  color: var(--spotify-green);
+}
+
+.link-btn:hover {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--spotify-green) 30%, transparent),
+    color-mix(in srgb, var(--spotify-green) 20%, transparent));
+  border-color: var(--spotify-green);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--spotify-green) 25%, black);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .review-share-content {
+    padding: 2rem 1.5rem;
+    max-height: 95vh;
+  }
+
+  .review-share-content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .review-share-preview {
+    padding: 1rem;
+    min-height: 200px;
+  }
+
+  .review-share-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .share-action-btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9375rem;
+  }
+
+  .review-share-close {
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-share-modal {
+    padding: 0.5rem;
+  }
+
+  .review-share-content {
+    padding: 1.5rem 1rem;
+    border-radius: 16px;
+  }
+}

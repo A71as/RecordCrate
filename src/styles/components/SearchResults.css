@@ -1,0 +1,178 @@
+/* Search Results Component Styles */
+
+.search-results {
+    margin-bottom: 3rem;
+}
+
+.carousel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--panel-border);
+    position: relative;
+}
+
+.carousel-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--rc-primary) 0%, transparent 100%);
+}
+
+.carousel-header h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    color: var(--rc-text);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.carousel-controls {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.carousel-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--panel-border);
+    background: var(--panel-bg);
+    color: var(--rc-text);
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    user-select: none;
+}
+
+.carousel-btn:hover {
+    background: var(--rc-primary);
+    border-color: var(--rc-primary);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 
+        0 4px 16px color-mix(in srgb, var(--rc-primary) 30%, transparent),
+        0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-btn:active {
+    transform: scale(0.95);
+}
+
+.album-carousel {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: clamp(1.75rem, 3.5vw, 2.75rem);
+    width: 100%;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Artist Results Section */
+.artist-results {
+    margin-bottom: 3rem;
+}
+
+.artist-results .carousel-header h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.artist-carousel {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    width: 100%;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Error Message */
+.error {
+    padding: 1.5rem 2rem;
+    background: color-mix(in srgb, #ef4444 10%, var(--panel-bg));
+    border: 2px solid color-mix(in srgb, #ef4444 30%, transparent);
+    border-radius: 12px;
+    color: #ef4444;
+    font-weight: 600;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .album-carousel {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .artist-carousel {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .carousel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .carousel-controls {
+        align-self: flex-end;
+    }
+
+    .carousel-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .album-carousel {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .artist-carousel {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    .carousel-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .album-carousel {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+
+    .artist-carousel {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .carousel-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+}

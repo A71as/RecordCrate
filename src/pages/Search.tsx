@@ -299,62 +299,80 @@ export const Search: React.FC = () => {
   return (
     <div className="search-page">
       <div className="container">
-        <div className="search-header">
-          <div className="search-header-top">
-            <h1>Search Music</h1>
+        {!isNaturalLanguageMode && (
+          <div className="search-hero">
+            <div className="hero-content">
+              <h1>Discover Music</h1>
+              <p className="hero-subtitle">Search millions of albums, artists, and tracks from the Spotify catalog</p>
+            </div>
             <button
               type="button"
-              onClick={() => setIsNaturalLanguageMode(!isNaturalLanguageMode)}
-              className={`natural-language-toggle ${isNaturalLanguageMode ? 'active' : ''}`}
-              title="Toggle Natural Language Search"
+              onClick={() => setIsNaturalLanguageMode(true)}
+              className="natural-language-toggle"
+              title="Switch to Natural Language Search"
             >
               <Sparkles size={18} />
-              {isNaturalLanguageMode ? 'Traditional Search' : 'Natural Language'}
+              <span>Try Natural Language Search</span>
             </button>
           </div>
+        )}
+
+        <div className="search-header">
 
           {isNaturalLanguageMode ? (
-            <div className="container">
-              <NaturalLanguageSearch onClose={() => setIsNaturalLanguageMode(false)} />
-            </div>
+            <NaturalLanguageSearch onClose={() => setIsNaturalLanguageMode(false)} />
           ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSearch();
-              }}
-              className="search-form"
-            >
-              <div className="search-input-group" ref={dropdownRef}>
-              <SearchInput
-                ref={inputRef}
-                value={query}
-                onChange={setQuery}
-                onSubmit={handleSearch}
-                onClear={handleClear}
-                onKeyDown={handleKeyDown}
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
-                ariaExpanded={showDropdown}
-                ariaControls="search-dropdown"
-                ariaDescribedBy={error ? "search-error" : undefined}
-                placeholder="Search for albums, artists, and tracks..."
-              />
+            <>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSearch();
+                }}
+                className="search-form"
+              >
+                <div className="search-input-wrapper" ref={dropdownRef}>
+                  <div className="search-input-group">
+                    <SearchInput
+                      ref={inputRef}
+                      value={query}
+                      onChange={setQuery}
+                      onSubmit={handleSearch}
+                      onClear={handleClear}
+                      onKeyDown={handleKeyDown}
+                      onFocus={handleInputFocus}
+                      onBlur={handleInputBlur}
+                      ariaExpanded={showDropdown}
+                      ariaControls="search-dropdown"
+                      ariaDescribedBy={error ? "search-error" : undefined}
+                      placeholder="Search for albums, artists, tracks..."
+                    />
+                  </div>
 
-                <SearchDropdown
-                  suggestions={dropdownSuggestions}
-                  isVisible={showDropdown}
-                  selectedIndex={selectedIndex}
-                  onSuggestionSelect={handleSuggestionSelect}
-                  onHover={setSelectedIndex}
-                />
-              </div>
-            </form>
+                  <SearchDropdown
+                    suggestions={dropdownSuggestions}
+                    isVisible={showDropdown}
+                    selectedIndex={selectedIndex}
+                    onSuggestionSelect={handleSuggestionSelect}
+                    onHover={setSelectedIndex}
+                  />
+                </div>
+              </form>
+
+              {hasSearched && !loading && (albumResults.length > 0 || artistResults.length > 0 || trackResults.length > 0) && (
+                <div className="results-stats">
+                  <div className="stats-group">
+                    {albumResults.length > 0 && <span className="stat-item">{albumResults.length} Albums</span>}
+                    {artistResults.length > 0 && <span className="stat-item">{artistResults.length} Artists</span>}
+                    {trackResults.length > 0 && <span className="stat-item">{trackResults.length} Tracks</span>}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Results Section - Show albums, artists, and tracks */}
-        {(albumResults.length > 0 || artistResults.length > 0 || trackResults.length > 0) && (
+        {/* Results Section - Show albums, artists, and tracks (only in traditional search mode) */}
+        {!isNaturalLanguageMode && (albumResults.length > 0 || artistResults.length > 0 || trackResults.length > 0) && (
           <div className="unified-results">
             <MusicFilterBar
               filters={filters}
@@ -401,17 +419,28 @@ export const Search: React.FC = () => {
           </div>
         )}
 
-        {/* No results message */}
-        {!loading &&
+        {/* No results message (only in traditional search mode) */}
+        {!isNaturalLanguageMode &&
+          !loading &&
           albumResults.length === 0 &&
           artistResults.length === 0 &&
           trackResults.length === 0 &&
           hasSearched && (
-            <div className="no-results">
+            <div className="no-results-container">
+              <div className="no-results-icon">🔍</div>
+              <h3>No Results Found</h3>
               <p>
-                No albums, artists, or tracks found for "{query}". Try a different
-                search term.
+                We couldn't find any matches for <strong>"{query}"</strong>
               </p>
+              <div className="search-suggestions">
+                <p className="suggestions-label">Try:</p>
+                <ul>
+                  <li>Checking your spelling</li>
+                  <li>Using different keywords</li>
+                  <li>Searching for an artist or album name</li>
+                  <li>Using our Natural Language Search for better results</li>
+                </ul>
+              </div>
             </div>
           )}
       </div>

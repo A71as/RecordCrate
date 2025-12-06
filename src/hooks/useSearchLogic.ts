@@ -3,6 +3,98 @@ import { useSpotify } from './useSpotify';
 import type { SpotifyAlbum, SpotifyArtist, SpotifyTrack } from '../types';
 import type { SearchResult } from '../components/SearchDropdown';
 
+// Function to remove duplicate albums (keeping only one of explicit/clean versions)
+const deduplicateAlbums = (albums: SpotifyAlbum[]): SpotifyAlbum[] => {
+    const seen = new Map<string, SpotifyAlbum>();
+    const seenIds = new Set<string>();
+    
+    for (const album of albums) {
+        // First check: skip if we've already seen this exact album ID
+        if (seenIds.has(album.id)) {
+            continue;
+        }
+        
+        // Create a key based on album name and artist (normalized)
+        const albumName = album.name
+            .toLowerCase()
+            .replace(/\s*\(explicit\)\s*/gi, '')
+            .replace(/\s*\(clean\)\s*/gi, '')
+            .replace(/\s*\[explicit\]\s*/gi, '')
+            .replace(/\s*\[clean\]\s*/gi, '')
+            .replace(/\s*-\s*explicit\s*$/gi, '')
+            .replace(/\s*-\s*clean\s*$/gi, '')
+            .replace(/\s+/g, ' ') // normalize whitespace
+            .trim();
+        const artistName = album.artists[0]?.name.toLowerCase() || '';
+        const releaseYear = album.release_date?.substring(0, 4) || '';
+        const totalTracks = album.total_tracks || 0;
+        
+        // Use name, artist, year, and track count for very precise matching
+        const key = `${artistName}:${albumName}:${releaseYear}:${totalTracks}`;
+        
+        if (!seen.has(key)) {
+            // First time seeing this album, add it
+            seen.set(key, album);
+            seenIds.add(album.id);
+        } else {
+            // We've seen this album before - prefer explicit version, or higher popularity
+            const existing = seen.get(key)!;
+            const isCurrentExplicit = album.name.toLowerCase().includes('explicit');
+            const isExistingExplicit = existing.name.toLowerCase().includes('explicit');
+            
+            // Replace with explicit version if current is explicit and existing isn't
+            if (isCurrentExplicit && !isExistingExplicit) {
+                seenIds.delete(existing.id);
+                seen.set(key, album);
+                seenIds.add(album.id);
+            }
+            // If both are explicit or both are clean, prefer higher popularity
+            else if (isCurrentExplicit === isExistingExplicit) {
+                if ((album.popularity || 0) > (existing.popularity || 0)) {
+                    seenIds.delete(existing.id);
+                    seen.set(key, album);
+                    seenIds.add(album.id);
+                }
+            }
+        }
+    }
+    
+    return Array.from(seen.values());
+};
+
+// Function to remove duplicate tracks (keeping only one of explicit/clean versions)
+const deduplicateTracks = (tracks: SpotifyTrack[]): SpotifyTrack[] => {
+    const seen = new Map<string, SpotifyTrack>();
+    
+    for (const track of tracks) {
+        // Create a key based on track name and artist (normalized)
+        const trackName = track.name
+            .toLowerCase()
+            .replace(/\s*\(explicit\)\s*/gi, '')
+            .replace(/\s*\(clean\)\s*/gi, '')
+            .replace(/\s*-\s*explicit\s*/gi, '')
+            .replace(/\s*-\s*clean\s*/gi, '')
+            .trim();
+        const artistName = track.artists[0]?.name.toLowerCase() || '';
+        const key = `${artistName}:${trackName}`;
+        
+        if (!seen.has(key)) {
+            seen.set(key, track);
+        } else {
+            // Prefer explicit version
+            const existing = seen.get(key)!;
+            const isCurrentExplicit = track.name.toLowerCase().includes('explicit') || track.explicit;
+            const isExistingExplicit = existing.name.toLowerCase().includes('explicit') || existing.explicit;
+            
+            if (isCurrentExplicit && !isExistingExplicit) {
+                seen.set(key, track);
+            }
+        }
+    }
+    
+    return Array.from(seen.values());
+};
+
 // Function to calculate relevance score for search results
 const calculateRelevanceScore = (searchQuery: string, result: SearchResult): number => {
     const query = searchQuery.toLowerCase().trim();
@@ -110,8 +202,12 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
                     // Double-check query hasn't changed during async operation
                     if (currentQueryRef.current !== query) return;
 
+                    // Deduplicate albums and tracks to remove explicit/clean duplicates
+                    const uniqueAlbums = deduplicateAlbums(albums);
+                    const uniqueTracks = deduplicateTracks(tracks);
+
                     // Convert to unified search results
-                    const albumResults: SearchResult[] = albums.map(album => ({
+                    const albumResults: SearchResult[] = uniqueAlbums.map(album => ({
                         type: 'album' as const,
                         data: album
                     }));
@@ -121,7 +217,7 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
                         data: artist
                     }));
 
-                    const trackResults: SearchResult[] = tracks.map(track => ({
+                    const trackResults: SearchResult[] = uniqueTracks.map(track => ({
                         type: 'track' as const,
                         data: track
                     }));
@@ -190,7 +286,10 @@ export const useSearchLogic = (props?: UseSearchLogicProps) => {
             searchArtists(query)
         ]);
 
-        setAlbumResults(albums);
+        // Deduplicate to remove explicit/clean duplicates
+        const uniqueAlbums = deduplicateAlbums(albums);
+
+        setAlbumResults(uniqueAlbums);
         setArtistResults(artists);
     }, [query, searchAlbums, searchArtists]);
 

@@ -69,16 +69,23 @@ export const Header: React.FC = () => {
         {/* Desktop Navigation */}
         <nav className="header-nav">
           <NavLink 
+            to="/" 
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            end
+          >
+            Home
+          </NavLink>
+          <NavLink 
             to="/discover" 
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           >
             Discover
           </NavLink>
           <NavLink 
-            to="/discography" 
+            to="/trending" 
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           >
-            Discography
+            Charts
           </NavLink>
           <NavLink 
             to="/reviews" 
@@ -161,6 +168,14 @@ export const Header: React.FC = () => {
         <div className="mobile-menu">
           <nav className="mobile-nav">
             <NavLink 
+              to="/" 
+              className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+              end
+            >
+              Home
+            </NavLink>
+            <NavLink 
               to="/discover" 
               className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
               onClick={closeMobileMenu}
@@ -168,11 +183,11 @@ export const Header: React.FC = () => {
               Discover
             </NavLink>
             <NavLink 
-              to="/discography" 
+              to="/trending" 
               className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}
               onClick={closeMobileMenu}
             >
-              Discography
+              Charts
             </NavLink>
             <NavLink 
               to="/reviews" 

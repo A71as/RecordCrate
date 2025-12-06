@@ -1,18 +1,18 @@
 ﻿import React from 'react';
 import { useBillboardInfiniteScroll } from '../hooks/useBillboardInfiniteScroll';
 import { BillboardTrackList } from '../components/BillboardTrackList';
-import '../styles/pages/Discography.css';
+import '../styles/pages/TrendingCharts.css';
 
-export const Discography: React.FC = () => {
+export const TrendingCharts: React.FC = () => {
   const billboardData = useBillboardInfiniteScroll();
 
   return (
-    <div className="discography-page">
+    <div className="trending-charts-page">
       <div className="container">
-        <header className="discography-header">
-          <h1>Billboard Hot 100</h1>
+        <header className="trending-charts-header">
+          <h1>Trending Charts</h1>
           <p>
-            Explore the current Billboard Hot 100 chart. The hottest tracks across all genres, ranked by popularity.
+            Explore the hottest tracks across all genres, ranked by current popularity.
           </p>
           <p style={{ fontSize: '0.9rem', color: 'var(--muted)', marginTop: '0.5rem' }}>
             Tracks not available on Spotify are shown with limited information
@@ -28,7 +28,7 @@ export const Discography: React.FC = () => {
             margin: '2rem 0',
             color: 'var(--error-text, #c00)'
           }}>
-            <h3>Error Loading Billboard Data</h3>
+            <h3>Error Loading Chart Data</h3>
             <p>{billboardData.error}</p>
             <p style={{ fontSize: '0.9rem', marginTop: '1rem' }}>
               Please check the browser console for more details.

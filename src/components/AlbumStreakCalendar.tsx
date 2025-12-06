@@ -95,11 +95,11 @@ export const AlbumStreakCalendar: React.FC<AlbumStreakCalendarProps> = ({
       <div className="streak-footer">
         <div className="legend-item">
           <span className="legend-box completed-legend" />
-          <span className="legend-text">Logged recommendation</span>
+          <span className="legend-text">Reviewed today's pick</span>
         </div>
         <div className="legend-item">
           <span className="legend-box pending-legend" />
-          <span className="legend-text">Awaiting log</span>
+          <span className="legend-text">Missed or not reviewed</span>
         </div>
       </div>
     </div>

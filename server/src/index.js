@@ -6,9 +6,10 @@ import reviewsRouter from './routes/reviews.js';
 import usersRouter from './routes/users.js';
 import discographyRouter from './routes/discography.js';
 import searchRouter from './routes/search.js';
-import nlsearchRouter from './routes/nlsearch.js';
+import nlSearchRouter from './routes/nl-search.js';
 import billboardRouter from './routes/billboard.js';
 import authRouter from './routes/auth.js';
+import dailyRecommendationRouter from './routes/daily-recommendation.js';
 
 const app = express();
 
@@ -39,10 +40,10 @@ try {
   // Always mount discography, search, and billboard; they do not require DB
   app.use('/api/discography', discographyRouter);
   app.use('/api/search', searchRouter);
-  app.use('/api/nlsearch', nlsearchRouter);
+  app.use('/api/nl-search', nlSearchRouter);
   app.use('/api/billboard', billboardRouter);
   app.use('/api/auth', authRouter);
-  console.log('[recordcrate-api] Mounted discography, search, nlsearch, billboard, and auth routes');
+  console.log('[recordcrate-api] Mounted discography, search, nl-search, billboard, and auth routes');
 } catch (e) {
   console.error('[recordcrate-api] Failed to mount routes:', e);
   process.exit(1);
@@ -53,6 +54,7 @@ function mountDbRoutes() {
   try {
     app.use('/api/reviews', reviewsRouter);
     app.use('/api/users', usersRouter);
+    app.use('/api/daily-recommendation', dailyRecommendationRouter);
     console.log('[recordcrate-api] Mounted DB routes');
   } catch (e) {
     console.error('[recordcrate-api] Failed to mount DB routes:', e);

@@ -227,24 +227,119 @@
     font-size: clamp(2rem, 4vw, 3rem);
     font-weight: 800;
     color: var(--rc-text);
-    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    margin-bottom: clamp(2rem, 4vw, 3rem);
     letter-spacing: -0.03em;
     text-align: center;
+    position: relative;
+}
+
+.filtered-content > h2::after {
+    content: '';
+    display: block;
+    width: 120px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--rc-primary), var(--rc-accent), transparent);
+    margin: var(--space-4) auto 0;
+    border-radius: 2px;
 }
 
 .content-section {
-    margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+    margin-bottom: clamp(3rem, 6vw, 4.5rem);
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--rc-primary) 2%, var(--panel-bg)) 0%,
+        var(--panel-bg) 100%);
+    border-radius: var(--border-radius-xl);
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    border: 1px solid color-mix(in srgb, var(--rc-primary) 10%, transparent);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .content-section h3 {
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    font-weight: 700;
+    font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+    font-weight: 800;
     color: var(--rc-text);
-    margin-bottom: var(--space-5);
+    margin-bottom: clamp(1.5rem, 3vw, 2rem);
     letter-spacing: -0.025em;
-    padding-bottom: var(--space-3);
-    border-bottom: 2px solid var(--panel-border);
+    padding-bottom: var(--space-4);
+    border-bottom: 2px solid color-mix(in srgb, var(--rc-primary) 20%, transparent);
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+/* Load More Button - Premium Design */
+.load-more-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin: clamp(2rem, 4vw, 3rem) auto;
+    text-align: center;
+    padding: var(--space-4) var(--space-7);
+    background: linear-gradient(135deg, 
+        var(--rc-primary) 0%, 
+        color-mix(in srgb, var(--rc-primary) 90%, var(--rc-accent) 10%) 50%,
+        var(--rc-accent) 100%);
+    color: var(--rc-bg);
+    border: none;
+    border-radius: 50px;
+    font-size: clamp(0.95rem, 2vw, 1.05rem);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 4px 20px rgba(212, 165, 116, 0.25),
+        0 2px 8px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+}
+
+.load-more-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.2), 
+        transparent);
+    transition: left 0.5s ease;
+}
+
+.load-more-button:hover::before {
+    left: 100%;
+}
+
+.load-more-button:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+        0 8px 30px rgba(212, 165, 116, 0.4),
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.load-more-button:active {
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 
+        0 4px 15px rgba(212, 165, 116, 0.3),
+        0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.load-more-button::after {
+    content: '↓';
+    font-size: 1.2em;
+    margin-left: var(--space-1);
+    transition: transform 0.3s ease;
+}
+
+.load-more-button:hover::after {
+    transform: translateY(3px);
 }
 
 .content-section h3::after {
@@ -338,5 +433,29 @@
 
     .personal-note {
         padding: var(--space-3) var(--space-4);
+    }
+
+    .load-more-button {
+        padding: var(--space-3) var(--space-5);
+        font-size: 0.9rem;
+        width: 90%;
+        max-width: 300px;
+    }
+
+    .content-section {
+        padding: clamp(1rem, 2.5vw, 1.5rem);
+        margin-bottom: 2rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .load-more-button {
+        padding: var(--space-3) var(--space-4);
+        font-size: 0.85rem;
+        width: 95%;
+    }
+
+    .load-more-button::after {
+        font-size: 1em;
     }
 }

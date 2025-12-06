@@ -1,10 +1,22 @@
 /* Album Grid - Professional & Responsive */
 .album-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: clamp(1.5rem, 3vw, 2.5rem);
-    padding: var(--space-3) 0;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: clamp(1.75rem, 3.5vw, 2.75rem);
+    padding: clamp(1rem, 2vw, 1.5rem) 0;
     width: 100%;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Album Card - Enhanced Design */
@@ -24,12 +36,13 @@
 }
 
 .album-card:hover {
-    transform: translateY(-8px) scale(1.02);
+    transform: translateY(-10px) scale(1.03);
     box-shadow:
-        0 20px 60px color-mix(in srgb, var(--rc-text) 25%, transparent),
-        0 0 0 1px var(--rc-primary),
-        0 1px 0 0 color-mix(in srgb, var(--rc-primary) 15%, transparent) inset;
-    border-color: color-mix(in srgb, var(--rc-primary) 60%, transparent);
+        0 24px 72px color-mix(in srgb, var(--rc-primary) 30%, transparent),
+        0 12px 32px color-mix(in srgb, var(--rc-text) 20%, transparent),
+        0 0 0 2px var(--rc-primary),
+        0 1px 0 0 color-mix(in srgb, var(--rc-primary) 20%, transparent) inset;
+    border-color: var(--rc-primary);
 }
 
 .album-image {

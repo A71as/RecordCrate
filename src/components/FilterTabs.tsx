@@ -68,10 +68,14 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({
             {filters.map((filter) => (
               <button
                 key={filter.id}
+                type="button"
                 className={`filter-button ${
                   activeFilter === filter.id ? 'active' : ''
                 }`}
-                onClick={() => onFilterChange(filter.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onFilterChange(filter.id);
+                }}
               >
                 {filter.label}
               </button>

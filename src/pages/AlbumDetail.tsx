@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Star, ArrowLeft, Clock } from "lucide-react";
+import { Star, ArrowLeft, Clock, Share2 } from "lucide-react";
 import { spotifyService } from "../services/spotify";
 import { backend } from "../services/backend";
+import { dailyRecommendationService } from "../services/dailyRecommendation";
 import { StarRating } from "../components/StarRating";
+import { ReviewShareCard } from "../components/ReviewShareCard";
 import type { SpotifyAlbum, SongRating, AlbumReview } from "../types";
 import { useAuth0 } from '@auth0/auth0-react';
 import '../styles/pages/AlbumDetail.css';
@@ -55,6 +57,7 @@ export const AlbumDetail: React.FC = () => {
   const [isReviewing, setIsReviewing] = useState(false);
   const [existingReview, setExistingReview] = useState<AlbumReview | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
+  const [showShareCard, setShowShareCard] = useState(false);
   // Score modifiers: signed percentages (-10..+10) per category
   const [modifiers, setModifiers] = useState<ModifierState>({
     emotionalStoryConnection: 0,
@@ -340,6 +343,14 @@ export const AlbumDetail: React.FC = () => {
     const existingIndex = savedReviews.findIndex((r: AlbumReview) => r.albumId === album.id);
     if (existingIndex >= 0) savedReviews[existingIndex] = review; else savedReviews.push(review);
     localStorage.setItem("albumReviews", JSON.stringify(savedReviews));
+    
+    // Check if this album was today's daily recommendation and mark it as reviewed
+    const today = new Date().toISOString().split('T')[0];
+    if (dailyRecommendationService.isRecommendationForDate(today, album.id)) {
+      dailyRecommendationService.markAsReviewed(today, album.id, review.id);
+      console.log('[AlbumDetail] Marked today\'s recommendation as reviewed');
+    }
+    
     if (!currentUserId) {
       setReviewCount(savedReviews.filter((r: AlbumReview) => r.albumId === album.id).length);
     }
@@ -468,244 +479,247 @@ export const AlbumDetail: React.FC = () => {
           Back
         </button>
 
-        <div className="album-header">
-          <div className="album-artwork">
-            {albumImage && <img src={albumImage} alt={album.name} />}
-          </div>
-
-            <div className="album-info">
-              <h1 className="album-title">{album.name}</h1>
-              <div className="album-artists">
-                {album.artists.map((artist, index) => (
-                  <button
-                    key={artist.id}
-                    type="button"
-                    className="artist-link"
-                    onClick={() => navigate(`/artist/${artist.id}`)}
-                  >
-                    {artist.name}
-                    {index < album.artists.length - 1 ? ", " : ""}
-                  </button>
-                ))}
+        <div className="album-hero">
+          <div className="album-hero-background" style={{ backgroundImage: albumImage ? `url(${albumImage})` : 'none' }} />
+          
+          <div className="album-hero-content">
+            <div className="album-artwork-wrapper">
+              <div className="album-artwork-container">
+                {albumImage && <img src={albumImage} alt={album.name} className="album-artwork-image" />}
               </div>
-            <div className="album-meta">
-              <span className="release-date">
-                {new Date(album.release_date).getFullYear()}
-              </span>
-              <span className="track-count">{album.total_tracks} tracks</span>
-              <span className="duration">{getTotalDuration()}</span>
             </div>
 
-            {!canRate && (
-              <div className="rating-lockout">
-                <p>Log in to rate this album and write reviews.</p>
-                <button
-                  type="button"
-                  className="auth-login-btn"
-                  onClick={() => loginWithRedirect()}
-                >
-                  Login to Review
+            <div className="album-hero-info">
+              <div className="album-meta-tags">
+                <span className="meta-tag">{album.release_date?.split("-")[0] || "Unknown"}</span>
+                <span className="meta-tag">{trackCount} tracks</span>
+                <span className="meta-tag">{getTotalDuration()}</span>
+              </div>
+              
+              <h1 className="album-title-hero">{album.name}</h1>
+              
+              <div className="album-artists-hero">
+                {album.artists.map((artist, index) => (
+                  <React.Fragment key={artist.id}>
+                    <button
+                      type="button"
+                      className="artist-link-hero"
+                      onClick={() => navigate(`/artist/${artist.id}`)}
+                    >
+                      {artist.name}
+                    </button>
+                    {index < album.artists.length - 1 && <span className="artist-separator">•</span>}
+                  </React.Fragment>
+                ))}
+              </div>
+
+              {!isReviewing && !existingReview && canRate && (
+                <button className="review-button-hero" onClick={handleStartReview}>
+                  <Star size={20} fill="currentColor" />
+                  Write a Review
                 </button>
-              </div>
-            )}
-
-            {existingReview && !isReviewing && (
-              <div className="existing-review-summary">
-                <div className="overall-rating">
-                  <span>Your Rating: </span>
-                  <div className="percent-badge">
-                    {existingReview.overallRating}%
-                  </div>
-                  <div className="percent-bar" style={{ marginLeft: 8 }}>
-                    <div className="percent-fill"
-                      style={{
-                        width: `${existingReview.overallRating}%`,
-                        background: percentColor(existingReview.overallRating),
-                      }}
-                    />
-                  </div>
+              )}
+              
+              {!canRate && !isReviewing && !existingReview && (
+                <div className="login-prompt-hero">
+                  <p>Sign in to review this album and share your thoughts</p>
+                  <button className="auth-login-btn" onClick={() => loginWithRedirect()}>
+                    Login to Review
+                  </button>
                 </div>
-              </div>
-            )}
-
-            <div className="album-actions">
-              <button
-                className="review-button"
-                onClick={() => canRate && setIsReviewing(!isReviewing)}
-                disabled={!canRate}
-              >
-                <Star size={20} />
-                {reviewButtonLabel}
-              </button>
+              )}
             </div>
           </div>
         </div>
 
         {album.tracks?.items && (
           <div className="tracklist-section">
-            <h2>Tracks</h2>
+            <div className="tracklist-header">
+              <h2>Tracklist</h2>
+              <span className="track-count-badge">{trackCount} songs</span>
+            </div>
             <div className="tracklist">
-              {album.tracks.items.map((track) => (
+              {album.tracks.items.map((track, index) => (
                 <div key={track.id} className="track-item">
-                  <div className="track-number">{track.track_number}</div>
-                  <div className="track-info">
+                  <div className="track-number-col">
+                    <span className="track-number">{track.track_number}</span>
+                  </div>
+                  <div className="track-info-col">
                     <div className="track-name">{track.name}</div>
                     <div className="track-artists">
-                      {track.artists.map((artist, index) => (
+                      {track.artists.map((artist, idx) => (
                         <span key={artist.id}>
                           {artist.name}
-                          {index < track.artists.length - 1 && ", "}
+                          {idx < track.artists.length - 1 ? ", " : ""}
                         </span>
                       ))}
                     </div>
                   </div>
-                  {isReviewing && (
-                    <div className="track-rating">
+                  <div className="track-duration-col">
+                    <Clock size={14} />
+                    <span>{formatDuration(track.duration_ms)}</span>
+                  </div>
+                  {isReviewing && canRate && (
+                    <div className="track-rating-col">
                       <StarRating
                         rating={songRatings[track.id] || 0}
-                        maxRating={5}
-                        onRatingChange={(rating) =>
-                          handleSongRatingChange(track.id, rating)
-                        }
-                        readonly={!canRate}
-                        size={14}
+                        onRatingChange={(r) => handleSongRatingChange(track.id, r)}
+                        size={18}
                       />
                     </div>
                   )}
-                  <div className="track-duration">
-                    <Clock size={14} />
-                    {formatDuration(track.duration_ms)}
-                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {isReviewing && (
+        {isReviewing && canRate && (
           <div className="review-section">
-            <h2>Write Your Review</h2>
+            <div className="review-section-header">
+              <h2>Write Your Review</h2>
+              <p className="review-subtitle">Share your detailed thoughts on this album</p>
+            </div>
+            
             <div className="review-form">
               <div className="overall-rating-section">
-                <label htmlFor="overall-percent">Base Overall Album Rating:</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      id="overall-percent"
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={overallRating}
-                      onChange={(e) => handleOverallRatingChange(Number(e.target.value))}
-                      disabled={!canRate}
-                    />
-                    <div className="percent-badge">{overallRating}%</div>
+                <div className="rating-header">
+                  <label htmlFor="overall-percent">Base Album Rating</label>
+                  <div className="rating-display">
+                    <span className="rating-percent">{overallRating}%</span>
                   </div>
                 </div>
-                {/* Score Modifiers */}
-                <div className="modifiers-section">
-                  <div className="modifiers-header">
-                    <span>Score Modifiers (±5% each, step 2.5%)</span>
-                    <span className="modifiers-total">Total: {formatSigned(totalModifier())}</span>
-                  </div>
-                  <div className="modifier-row">
-                    <label>Emotional/story connection</label>
+                <input
+                  id="overall-percent"
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={overallRating}
+                  onChange={(e) => handleOverallRatingChange(Number(e.target.value))}
+                  className="rating-slider"
+                />
+                <div className="rating-bar-preview">
+                  <div 
+                    className="rating-bar-fill" 
+                    style={{ 
+                      width: `${overallRating}%`,
+                      background: percentColor(overallRating)
+                    }} 
+                  />
+                </div>
+              </div>
+
+              <div className="modifiers-section">
+                <div className="modifiers-header">
+                  <h3>Fine-tune Your Score</h3>
+                  <span className="modifiers-total">
+                    Total Adjustment: {formatSigned(totalModifier())}
+                  </span>
+                </div>
+                <p className="modifiers-description">
+                  Adjust your rating based on specific aspects (±5% each, in 2.5% increments)
+                </p>
+                
+                <div className="modifier-grid">
+                  <div className="modifier-card">
+                    <label>Emotional/Story Connection</label>
                     <div className="modifier-control">
                       <button
                         type="button"
-                        className="modifier-btn"
+                        className="modifier-btn minus"
                         onClick={() => adjustModifier('emotionalStoryConnection', -2.5)}
                         disabled={modifiers.emotionalStoryConnection <= -5}
-                      >-2.5%</button>
+                      >−</button>
                       <span className="modifier-value">{formatSigned(modifiers.emotionalStoryConnection)}</span>
                       <button
                         type="button"
-                        className="modifier-btn"
+                        className="modifier-btn plus"
                         onClick={() => adjustModifier('emotionalStoryConnection', 2.5)}
                         disabled={modifiers.emotionalStoryConnection >= 5}
-                      >+2.5%</button>
+                      >+</button>
                     </div>
                   </div>
-                  <div className="modifier-row">
-                    <label>Cohesion and flow</label>
+                  
+                  <div className="modifier-card">
+                    <label>Cohesion & Flow</label>
                     <div className="modifier-control">
                       <button
                         type="button"
-                        className="modifier-btn"
+                        className="modifier-btn minus"
                         onClick={() => adjustModifier('cohesionAndFlow', -2.5)}
                         disabled={modifiers.cohesionAndFlow <= -5}
-                      >-2.5%</button>
+                      >−</button>
                       <span className="modifier-value">{formatSigned(modifiers.cohesionAndFlow)}</span>
                       <button
                         type="button"
-                        className="modifier-btn"
+                        className="modifier-btn plus"
                         onClick={() => adjustModifier('cohesionAndFlow', 2.5)}
                         disabled={modifiers.cohesionAndFlow >= 5}
-                      >+2.5%</button>
+                      >+</button>
                     </div>
                   </div>
-                  <div className="modifier-row">
-                    <label>Artist identity and originality</label>
+                  
+                  <div className="modifier-card">
+                    <label>Artist Identity & Originality</label>
                     <div className="modifier-control">
                       <button
                         type="button"
-                        className="modifier-btn"
+                        className="modifier-btn minus"
                         onClick={() => adjustModifier('artistIdentityOriginality', -2.5)}
                         disabled={modifiers.artistIdentityOriginality <= -5}
-                      >-2.5%</button>
+                      >−</button>
                       <span className="modifier-value">{formatSigned(modifiers.artistIdentityOriginality)}</span>
                       <button
                         type="button"
-                        className="modifier-btn"
+                        className="modifier-btn plus"
                         onClick={() => adjustModifier('artistIdentityOriginality', 2.5)}
                         disabled={modifiers.artistIdentityOriginality >= 5}
-                      >+2.5%</button>
+                      >+</button>
                     </div>
                   </div>
-                  <div className="modifier-row">
-                    <label>Visual/aesthetic ecosystem</label>
+                  
+                  <div className="modifier-card">
+                    <label>Visual/Aesthetic Ecosystem</label>
                     <div className="modifier-control">
                       <button
                         type="button"
-                        className="modifier-btn"
+                        className="modifier-btn minus"
                         onClick={() => adjustModifier('visualAestheticEcosystem', -2.5)}
                         disabled={modifiers.visualAestheticEcosystem <= -5}
-                      >-2.5%</button>
+                      >−</button>
                       <span className="modifier-value">{formatSigned(modifiers.visualAestheticEcosystem)}</span>
                       <button
                         type="button"
-                        className="modifier-btn"
+                        className="modifier-btn plus"
                         onClick={() => adjustModifier('visualAestheticEcosystem', 2.5)}
                         disabled={modifiers.visualAestheticEcosystem >= 5}
-                      >+2.5%</button>
-                    </div>
-                  </div>
-                  <div className="adjusted-summary">
-                    <div>Final Rating with Modifiers:</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div className="percent-badge">{adjustedOverall()}%</div>
-                      <div className="percent-bar" style={{ marginLeft: 8 }}>
-                        <div className="percent-fill" style={{ width: `${adjustedOverall()}%`, background: percentColor(adjustedOverall()) }} />
-                      </div>
+                      >+</button>
                     </div>
                   </div>
                 </div>
-
-                <div className="writeup-section">
-                  <label htmlFor="writeup">Your Thoughts (up to 350 words):</label>
-                  <textarea
-                    id="writeup"
-                    value={writeup}
-                    onChange={(e) => setWriteup(e.target.value.slice(0, 1400))}
-                    placeholder="Share your thoughts about this album..."
-                    rows={6}
-                    disabled={!canRate}
-                  />
-                  <div className="character-count">
-                    {writeup.length}/1400 characters (~{Math.ceil(writeup.split(' ').length)} words)
+                
+                <div className="final-score-preview">
+                  <span className="final-score-label">Final Score:</span>
+                  <span className="final-score-value">{adjustedOverall()}%</span>
+                  <div className="final-score-breakdown">
+                    {overallRating}% base {totalModifier() !== 0 && `${formatSigned(totalModifier())} adjustment`}
                   </div>
                 </div>
+              </div>
 
+              <div className="writeup-section">
+                <label htmlFor="writeup">Your Thoughts</label>
+                <textarea
+                  id="writeup"
+                  value={writeup}
+                  onChange={(e) => setWriteup(e.target.value.slice(0, 1400))}
+                  placeholder="What did you think of this album? Share your insights, favorite moments, and overall impressions..."
+                  rows={8}
+                  disabled={!canRate}
+                />
+                <div className="character-count">
+                  {writeup.length} / 1400 characters
+                </div>
               </div>
 
               <div className="review-actions">
@@ -717,6 +731,7 @@ export const AlbumDetail: React.FC = () => {
                   onClick={handleSaveReview}
                   disabled={!canRate || overallRating === 0}
                 >
+                  <Star size={18} fill="currentColor" />
                   Save Review
                 </button>
               </div>
@@ -725,106 +740,123 @@ export const AlbumDetail: React.FC = () => {
         )}
 
         {existingReview && !isReviewing && (
-          <div className="existing-review">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div className="existing-review-card">
+            <div className="review-card-header">
               <h2>Your Review</h2>
-              <button 
-                className="delete-review-btn"
-                onClick={handleDeleteReview}
-                title="Delete this review"
-              >
-                🗑️ Delete Review
-              </button>
+              <div className="review-card-actions">
+                <button 
+                  className="share-review-btn"
+                  onClick={() => setShowShareCard(true)}
+                >
+                  <Share2 size={18} />
+                  Share
+                </button>
+                <button 
+                  className="delete-review-btn"
+                  onClick={handleDeleteReview}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-            <div className="review-content">
-              <div className="review-rating">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div className="percent-badge">{existingReview.overallRating}%</div>
-                  <div
+            
+            <div className="review-card-content">
+              <div className="review-score-display">
+                <div className="score-badge-large">{existingReview.overallRating}%</div>
+                <div className="score-bar-container">
+                  <div 
+                    className="score-bar-fill"
                     style={{
-                      width: 140,
-                      height: 8,
-                      background: 'color-mix(in srgb, var(--panel-bg) 14%, transparent)',
-                      borderRadius: 4,
-                      overflow: 'hidden',
+                      width: `${existingReview.overallRating}%`,
+                      background: percentColor(existingReview.overallRating),
                     }}
-                  >
-                    <div className="percent-fill"
-                      style={{
-                        width: `${existingReview.overallRating}%`,
-                        background: percentColor(existingReview.overallRating),
-                      }}
-                    />
-                  </div>
+                  />
                 </div>
               </div>
-              {/* Modifiers breakdown if present */}
+              
               {existingReview.scoreModifiers && (
-                <div className="review-modifiers">
-                  {(() => {
-                    const mods = existingReview.scoreModifiers || {};
-                    const esc = clampMod(mods.emotionalStoryConnection ?? 0);
-                    const caf = clampMod(mods.cohesionAndFlow ?? 0);
-                    const aio = clampMod(mods.artistIdentityOriginality ?? 0);
-                    const vae = clampMod(mods.visualAestheticEcosystem ?? 0);
-                    const total = esc + caf + aio + vae;
-                    const finalAdjusted = Math.round(existingReview.adjustedOverallRating ?? existingReview.overallRating);
-                    const base = Math.max(0, Math.min(100, Math.round((existingReview.baseOverallRating ?? (finalAdjusted - total)))));
-                    return (
-                      <>
-                        <div className="modifiers-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>Score Modifiers</span>
-                          <span className="modifiers-total">Total: {formatSigned(total)}</span>
-                        </div>
-                        <div className="modifier-list">
-                          <div className="modifier-item">
-                            <span className="label">Emotional/story connection</span>
-                            <span className="value">{formatSigned(esc)}</span>
-                          </div>
-                          <div className="modifier-item">
-                            <span className="label">Cohesion and flow</span>
-                            <span className="value">{formatSigned(caf)}</span>
-                          </div>
-                          <div className="modifier-item">
-                            <span className="label">Artist identity and originality</span>
-                            <span className="value">{formatSigned(aio)}</span>
-                          </div>
-                          <div className="modifier-item">
-                            <span className="label">Visual/aesthetic ecosystem</span>
-                            <span className="value">{formatSigned(vae)}</span>
-                          </div>
-                          <div className="modifier-item modifier-total">
-                            <span className="label">Base → Final</span>
-                            <span className="value">{base}% → {finalAdjusted}%</span>
-                          </div>
-                        </div>
-                      </>
-                    );
-                  })()}
+                <div className="review-modifiers-display">
+                  <h3>Score Adjustments</h3>
+                  <div className="modifiers-list">
+                    {(() => {
+                      const mods = existingReview.scoreModifiers || {};
+                      const esc = clampMod(mods.emotionalStoryConnection ?? 0);
+                      const caf = clampMod(mods.cohesionAndFlow ?? 0);
+                      const aio = clampMod(mods.artistIdentityOriginality ?? 0);
+                      const vae = clampMod(mods.visualAestheticEcosystem ?? 0);
+                      return (
+                        <>
+                          {esc !== 0 && (
+                            <div className="modifier-item-display">
+                              <span>Emotional/Story Connection</span>
+                              <span className={esc > 0 ? 'positive' : 'negative'}>{formatSigned(esc)}</span>
+                            </div>
+                          )}
+                          {caf !== 0 && (
+                            <div className="modifier-item-display">
+                              <span>Cohesion & Flow</span>
+                              <span className={caf > 0 ? 'positive' : 'negative'}>{formatSigned(caf)}</span>
+                            </div>
+                          )}
+                          {aio !== 0 && (
+                            <div className="modifier-item-display">
+                              <span>Artist Identity & Originality</span>
+                              <span className={aio > 0 ? 'positive' : 'negative'}>{formatSigned(aio)}</span>
+                            </div>
+                          )}
+                          {vae !== 0 && (
+                            <div className="modifier-item-display">
+                              <span>Visual/Aesthetic Ecosystem</span>
+                              <span className={vae > 0 ? 'positive' : 'negative'}>{formatSigned(vae)}</span>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
               )}
+              
               {existingReview.writeup && (
-                <div className="review-writeup">
+                <div className="review-writeup-display">
                   <p>{existingReview.writeup}</p>
                 </div>
               )}
+              
               <div className="review-meta">
-                Reviewed on{" "}
-                {existingReview.createdAt && new Date(existingReview.createdAt).toLocaleDateString()}
+                <span>
+                  Reviewed {existingReview.createdAt && new Date(existingReview.createdAt).toLocaleDateString('en-US', { 
+                    month: 'long', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                  })}
+                </span>
                 {existingReview.updatedAt && existingReview.updatedAt !== existingReview.createdAt && (
-                  <span>
-                    {" "}
-                    • Updated{" "}
-                    {new Date(existingReview.updatedAt).toLocaleDateString()}
+                  <span className="updated-badge">
+                    Updated {new Date(existingReview.updatedAt).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })}
                   </span>
                 )}
               </div>
             </div>
           </div>
         )}
+
+        {showShareCard && existingReview && album && (
+          <ReviewShareCard
+            review={existingReview}
+            album={album}
+            userName={user?.name || user?.email || 'Anonymous'}
+            onClose={() => setShowShareCard(false)}
+          />
+        )}
       </div>
     </div>
   );
 };
+
+
 
 
