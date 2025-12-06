@@ -6,6 +6,7 @@ import { AlbumCard } from '../components/AlbumCard';
 import { ArtistCard } from '../components/ArtistCard';
 import { FilterTabs } from '../components/FilterTabs';
 import { AlbumGridSkeleton } from '../components/AlbumCardSkeleton';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import AlbumStreakCalendar, { type AlbumStreakCalendarEntry } from '../components/AlbumStreakCalendar';
 import { useSpotify } from '../hooks/useSpotify';
 import { spotifyService } from '../services/spotify';
@@ -16,7 +17,7 @@ import type { SpotifyAlbum, SpotifyArtist, FilterType } from '../types';
 import type { RecommendationScore } from '../services/recommendations';
 import '../styles/pages/Discover.css';
 
-export const Discover: React.FC = () => {
+const DiscoverPage: React.FC = () => {
   const navigate = useNavigate();
   const [albums, setAlbums] = useState<SpotifyAlbum[]>([]);
   const [artists, setArtists] = useState<SpotifyArtist[]>([]);
@@ -57,10 +58,12 @@ export const Discover: React.FC = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const { albums: fetchedAlbums, artists: fetchedArtists} = 
-          await getFilteredContent(activeFilter);
-        setAlbums(fetchedAlbums || []);
-        setArtists(fetchedArtists || []);
+        const result = await getFilteredContent(activeFilter);
+        // Extra defensive checks to ensure we always have arrays
+        const fetchedAlbums = Array.isArray(result?.albums) ? result.albums : [];
+        const fetchedArtists = Array.isArray(result?.artists) ? result.artists : [];
+        setAlbums(fetchedAlbums);
+        setArtists(fetchedArtists);
         setAlbumPage(1);
       } catch (err) {
         logger.error('Failed to fetch filtered content:', err);
@@ -325,7 +328,7 @@ export const Discover: React.FC = () => {
         </section>
 
         {/* Personalized Recommendations Section */}
-        {recommendations.albums.length > 0 && (
+        {Array.isArray(recommendations?.albums) && recommendations.albums.length > 0 && (
           <section className="recommendations-section">
             <div className="section-header">
               <h2>Recommended For You</h2>
@@ -336,30 +339,34 @@ export const Discover: React.FC = () => {
             
             <div className="content-section">
               <h3>✨ Albums You Might Like</h3>
-              <div className="album-grid">"
+              <div className="album-grid">
                 {recommendations.albums.slice(0, 10).map((rec) => (
-                  <div key={rec.item.id} className="recommendation-item">
-                    <AlbumCard
-                      album={rec.item as SpotifyAlbum}
-                    />
-                    <p className="recommendation-reason">{rec.reason}</p>
-                  </div>
+                  rec?.item?.id ? (
+                    <div key={rec.item.id} className="recommendation-item">
+                      <AlbumCard
+                        album={rec.item as SpotifyAlbum}
+                      />
+                      <p className="recommendation-reason">{rec.reason}</p>
+                    </div>
+                  ) : null
                 ))}
               </div>
             </div>
 
-            {recommendations.artists.length > 0 && (
+            {Array.isArray(recommendations?.artists) && recommendations.artists.length > 0 && (
               <div className="content-section">
                 <h3>Artists to Explore</h3>
                 <div className="artist-grid">
                   {recommendations.artists.slice(0, 6).map((rec) => (
-                    <div key={rec.item.id} className="recommendation-item">
-                      <ArtistCard
-                        artist={rec.item as SpotifyArtist}
-                        onClick={() => navigate(`/artist/${rec.item.id}`)}
-                      />
-                      <p className="recommendation-reason">{rec.reason}</p>
-                    </div>
+                    rec?.item?.id ? (
+                      <div key={rec.item.id} className="recommendation-item">
+                        <ArtistCard
+                          artist={rec.item as SpotifyArtist}
+                          onClick={() => navigate(`/artist/${rec.item.id}`)}
+                        />
+                        <p className="recommendation-reason">{rec.reason}</p>
+                      </div>
+                    ) : null
                   ))}
                 </div>
               </div>
@@ -386,15 +393,17 @@ export const Discover: React.FC = () => {
         <section className="filtered-content">
           <h2>{getContentTitle()}</h2>
           
-          {albums.length > 0 && (
+          {Array.isArray(albums) && albums.length > 0 && (
             <div className="content-section">
               <h3>Albums</h3>
               <div className="album-grid">
-                {displayedAlbums.map((album) => (
-                  <AlbumCard
-                    key={album.id}
-                    album={album}
-                  />
+                {Array.isArray(displayedAlbums) && displayedAlbums.map((album) => (
+                  album && album.id ? (
+                    <AlbumCard
+                      key={album.id}
+                      album={album}
+                    />
+                  ) : null
                 ))}
               </div>
               {hasMoreAlbums && (
@@ -408,16 +417,18 @@ export const Discover: React.FC = () => {
             </div>
           )}
 
-          {artists.length > 0 && (
+          {Array.isArray(artists) && artists.length > 0 && (
             <div className="content-section">
               <h3>Artists</h3>
               <div className="artist-grid">
-                {artists.map((artist) => (
-                  <ArtistCard
-                    key={artist.id}
-                    artist={artist}
-                    onClick={() => navigate(`/artist/${artist.id}`)}
-                  />
+                {Array.isArray(artists) && artists.map((artist) => (
+                  artist && artist.id ? (
+                    <ArtistCard
+                      key={artist.id}
+                      artist={artist}
+                      onClick={() => navigate(`/artist/${artist.id}`)}
+                    />
+                  ) : null
                 ))}
               </div>
             </div>
@@ -425,6 +436,47 @@ export const Discover: React.FC = () => {
         </section>
       </div>
     </div>
+  );
+};
+
+// Wrap with error boundary to prevent page crashes
+export const Discover: React.FC = () => {
+  return (
+    <ErrorBoundary
+      fallback={
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '70vh',
+          padding: '2rem',
+          textAlign: 'center',
+        }}>
+          <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Discover Music</h1>
+          <p style={{ color: 'var(--muted)', marginBottom: '2rem' }}>
+            We're having trouble loading content right now. Please try again in a moment.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderRadius: '12px',
+              border: 'none',
+              background: 'var(--rc-primary)',
+              color: 'white',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+            }}
+          >
+            Refresh Page
+          </button>
+        </div>
+      }
+    >
+      <DiscoverPage />
+    </ErrorBoundary>
   );
 };
 

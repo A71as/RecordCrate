@@ -321,41 +321,48 @@ class BillboardService {
    * Match Billboard tracks to Spotify albums (legacy - only shows first 20)
    */
   async getBillboardAlbumsFromSpotify(): Promise<SpotifyAlbum[]> {
-    const billboardTracks = await this.getBillboardHot100();
-    const albums: SpotifyAlbum[] = [];
-    const albumIds = new Set<string>();
+    try {
+      const billboardTracks = await this.getBillboardHot100();
+      const albums: SpotifyAlbum[] = [];
+      const albumIds = new Set<string>();
 
-    // Get first 20 tracks to match
-    const tracksToMatch = billboardTracks.slice(0, 20);
+      // Get first 20 tracks to match
+      const tracksToMatch = billboardTracks.slice(0, 20);
 
-    for (const track of tracksToMatch) {
-      try {
-        // Search Spotify for the track
-        const query = `track:${track.title} artist:${track.artist}`;
-        const searchResults = await spotifyService.searchTracks(query);
+      for (const track of tracksToMatch) {
+        try {
+          // Search Spotify for the track
+          const query = `track:${track.title} artist:${track.artist}`;
+          const searchResults = await spotifyService.searchTracks(query);
 
-        if (searchResults.length > 0) {
-          const spotifyTrack = searchResults[0];
-          const album = spotifyTrack.album;
+          if (searchResults.length > 0) {
+            const spotifyTrack = searchResults[0];
+            const album = spotifyTrack.album;
 
-          // Add album if we haven't already
-          if (album && !albumIds.has(album.id)) {
-            albumIds.add(album.id);
-            
-            // Get full album details for consistency
-            const fullAlbum = await spotifyService.getAlbum(album.id);
-            albums.push(fullAlbum);
+            // Add album if we haven't already
+            if (album && !albumIds.has(album.id)) {
+              albumIds.add(album.id);
+              
+              // Get full album details for consistency
+              const fullAlbum = await spotifyService.getAlbum(album.id);
+              if (fullAlbum) {
+                albums.push(fullAlbum);
+              }
+            }
           }
+
+          // Add small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+          console.warn(`Failed to match track: ${track.title} by ${track.artist}`, error);
         }
-
-        // Add small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (error) {
-        console.warn(`Failed to match track: ${track.title} by ${track.artist}`, error);
       }
-    }
 
-    return albums;
+      return albums;
+    } catch (error) {
+      console.error('getBillboardAlbumsFromSpotify failed:', error);
+      return [];
+    }
   }
 }
 

@@ -231,50 +231,60 @@ class SpotifyService {
       console.warn('Spotify API not available:', error);
       return [];
     }
-  }  async getAlbum(id: string): Promise<SpotifyAlbum> {
-    // Check cache first
-    const cacheKey = `album:${id}`;
-    const cached = this.detailCache.get(cacheKey) as SpotifyAlbum | undefined;
-    if (cached) {
-      return cached;
-    }
-
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/albums/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+  }  async getAlbum(id: string): Promise<SpotifyAlbum | null> {
+    try {
+      // Check cache first
+      const cacheKey = `album:${id}`;
+      const cached = this.detailCache.get(cacheKey) as SpotifyAlbum | undefined;
+      if (cached) {
+        return cached;
       }
-    );
 
-    this.detailCache.set(cacheKey, response.data);
-    return response.data;
+      const token = await this.getAccessToken();
+
+      const response = await axios.get(
+        `https://api.spotify.com/v1/albums/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      this.detailCache.set(cacheKey, response.data);
+      return response.data;
+    } catch (error) {
+      console.error('getAlbum failed:', error);
+      return null;
+    }
   }
 
-  async getArtist(id: string): Promise<SpotifyArtist> {
-    // Check cache first
-    const cacheKey = `artist:${id}`;
-    const cached = this.detailCache.get(cacheKey) as SpotifyArtist | undefined;
-    if (cached) {
-      return cached;
-    }
-
-    const token = await this.getAccessToken();
-
-    const response = await axios.get(
-      `https://api.spotify.com/v1/artists/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+  async getArtist(id: string): Promise<SpotifyArtist | null> {
+    try {
+      // Check cache first
+      const cacheKey = `artist:${id}`;
+      const cached = this.detailCache.get(cacheKey) as SpotifyArtist | undefined;
+      if (cached) {
+        return cached;
       }
-    );
 
-    this.detailCache.set(cacheKey, response.data);
-    return response.data;
+      const token = await this.getAccessToken();
+
+      const response = await axios.get(
+        `https://api.spotify.com/v1/artists/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      this.detailCache.set(cacheKey, response.data);
+      return response.data;
+    } catch (error) {
+      console.error('getArtist failed:', error);
+      return null;
+    }
   }
 
   async getArtistAlbums(id: string): Promise<SpotifyAlbum[]> {
@@ -782,19 +792,24 @@ class SpotifyService {
   }
 
   // Album Methods
-  async getAlbumWithTracks(id: string): Promise<SpotifyAlbum> {
-    const token = await this.getAccessToken();
+  async getAlbumWithTracks(id: string): Promise<SpotifyAlbum | null> {
+    try {
+      const token = await this.getAccessToken();
 
-    const response = await axios.get(
-      `https://api.spotify.com/v1/albums/${id}?market=US`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      const response = await axios.get(
+        `https://api.spotify.com/v1/albums/${id}?market=US`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      console.error('getAlbumWithTracks failed:', error);
+      return null;
+    }
   }
 
   async getAlbumTracks(albumId: string): Promise<SpotifyTrack[]> {
