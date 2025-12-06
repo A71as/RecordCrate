@@ -471,7 +471,11 @@
 
     .search-input-group {
         flex-wrap: wrap;
-        padding: 1rem;
+        padding: 0.75rem 0.875rem;
+    }
+    
+    .search-input {
+        font-size: 0.9rem;
     }
 
     .search-input {

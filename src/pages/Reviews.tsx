@@ -11,7 +11,7 @@ export const Reviews: React.FC = () => {
   const [reviews, setReviews] = useState<AlbumReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'recent' | 'top-rated' | 'most-discussed'>('recent');
+  const [filter, setFilter] = useState<'recent' | 'top-rated' | 'most-discussed' | 'controversial'>('recent');
   const [shareReview, setShareReview] = useState<AlbumReview | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -65,23 +65,45 @@ export const Reviews: React.FC = () => {
     
     switch (filter) {
       case 'top-rated':
+        // Sort by highest ratings, then by writeup length for tiebreaker
         return reviewsCopy.sort((a, b) => {
           const ratingDiff = (b.overallRating || 0) - (a.overallRating || 0);
-          // Secondary sort by date if ratings are equal
           if (ratingDiff === 0) {
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            const writeupDiff = (b.writeup?.length || 0) - (a.writeup?.length || 0);
+            if (writeupDiff === 0) {
+              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            }
+            return writeupDiff;
           }
           return ratingDiff;
         });
       
       case 'most-discussed':
+        // Sort by detailed reviews (writeup length + modifiers usage)
         return reviewsCopy.sort((a, b) => {
-          const lengthDiff = (b.writeup?.length || 0) - (a.writeup?.length || 0);
-          // Secondary sort by rating if writeup lengths are equal
-          if (lengthDiff === 0) {
+          const aModifiers = a.scoreModifiers ? Object.values(a.scoreModifiers).filter(v => v !== 0).length : 0;
+          const bModifiers = b.scoreModifiers ? Object.values(b.scoreModifiers).filter(v => v !== 0).length : 0;
+          const aScore = (a.writeup?.length || 0) + (aModifiers * 50);
+          const bScore = (b.writeup?.length || 0) + (bModifiers * 50);
+          
+          if (bScore === aScore) {
             return (b.overallRating || 0) - (a.overallRating || 0);
           }
-          return lengthDiff;
+          return bScore - aScore;
+        });
+      
+      case 'controversial':
+        // Sort by ratings in the middle range (40-70%) - most debatable albums
+        return reviewsCopy.sort((a, b) => {
+          const aDistance = Math.abs((a.overallRating || 0) - 55);
+          const bDistance = Math.abs((b.overallRating || 0) - 55);
+          const distanceDiff = aDistance - bDistance;
+          
+          // Prefer reviews with writeups for controversial ones
+          if (Math.abs(distanceDiff) < 5) {
+            return (b.writeup?.length || 0) - (a.writeup?.length || 0);
+          }
+          return distanceDiff;
         });
       
       case 'recent':
@@ -97,12 +119,21 @@ export const Reviews: React.FC = () => {
   // Calculate filter statistics
   const filterStats = useMemo(() => {
     const topRated = reviews.filter(r => (r.overallRating || 0) >= 80);
-    const withDiscussion = reviews.filter(r => (r.writeup?.length || 0) > 100);
+    const withDetailedDiscussion = reviews.filter(r => {
+      const hasWriteup = (r.writeup?.length || 0) > 100;
+      const hasModifiers = r.scoreModifiers && Object.values(r.scoreModifiers).some(v => v !== 0);
+      return hasWriteup || hasModifiers;
+    });
+    const controversial = reviews.filter(r => {
+      const rating = r.overallRating || 0;
+      return rating >= 40 && rating <= 70;
+    });
     
     return {
-      total: reviews.length,
+      recent: reviews.length,
       topRated: topRated.length,
-      withDiscussion: withDiscussion.length,
+      mostDiscussed: withDetailedDiscussion.length,
+      controversial: controversial.length,
     };
   }, [reviews]);
 
@@ -147,34 +178,45 @@ export const Reviews: React.FC = () => {
             <button
               className={`filter-btn ${filter === 'recent' ? 'active' : ''}`}
               onClick={() => handleFilterChange('recent')}
-              aria-label={`Sort by recent reviews (${filterStats.total} total)`}
+              aria-label={`Sort by recent reviews (${filterStats.recent} total)`}
             >
               <Calendar size={18} />
               <span className="filter-btn-text">
                 Recent
-                <span className="filter-count">{filterStats.total}</span>
+                <span className="filter-count">{filterStats.recent}</span>
               </span>
             </button>
             <button
               className={`filter-btn ${filter === 'top-rated' ? 'active' : ''}`}
               onClick={() => handleFilterChange('top-rated')}
-              aria-label={`Sort by top rated reviews (${filterStats.topRated} highly rated)`}
+              aria-label={`Sort by top rated reviews (${filterStats.topRated} masterpieces)`}
             >
               <Star size={18} />
               <span className="filter-btn-text">
-                Top Rated
+                Masterpieces
                 <span className="filter-count">{filterStats.topRated}</span>
               </span>
             </button>
             <button
               className={`filter-btn ${filter === 'most-discussed' ? 'active' : ''}`}
               onClick={() => handleFilterChange('most-discussed')}
-              aria-label={`Sort by most discussed reviews (${filterStats.withDiscussion} detailed)`}
+              aria-label={`Sort by most discussed reviews (${filterStats.mostDiscussed} detailed)`}
             >
               <UserIcon size={18} />
               <span className="filter-btn-text">
-                Most Discussed
-                <span className="filter-count">{filterStats.withDiscussion}</span>
+                Deep Dives
+                <span className="filter-count">{filterStats.mostDiscussed}</span>
+              </span>
+            </button>
+            <button
+              className={`filter-btn ${filter === 'controversial' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('controversial')}
+              aria-label={`Sort by controversial reviews (${filterStats.controversial} divisive)`}
+            >
+              <Music size={18} />
+              <span className="filter-btn-text">
+                Debatable
+                <span className="filter-count">{filterStats.controversial}</span>
               </span>
             </button>
           </div>
@@ -256,9 +298,28 @@ export const Reviews: React.FC = () => {
                   </div>
                 </div>
 
-                {review.scoreModifiers && Object.values(review.scoreModifiers).some(v => v !== 0) && (
-                  <div className="review-modifiers-badge">
-                    <span className="modifiers-label">Score modifiers applied</span>
+                {review.scoreModifiers && Object.entries(review.scoreModifiers).some(([_, v]) => v !== 0) && (
+                  <div className="review-modifiers-detail">
+                    <div className="modifiers-header">Fine-tuned Score:</div>
+                    <div className="modifiers-list">
+                      {Object.entries(review.scoreModifiers)
+                        .filter(([_, value]) => value !== 0)
+                        .map(([key, value]) => {
+                          const label = key
+                            .replace(/([A-Z])/g, ' $1')
+                            .replace(/^./, str => str.toUpperCase())
+                            .trim();
+                          const formatted = value > 0 ? `+${value}%` : `${value}%`;
+                          return (
+                            <div key={key} className="modifier-item">
+                              <span className="modifier-label">{label}</span>
+                              <span className={`modifier-value ${value > 0 ? 'positive' : 'negative'}`}>
+                                {formatted}
+                              </span>
+                            </div>
+                          );
+                        })}
+                    </div>
                   </div>
                 )}
               </div>
