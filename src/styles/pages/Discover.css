@@ -804,7 +804,7 @@
   font-size: clamp(1.75rem, 3vw, 2.5rem);
   font-weight: 800;
   color: var(--rc-text);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   letter-spacing: -0.02em;
 }
 
@@ -812,6 +812,7 @@
   font-size: 1.0625rem;
   color: color-mix(in srgb, var(--rc-text) 75%, var(--muted) 25%);
   font-weight: 500;
+  margin: 0;
 }
 
 .recommendation-item {
