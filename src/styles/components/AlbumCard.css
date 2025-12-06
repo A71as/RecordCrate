@@ -1,8 +1,8 @@
 /* Album Grid - Professional & Responsive */
 .album-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: clamp(1.75rem, 3.5vw, 2.75rem);
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: clamp(1.5rem, 3vw, 2.5rem);
     padding: clamp(1rem, 2vw, 1.5rem) 0;
     width: 100%;
     animation: fadeIn 0.5s ease-out;
@@ -98,27 +98,29 @@
 }
 
 .album-info {
-    padding: clamp(1.5rem, 3vw, 2rem) clamp(1.25rem, 2.5vw, 1.75rem) clamp(1.5rem, 3vw, 2rem);
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    min-height: 140px;
+    max-height: 140px;
 }
 
 .album-title {
-    font-size: clamp(0.95rem, 1.8vw + 0.2rem, 1.15rem);
+    font-size: clamp(0.9rem, 1.6vw + 0.15rem, 1.05rem);
     margin: 0;
     color: var(--rc-text);
     font-weight: 700;
-    line-height: 1.4;
+    line-height: 1.35;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    word-wrap: break-word;
-    hyphens: auto;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    max-height: 2.7rem;
     letter-spacing: -0.02em;
-    min-height: 2.8rem;
     transition: color 0.3s ease;
 }
 
@@ -128,24 +130,27 @@
 
 .album-artist {
     color: var(--muted);
-    margin: 0.75rem 0 0.5rem 0;
-    font-size: clamp(0.85rem, 1.5vw + 0.15rem, 0.95rem);
+    margin: 0.5rem 0;
+    font-size: clamp(0.8rem, 1.4vw + 0.12rem, 0.9rem);
     font-weight: 500;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    line-height: 1.5;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    max-height: 1.4rem;
     letter-spacing: -0.01em;
 }
 
 .album-year {
     color: var(--muted-2);
-    font-size: clamp(0.8rem, 1.4vw + 0.1rem, 0.88rem);
+    font-size: clamp(0.75rem, 1.3vw + 0.08rem, 0.85rem);
     font-weight: 600;
     letter-spacing: 0.03em;
-    margin-top: 0.25rem;
+    margin-top: auto;
+    white-space: nowrap;
 }
 
 /* Album Detail Page Specific Styles */
