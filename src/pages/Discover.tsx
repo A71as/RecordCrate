@@ -56,15 +56,21 @@ export const Discover: React.FC = () => {
 
   useEffect(() => {
     const fetchContent = async () => {
-      const { albums: fetchedAlbums, artists: fetchedArtists} = 
-        await getFilteredContent(activeFilter);
-      setAlbums(fetchedAlbums || []);
-      setArtists(fetchedArtists || []);
-      setAlbumPage(1);
+      try {
+        const { albums: fetchedAlbums, artists: fetchedArtists} = 
+          await getFilteredContent(activeFilter);
+        setAlbums(fetchedAlbums || []);
+        setArtists(fetchedArtists || []);
+        setAlbumPage(1);
+      } catch (err) {
+        logger.error('Failed to fetch filtered content:', err);
+        setAlbums([]);
+        setArtists([]);
+      }
     };
 
     fetchContent();
-  }, [activeFilter, getFilteredContent, retryCount]);
+  }, [activeFilter, retryCount]); // Removed getFilteredContent from dependencies
 
   // Load personalized recommendations
   useEffect(() => {

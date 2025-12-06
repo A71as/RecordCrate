@@ -130,7 +130,7 @@ export const BillboardTrackList: React.FC<BillboardTrackListProps> = ({
               <div className="track-info">
                 <div className="track-name">{spotifyTrack.name}</div>
                 <div className="track-artist">
-                  {spotifyTrack.artists.map((artist) => artist.name).join(', ')}
+                  {spotifyTrack.artists?.map((artist) => artist.name).join(', ') || 'Unknown Artist'}
                 </div>
               </div>
 

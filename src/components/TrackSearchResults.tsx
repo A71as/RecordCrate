@@ -30,7 +30,7 @@ export const TrackSearchResults: React.FC<TrackSearchResultsProps> = ({ tracks }
                         <div className="track-info">
                             <h3 className="track-name">{track.name}</h3>
                             <p className="track-artist">
-                                {track.artists.map(artist => artist.name).join(', ')}
+                                {track.artists?.map(artist => artist.name).join(', ') || 'Unknown Artist'}
                             </p>
                             <div className="track-details">
                                 <span className="track-duration">

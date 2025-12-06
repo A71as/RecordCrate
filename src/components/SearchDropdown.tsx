@@ -49,7 +49,7 @@ export const SearchDropdown = forwardRef<HTMLDivElement, SearchDropdownProps>(({
                 if (isAlbum) {
                     const album = item as SpotifyAlbum;
                     imageUrl = album.images?.[0]?.url;
-                    subtitle = album.artists.map(artist => artist.name).join(', ');
+                    subtitle = album.artists?.map(artist => artist.name).join(', ') || 'Unknown Artist';
                     typeIcon = '♪';
                     imageClass = 'dropdown-album-image';
                 } else if (isArtist) {
@@ -61,7 +61,7 @@ export const SearchDropdown = forwardRef<HTMLDivElement, SearchDropdownProps>(({
                 } else {
                     const track = item as SpotifyTrack;
                     imageUrl = ''; // No image for tracks
-                    subtitle = track.artists.map(artist => artist.name).join(', ');
+                    subtitle = track.artists?.map(artist => artist.name).join(', ') || 'Unknown Artist';
                     typeIcon = '🎵';
                     imageClass = 'dropdown-track-image';
                 }

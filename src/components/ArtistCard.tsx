@@ -32,7 +32,7 @@ export const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onClick }) => {
       <div className="artist-info">
         <h3 className="artist-name">{artist.name}</h3>
         <p className="artist-genres">
-          {artist.genres.slice(0, 2).join(', ') || 'Various'}
+          {artist.genres?.slice(0, 2).join(', ') || 'Various'}
         </p>
         <div className="artist-popularity">
           <span className="popularity-label">Popularity:</span>

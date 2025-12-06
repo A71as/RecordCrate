@@ -166,6 +166,19 @@
   letter-spacing: 0.3px;
 }
 
+.meta-tag.rating-tag {
+  gap: 0.4rem;
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, var(--rc-amber-glow) 18%, transparent) 0%,
+    color-mix(in srgb, var(--rc-crate-wood) 15%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--rc-amber-glow) 35%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--rc-amber-glow) 20%, transparent);
+}
+
+.meta-tag.rating-tag svg {
+  filter: drop-shadow(0 0 4px rgba(212, 165, 116, 0.5));
+}
+
 .album-title-hero {
   font-size: 2.5rem;
   font-weight: 900;

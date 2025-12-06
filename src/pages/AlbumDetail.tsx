@@ -58,6 +58,7 @@ export const AlbumDetail: React.FC = () => {
   const [isReviewing, setIsReviewing] = useState(false);
   const [existingReview, setExistingReview] = useState<AlbumReview | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
+  const [averageRating, setAverageRating] = useState<number | null>(null);
   const [showShareCard, setShowShareCard] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -182,6 +183,19 @@ export const AlbumDetail: React.FC = () => {
             const serverReviews = (await backend.getAlbumReviews(albumId)) as BackendAlbumReview[];
             logger.debug('[AlbumDetail] Server reviews:', serverReviews);
             setReviewCount(Array.isArray(serverReviews) ? serverReviews.length : 0);
+            
+            // Fetch album stats
+            try {
+              const statsResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/album/${albumId}/stats`);
+              if (statsResponse.ok) {
+                const stats = await statsResponse.json();
+                setReviewCount(stats.reviewCount || 0);
+                setAverageRating(stats.averageRating);
+              }
+            } catch (err) {
+              logger.warn('[AlbumDetail] Failed to fetch album stats:', err);
+            }
+            
             const my = Array.isArray(serverReviews)
               ? serverReviews.find((r) => r.userSpotifyId === userId)
               : null;
@@ -232,12 +246,18 @@ export const AlbumDetail: React.FC = () => {
             setReviewCount(0);
           }
         } else {
-          // No user logged in - just fetch review count
+          // No user logged in - fetch album stats
           try {
-            const serverReviews = (await backend.getAlbumReviews(albumId)) as BackendAlbumReview[];
-            setReviewCount(Array.isArray(serverReviews) ? serverReviews.length : 0);
-          } catch {
+            const statsResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/album/${albumId}/stats`);
+            if (statsResponse.ok) {
+              const stats = await statsResponse.json();
+              setReviewCount(stats.reviewCount || 0);
+              setAverageRating(stats.averageRating);
+            }
+          } catch (err) {
+            logger.warn('[AlbumDetail] Failed to fetch album stats:', err);
             setReviewCount(0);
+            setAverageRating(null);
           }
         }
 
@@ -389,12 +409,16 @@ export const AlbumDetail: React.FC = () => {
       const draftKey = `review-draft-${album.id}-${currentUserId}`;
       localStorage.removeItem(draftKey);
       
-      // Refresh count from server
+      // Refresh stats from server
       try {
-        const list = (await backend.getAlbumReviews(album.id)) as BackendAlbumReview[];
-        setReviewCount(Array.isArray(list) ? list.length : 0);
-      } catch {
-        // ignore refresh count errors
+        const statsResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/album/${album.id}/stats`);
+        if (statsResponse.ok) {
+          const stats = await statsResponse.json();
+          setReviewCount(stats.reviewCount || 0);
+          setAverageRating(stats.averageRating);
+        }
+      } catch (err) {
+        logger.warn('[AlbumDetail] Failed to refresh stats:', err);
       }
       
       // Check if this album was today's daily recommendation and mark it as reviewed
@@ -488,12 +512,17 @@ export const AlbumDetail: React.FC = () => {
     try {
       await backend.deleteReview(currentUserId, album.id);
       
-      // Refresh review count from server
+      // Refresh stats
       try {
-        const list = await backend.getAlbumReviews(album.id);
-        setReviewCount(Array.isArray(list) ? list.length : 0);
-      } catch {
+        const statsResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reviews/album/${album.id}/stats`);
+        if (statsResponse.ok) {
+          const stats = await statsResponse.json();
+          setReviewCount(stats.reviewCount || 0);
+          setAverageRating(stats.averageRating);
+        }
+      } catch (err) {
         setReviewCount(0);
+        setAverageRating(null);
       }
 
       // Reset state
@@ -557,12 +586,18 @@ export const AlbumDetail: React.FC = () => {
                 <span className="meta-tag">{album.release_date?.split("-")[0] || "Unknown"}</span>
                 <span className="meta-tag">{trackCount} tracks</span>
                 <span className="meta-tag">{getTotalDuration()}</span>
+                {averageRating !== null && reviewCount > 0 && (
+                  <span className="meta-tag rating-tag">
+                    <Star size={14} fill="currentColor" />
+                    {averageRating}% avg ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
+                  </span>
+                )}
               </div>
               
               <h1 className="album-title-hero">{album.name}</h1>
               
               <div className="album-artists-hero">
-                {album.artists.map((artist, index) => (
+                {album.artists?.map((artist, index) => (
                   <React.Fragment key={artist.id}>
                     <button
                       type="button"
@@ -610,7 +645,7 @@ export const AlbumDetail: React.FC = () => {
                   <div className="track-info-col">
                     <div className="track-name">{track.name}</div>
                     <div className="track-artists">
-                      {track.artists.map((artist, idx) => (
+                      {track.artists?.map((artist, idx) => (
                         <span key={artist.id}>
                           {artist.name}
                           {idx < track.artists.length - 1 ? ", " : ""}

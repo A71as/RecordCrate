@@ -181,6 +181,31 @@ router.get('/album/:albumId', async (req, res) => {
   }
 });
 
+// Get album statistics (average rating, review count)
+router.get('/album/:albumId/stats', async (req, res) => {
+  try {
+    if (!validateSpotifyId(req.params.albumId)) {
+      return res.status(400).json({ error: 'Invalid albumId format' });
+    }
+
+    const reviews = await AlbumReview.find({ albumId: req.params.albumId })
+      .select('overallRating')
+      .lean();
+    
+    const count = reviews.length;
+    const average = count > 0 
+      ? reviews.reduce((sum, r) => sum + (r.overallRating || 0), 0) / count 
+      : null;
+    
+    res.json({
+      reviewCount: count,
+      averageRating: average !== null ? Math.round(average * 10) / 10 : null
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
 // Get all reviews by a user (optionally filter by album)
 router.get('/user/:spotifyId', async (req, res) => {
   try {

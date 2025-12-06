@@ -772,11 +772,11 @@
   }
   
   .search-input-group.natural-language {
-    padding: 0.75rem 0.875rem !important;
+    padding: 1rem 1.25rem;
   }
   
   .natural-language-input {
-    font-size: 0.9rem !important;
+    font-size: 0.95rem;
   }
   
   .natural-language-search .album-grid,
@@ -828,19 +828,19 @@
   }
 
   .search-input-group.natural-language {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
     gap: 1rem;
-    padding: 0.875rem 1.125rem !important;
+    padding: 1.125rem 1.5rem;
   }
   
   .natural-language-input {
-    font-size: 0.95rem !important;
+    font-size: 1rem;
   }
 
   .natural-language-button {
-    width: 100%;
-    padding: 0.85rem 2rem;
+    width: auto;
+    padding: 0.75rem 1.5rem;
   }
 
   .search-title-row {
@@ -892,11 +892,11 @@
   }
   
   .search-input-group.natural-language {
-    padding: 0.75rem 0.875rem !important;
+    padding: 1rem 1.25rem;
   }
   
   .natural-language-input {
-    font-size: 0.9rem !important;
+    font-size: 0.95rem;
   }
 
   .example-queries {

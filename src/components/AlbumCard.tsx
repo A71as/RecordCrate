@@ -17,7 +17,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const imageUrl = album.images[0]?.url;
-  const artistNames = album.artists.map((artist) => artist.name).join(', ');
+  const artistNames = album.artists?.map((artist) => artist.name).join(', ') || 'Unknown Artist';
 
   const handleClick = () => {
     if (onClick) {

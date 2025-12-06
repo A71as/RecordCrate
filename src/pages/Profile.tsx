@@ -228,7 +228,7 @@ export const Profile: React.FC = () => {
                       <div className="review-details">
                         <h3 className="review-album-title">{review.album?.name}</h3>
                         <p className="review-album-artist">
-                          {review.album?.artists.map(a => a.name).join(', ')}
+                          {review.album?.artists?.map(a => a.name).join(', ') || 'Unknown Artist'}
                         </p>
                         <div className="review-rating">
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
