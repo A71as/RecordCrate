@@ -1,0 +1,203 @@
+/* Music Filter Bar - Modern Redesign */
+
+.music-filter-bar {
+  margin-bottom: 2.5rem;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--panel-bg) 98%, var(--rc-primary) 2%) 0%,
+    var(--panel-bg) 100%);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1.5px solid color-mix(in srgb, var(--panel-border) 80%, transparent);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.filter-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-label::before {
+  content: '';
+  width: 4px;
+  height: 16px;
+  background: linear-gradient(180deg, var(--rc-primary) 0%, var(--rc-accent) 100%);
+  border-radius: 2px;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.filter-dropdown {
+  position: relative;
+}
+
+.filter-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-border);
+  border-radius: 12px;
+  color: var(--rc-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 0.75rem;
+}
+
+.filter-trigger:hover {
+  border-color: color-mix(in srgb, var(--rc-primary) 60%, transparent);
+  background: color-mix(in srgb, var(--rc-primary) 5%, var(--panel-bg));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.filter-trigger.active {
+  border-color: var(--rc-primary);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--rc-primary) 12%, var(--panel-bg)) 0%,
+    color-mix(in srgb, var(--rc-primary) 8%, var(--panel-bg)) 100%);
+  box-shadow: 
+    0 4px 16px color-mix(in srgb, var(--rc-primary) 25%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.filter-trigger.active:hover {
+  border-color: var(--rc-accent);
+  transform: translateY(-2px);
+}
+
+.filter-text {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filter-trigger svg {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+  color: var(--muted);
+}
+
+.filter-dropdown.open .filter-trigger svg {
+  transform: rotate(180deg);
+  color: var(--rc-primary);
+}
+
+.filter-options {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background: var(--panel-bg);
+  border: 2px solid var(--rc-primary);
+  border-radius: 12px;
+  padding: 0.5rem;
+  list-style: none;
+  margin: 0;
+  z-index: 100;
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.2),
+    0 0 0 1px color-mix(in srgb, var(--rc-primary) 20%, transparent);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.filter-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-options::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.filter-options::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--rc-primary) 40%, transparent);
+  border-radius: 3px;
+}
+
+.filter-options::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--rc-primary) 60%, transparent);
+}
+
+.filter-option {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--rc-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filter-option:hover {
+  background: color-mix(in srgb, var(--rc-primary) 15%, var(--panel-bg));
+  color: var(--rc-text);
+  transform: translateX(4px);
+}
+
+.filter-option.selected {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--rc-primary) 90%, transparent) 0%,
+    color-mix(in srgb, var(--rc-accent) 85%, transparent) 100%);
+  color: var(--rc-vinyl-black);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(212, 165, 116, 0.3);
+}
+
+.filter-option.selected::after {
+  content: '✓';
+  font-weight: 900;
+  color: var(--rc-vinyl-black);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .music-filter-bar {
+    padding: 1.5rem;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-options {
+    max-height: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .music-filter-bar {
+    padding: 1.25rem;
+  }
+
+  .filter-trigger {
+    padding: 0.875rem 1rem;
+    font-size: 0.9rem;
+  }
+}

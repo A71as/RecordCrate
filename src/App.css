@@ -289,10 +289,6 @@ button {
   color: var(--muted-2);
 }
 
-.search-filter-controls {
-  margin-bottom: 1.5rem;
-}
-
 /* About Page */
 .about-page {
   max-width: 1080px;

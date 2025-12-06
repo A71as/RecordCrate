@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import '../styles/components/MusicFilterBar.css';
 
 interface DropdownOption {
   value: string;
@@ -55,22 +56,22 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
     : `${uppercaseLabel}: ${selectedOption?.label ?? ''}`;
 
   return (
-    <div ref={containerRef} className={`discography-filter ${isOpen ? 'open' : ''}`}>
+    <div ref={containerRef} className={`filter-dropdown ${isOpen ? 'open' : ''}`}>
       <button
         type="button"
-        className={`discography-filter-trigger ${isUsingDefault ? '' : 'active'}`}
+        className={`filter-trigger ${isUsingDefault ? '' : 'active'}`}
         onClick={() => (isOpen ? onClose() : onOpen(id))}
       >
-        <span className="discography-filter-text">{triggerText}</span>
-        <ChevronDown size={14} />
+        <span className="filter-text">{triggerText}</span>
+        <ChevronDown size={16} />
       </button>
       {isOpen && (
-        <ul className="discography-filter-options">
+        <ul className="filter-options">
           {options.map((option) => (
             <li key={option.value}>
               <button
                 type="button"
-                className={`discography-filter-option ${option.value === value ? 'selected' : ''}`}
+                className={`filter-option ${option.value === value ? 'selected' : ''}`}
                 onClick={() => {
                   onSelect(option.value);
                   onClose();
@@ -171,9 +172,9 @@ export const MusicFilterBar: React.FC<MusicFilterBarProps> = ({
   );
 
   return (
-    <section className={className ? `discography-controls ${className}` : 'discography-controls'}>
-      <div className="discography-controls-label">{label}</div>
-      <div className="discography-filters">
+    <section className={className ? `music-filter-bar ${className}` : 'music-filter-bar'}>
+      <div className="filter-label">{label}</div>
+      <div className="filter-grid">
         <FilterDropdown
           id="genre"
           label="Genre"

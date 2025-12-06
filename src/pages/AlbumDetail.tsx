@@ -322,7 +322,8 @@ export const AlbumDetail: React.FC = () => {
       }
     } catch (e) {
       logger.error('Failed to save review:', e);
-      alert('Failed to save review. Please try again.');
+      const errorMessage = e instanceof Error ? e.message : 'Unknown error occurred';
+      alert(`Failed to save review: ${errorMessage}`);
       return;
     }
     

@@ -18,14 +18,29 @@ export type SaveReviewPayload = {
 };
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+if (!API_BASE) {
+  logger.error('[backend] VITE_API_BASE_URL is not defined! Reviews will fail.');
+}
 logger.debug('[backend] Using API_BASE:', API_BASE);
 
 async function jsonFetch<T = unknown>(path: string, init?: RequestInit): Promise<T> {
+  logger.debug(`[backend] Fetching: ${API_BASE}${path}`);
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) },
     ...init,
   });
-  if (!res.ok) throw new Error(`API ${res.status}`);
+  if (!res.ok) {
+    let errorMessage = `API ${res.status}`;
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.error || errorMessage;
+    } catch {
+      // If response isn't JSON, use status text
+      errorMessage = res.statusText || errorMessage;
+    }
+    logger.error(`[backend] Request failed: ${path}`, errorMessage);
+    throw new Error(errorMessage);
+  }
   return res.json();
 }
 

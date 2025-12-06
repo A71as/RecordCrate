@@ -201,6 +201,9 @@
 
 .track-info {
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .track-name {
@@ -211,6 +214,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 1.2;
 }
 
 .track-artist {
@@ -219,6 +223,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 1.2;
 }
 
 .track-album {
@@ -227,6 +232,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    line-height: 1.2;
 }
 
 .track-duration {
