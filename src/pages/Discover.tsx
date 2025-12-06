@@ -329,8 +329,8 @@ export const Discover: React.FC = () => {
             </div>
             
             <div className="content-section">
-              <h3>Albums You Might Like</h3>
-              <div className="album-grid">
+              <h3>✨ Albums You Might Like</h3>
+              <div className="album-grid">"
                 {recommendations.albums.slice(0, 10).map((rec) => (
                   <div key={rec.item.id} className="recommendation-item">
                     <AlbumCard

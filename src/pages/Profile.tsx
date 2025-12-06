@@ -62,9 +62,10 @@ export const Profile: React.FC = () => {
       await backend.updateUserPreferences(user.sub, { displayAsAnonymous: newValue });
       setDisplayAsAnonymous(newValue);
       logger.debug('[Profile] Updated anonymity preference to:', newValue);
-    } catch (err) {
+    } catch (err: any) {
       logger.error('[Profile] Error updating anonymity preference:', err);
-      alert('Failed to update preference. Please try again.');
+      const errorMessage = err?.response?.data?.error || err?.message || 'Unknown error';
+      alert(`Failed to update preference: ${errorMessage}. Please try again.`);
     } finally {
       setUpdatingPreference(false);
     }

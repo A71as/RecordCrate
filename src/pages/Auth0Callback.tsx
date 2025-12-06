@@ -2,23 +2,40 @@ import { useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
 import { logger } from '../utils/logger';
+import { backend } from '../services/backend';
 
 export const Auth0Callback = () => {
-  const { isLoading, error, isAuthenticated } = useAuth0();
+  const { isLoading, error, isAuthenticated, user } = useAuth0();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (error) {
-        logger.error('Auth0 callback error:', error);
-        navigate('/?error=auth_failed');
-      } else if (isAuthenticated) {
-        navigate('/profile');
-      } else {
-        navigate('/');
+    const handleCallback = async () => {
+      if (!isLoading) {
+        if (error) {
+          logger.error('Auth0 callback error:', error);
+          navigate('/?error=auth_failed');
+        } else if (isAuthenticated && user) {
+          try {
+            // Sync user to backend database
+            await backend.syncUser({
+              spotifyId: user.sub || '',
+              displayName: user.name || user.email || 'Unknown',
+              avatarUrl: user.picture || undefined
+            });
+            logger.info('[Auth0Callback] User synced successfully');
+          } catch (syncError) {
+            logger.error('[Auth0Callback] Failed to sync user:', syncError);
+            // Continue navigation even if sync fails - upsert will handle it later
+          }
+          navigate('/profile');
+        } else {
+          navigate('/');
+        }
       }
-    }
-  }, [isLoading, error, isAuthenticated, navigate]);
+    };
+
+    handleCallback();
+  }, [isLoading, error, isAuthenticated, user, navigate]);
 
   if (isLoading) {
     return (

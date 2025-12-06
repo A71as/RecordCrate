@@ -88,13 +88,14 @@ router.patch('/:spotifyId/preferences', async (req, res) => {
       update.displayAsAnonymous = displayAsAnonymous;
     }
 
+    // Use upsert to create user if doesn't exist
     const user = await User.findOneAndUpdate(
       { spotifyId: req.params.spotifyId },
       { $set: update },
-      { new: true }
+      { new: true, upsert: true }
     );
 
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    console.log('User preferences updated:', { spotifyId: req.params.spotifyId, update, user });
     res.json(user);
   } catch (e) {
     console.error('update user preferences error', e);

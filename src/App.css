@@ -39,6 +39,10 @@ body {
   line-height: 1.65;
   font-weight: 400;
   letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 
   /* Theme-aware background - colors defined in global.css */
   background-color: var(--rc-bg);
@@ -78,6 +82,8 @@ body {
   background: transparent;
   padding-top: calc(var(--header-height) + 1rem);
   padding-bottom: 4rem;
+  padding-left: max(0px, env(safe-area-inset-left));
+  padding-right: max(0px, env(safe-area-inset-right));
 }
 
 /* Page containers don't need additional padding since they're wrapped in .main-content */
@@ -138,6 +144,34 @@ button {
   gap: clamp(1rem, 2vw, 1.5rem);
 }
 
+@media (max-width: 640px) {
+  .artists-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.875rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .artists-grid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .artists-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.875rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .artists-grid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
 .mini-artist-card {
   display: flex;
   flex-direction: column;
@@ -158,6 +192,50 @@ button {
   border-color: var(--rc-primary);
 }
 
+@media (max-width: 640px) {
+  .mini-artist-card {
+    padding: var(--space-3);
+  }
+  
+  .mini-artist-card:active {
+    transform: scale(0.98);
+  }
+}
+
+@media (hover: none) {
+  .mini-artist-card:hover {
+    transform: none;
+  }
+  
+  .mini-artist-card:active {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--rc-primary);
+  }
+}
+
+@media (max-width: 640px) {
+  .mini-artist-card {
+    padding: var(--space-3);
+  }
+  
+  .mini-artist-card:active {
+    transform: scale(0.98);
+  }
+}
+
+@media (hover: none) {
+  .mini-artist-card:hover {
+    transform: none;
+  }
+  
+  .mini-artist-card:active {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--rc-primary);
+  }
+}
+
 .artist-image {
   width: 80px;
   height: 80px;
@@ -166,6 +244,20 @@ button {
   margin-bottom: var(--space-3);
   background: var(--rc-bg);
   box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 640px) {
+  .artist-image {
+    width: 70px;
+    height: 70px;
+  }
+}
+
+@media (max-width: 400px) {
+  .artist-image {
+    width: 60px;
+    height: 60px;
+  }
 }
 
 .artist-image img {
@@ -532,6 +624,7 @@ button {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--panel-border);
   transition: background-color 0.2s ease;
+  min-height: 44px;
 }
 
 .tracks-list .track-item:last-child {
@@ -540,6 +633,22 @@ button {
 
 .tracks-list .track-item:hover {
   background-color: var(--rc-bg);
+}
+
+@media (max-width: 640px) {
+  .tracks-list .track-item {
+    padding: 0.875rem 1rem;
+  }
+}
+
+@media (hover: none) {
+  .tracks-list .track-item:hover {
+    background-color: transparent;
+  }
+  
+  .tracks-list .track-item:active {
+    background-color: var(--rc-bg);
+  }
 }
 
 .tracks-list .track-number {
@@ -936,3 +1045,60 @@ button {
   }
 }
 
+/* Mobile-specific enhancements */
+@media (max-width: 640px) {
+  .artists-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.875rem;
+  }
+  
+  .mini-artist-card {
+    padding: var(--space-3);
+  }
+  
+  .mini-artist-card:active {
+    transform: scale(0.98);
+  }
+  
+  .artist-image {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .tracks-list .track-item {
+    padding: 0.875rem 1rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .artists-grid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .artist-image {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) {
+  .mini-artist-card:hover {
+    transform: none;
+  }
+  
+  .mini-artist-card:active {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--rc-primary);
+  }
+  
+  .tracks-list .track-item:hover {
+    background-color: transparent;
+  }
+  
+  .tracks-list .track-item:active {
+    background-color: var(--rc-bg);
+  }
+}

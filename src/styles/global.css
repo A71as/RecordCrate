@@ -565,16 +565,26 @@ select:focus-visible {
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     :root {
-        --header-height: 112px;
+        --header-height: 70px;
+        --space-3: 0.875rem;
+        --space-4: 1.25rem;
+        --space-5: 1.75rem;
     }
     
     body {
         font-size: 15px;
+        padding-bottom: env(safe-area-inset-bottom);
     }
     
     .btn-lg {
         padding: 0.875rem 1.75rem;
         font-size: var(--font-base);
+        min-height: 44px;
+    }
+    
+    .main-content {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
     }
 }
 
@@ -586,6 +596,17 @@ select:focus-visible {
     
     .btn {
         width: 100%;
+        min-height: 44px;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.95rem;
+    }
+    
+    button, a, input, select, textarea {
+        min-height: 44px;
+    }
+    
+    input, select, textarea {
+        font-size: 16px !important;
     }
     
     .empty-state {

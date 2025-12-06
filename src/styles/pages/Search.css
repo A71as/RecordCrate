@@ -98,9 +98,7 @@
     gap: 1.25rem;
     border: 2px solid var(--panel-border);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 
-        0 4px 16px -4px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.3);
     position: relative;
 }
 
@@ -108,8 +106,7 @@
     border-color: var(--rc-primary);
     box-shadow: 
         0 12px 32px -8px color-mix(in srgb, var(--rc-primary) 30%, transparent),
-        0 0 0 4px color-mix(in srgb, var(--rc-primary) 8%, transparent),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        0 0 0 4px color-mix(in srgb, var(--rc-primary) 8%, transparent);
     transform: translateY(-2px);
 }
 
