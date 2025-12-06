@@ -39,7 +39,7 @@ const AlbumReviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-AlbumReviewSchema.index({ userSpotifyId: 1, albumId: 1 }, { unique: true });
+
 
 export const AlbumReview =
   mongoose.models.AlbumReview || mongoose.model('AlbumReview', AlbumReviewSchema);

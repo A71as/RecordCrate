@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { logger } from '../utils/logger';
 import { Star, ArrowLeft, Clock, Share2 } from "lucide-react";
 import { spotifyService } from "../services/spotify";
 import { backend } from "../services/backend";
@@ -88,8 +89,8 @@ export const AlbumDetail: React.FC = () => {
         let userId: string | null = null;
         if (isAuthenticated && user) {
           userId = user.sub || null;
-          console.log('[AlbumDetail] Current Auth0 user ID:', userId);
-          console.log('[AlbumDetail] User object:', user);
+          logger.debug('[AlbumDetail] Current Auth0 user ID:', userId);
+          logger.debug('[AlbumDetail] User object:', user);
           setCurrentUserId(userId);
           // best-effort sync with Auth0 user data
           if (userId) {
@@ -105,17 +106,17 @@ export const AlbumDetail: React.FC = () => {
           setCurrentUserId(null);
         }
 
-        // Backend-first load if we have a user; otherwise fallback to localStorage
+        // Load reviews from backend database
         if (userId) {
           try {
-            console.log('[AlbumDetail] Fetching reviews for user:', userId, 'album:', albumId);
+            logger.debug('[AlbumDetail] Fetching reviews for user:', userId, 'album:', albumId);
             const serverReviews = (await backend.getAlbumReviews(albumId)) as BackendAlbumReview[];
-            console.log('[AlbumDetail] Server reviews:', serverReviews);
+            logger.debug('[AlbumDetail] Server reviews:', serverReviews);
             setReviewCount(Array.isArray(serverReviews) ? serverReviews.length : 0);
             const my = Array.isArray(serverReviews)
               ? serverReviews.find((r) => r.userSpotifyId === userId)
               : null;
-            console.log('[AlbumDetail] My review:', my);
+            logger.debug('[AlbumDetail] My review:', my);
             if (my) {
               const migratedOverall =
                 typeof my.overallRating === 'number' && my.overallRating <= 5
@@ -157,41 +158,22 @@ export const AlbumDetail: React.FC = () => {
               setSongRatings(ratingsMap);
               return; // done
             }
+          } catch (err) {
+            logger.error('[AlbumDetail] Error loading reviews:', err);
+            setReviewCount(0);
+          }
+        } else {
+          // No user logged in - just fetch review count
+          try {
+            const serverReviews = (await backend.getAlbumReviews(albumId)) as BackendAlbumReview[];
+            setReviewCount(Array.isArray(serverReviews) ? serverReviews.length : 0);
           } catch {
-            // fall through to local storage
+            setReviewCount(0);
           }
         }
 
-        // LocalStorage fallback
-        const savedReviews = JSON.parse(localStorage.getItem("albumReviews") || "[]");
-        const albumReviews = savedReviews.filter((r: AlbumReview) => r.albumId === albumId);
-        setReviewCount(albumReviews.length);
-        const review = albumReviews[0];
-        if (review) {
-          const migratedOverall =
-            typeof review.overallRating === 'number' && review.overallRating <= 5
-              ? Math.round(review.overallRating * 20)
-              : Math.round(review.overallRating || 0);
-          review.overallRating = migratedOverall;
-          const baseOverall =
-            typeof (review as AlbumReview).baseOverallRating === 'number'
-              ? Math.round((review as AlbumReview).baseOverallRating as number)
-              : migratedOverall;
-          setExistingReview(review);
-          setOverallRating(baseOverall);
-          setWriteup(review.writeup);
-          setModifiers({
-            emotionalStoryConnection: Math.max(-5, Math.min(5, review.scoreModifiers?.emotionalStoryConnection ?? 0)),
-            cohesionAndFlow: Math.max(-5, Math.min(5, review.scoreModifiers?.cohesionAndFlow ?? 0)),
-            artistIdentityOriginality: Math.max(-5, Math.min(5, review.scoreModifiers?.artistIdentityOriginality ?? 0)),
-            visualAestheticEcosystem: Math.max(-5, Math.min(5, review.scoreModifiers?.visualAestheticEcosystem ?? 0)),
-          });
-          const ratingsMap: { [trackId: string]: number } = {};
-          review.songRatings.forEach((sr: SongRating) => {
-            ratingsMap[sr.trackId] = sr.rating;
-          });
-          setSongRatings(ratingsMap);
-        } else {
+        // If no existing review found, reset form
+        if (!existingReview) {
           setExistingReview(null);
           setSongRatings({});
           setOverallRating(0);
@@ -205,7 +187,7 @@ export const AlbumDetail: React.FC = () => {
         }
       } catch (err) {
         setError("Failed to fetch album details");
-        console.error(err);
+        logger.error(err);
       } finally {
         setLoading(false);
       }
@@ -223,19 +205,19 @@ export const AlbumDetail: React.FC = () => {
     return Math.round((avg / 5) * 100);
   };
 
-  const handleSongRatingChange = (trackId: string, rating: number) => {
+  const handleSongRatingChange = useCallback((trackId: string, rating: number) => {
     if (!canRate) return;
     const newRatings = { ...songRatings, [trackId]: rating };
     setSongRatings(newRatings);
     setOverallRating(calculateOverallRating(newRatings));
-  };
+  }, [canRate, songRatings]);
 
-  const handleOverallRatingChange = (rating: number) => {
+  const handleOverallRatingChange = useCallback((rating: number) => {
     if (!canRate) return;
     // clamp to 0-100 percent
     const snapped = Math.max(0, Math.min(100, Math.round(rating)));
     setOverallRating(snapped);
-  };
+  }, [canRate]);
 
   // Sum of all signed modifier percentages
   const totalModifier = () =>
@@ -306,49 +288,49 @@ export const AlbumDetail: React.FC = () => {
       album,
     };
 
-    // If logged-in user, persist to backend as source of truth
-    if (currentUserId) {
-      try {
-        console.log('[AlbumDetail] Saving review for user:', currentUserId, 'album:', album.id);
-        await backend.saveReview({
-          userSpotifyId: currentUserId,
-          albumId: album.id,
-          overallRating: finalAdjusted,
-          baseOverallRating: overallRating,
-          adjustedOverallRating: finalAdjusted,
-          scoreModifiers: { ...modifiers },
-          songRatings: songRatingsArray,
-          writeup,
-          albumMeta: {
-            name: album.name,
-            artists: album.artists?.map((a) => a.name) || [],
-            image: album.images?.[0]?.url || album.images?.[1]?.url,
-          },
-        });
-        console.log('[AlbumDetail] Review saved successfully');
-        // refresh count from server
-        try {
-          const list = (await backend.getAlbumReviews(album.id)) as BackendAlbumReview[];
-          setReviewCount(Array.isArray(list) ? list.length : 0);
-        } catch {
-          // ignore refresh count errors
-        }
-      } catch (e) {
-        console.warn('Backend save failed, falling back to localStorage', e);
-      }
+    // Must be logged in to save reviews
+    if (!currentUserId) {
+      alert('Please log in to save reviews');
+      return;
     }
 
-    // Save a local copy as offline fallback
-    const savedReviews = JSON.parse(localStorage.getItem("albumReviews") || "[]");
-    const existingIndex = savedReviews.findIndex((r: AlbumReview) => r.albumId === album.id);
-    if (existingIndex >= 0) savedReviews[existingIndex] = review; else savedReviews.push(review);
-    localStorage.setItem("albumReviews", JSON.stringify(savedReviews));
+    try {
+      logger.debug('[AlbumDetail] Saving review for user:', currentUserId, 'album:', album.id);
+      await backend.saveReview({
+        userSpotifyId: currentUserId,
+        albumId: album.id,
+        overallRating: finalAdjusted,
+        baseOverallRating: overallRating,
+        adjustedOverallRating: finalAdjusted,
+        scoreModifiers: { ...modifiers },
+        songRatings: songRatingsArray,
+        writeup,
+        albumMeta: {
+          name: album.name,
+          artists: album.artists?.map((a) => a.name) || [],
+          image: album.images?.[0]?.url || album.images?.[1]?.url,
+        },
+      });
+      logger.debug('[AlbumDetail] Review saved successfully');
+      
+      // Refresh count from server
+      try {
+        const list = (await backend.getAlbumReviews(album.id)) as BackendAlbumReview[];
+        setReviewCount(Array.isArray(list) ? list.length : 0);
+      } catch {
+        // ignore refresh count errors
+      }
+    } catch (e) {
+      logger.error('Failed to save review:', e);
+      alert('Failed to save review. Please try again.');
+      return;
+    }
     
     // Check if this album was today's daily recommendation and mark it as reviewed
     const today = new Date().toISOString().split('T')[0];
     if (dailyRecommendationService.isRecommendationForDate(today, album.id)) {
       dailyRecommendationService.markAsReviewed(today, album.id, review.id);
-      console.log('[AlbumDetail] Marked today\'s recommendation as reviewed');
+      logger.debug('[AlbumDetail] Marked today\'s recommendation as reviewed');
     }
     
     if (!currentUserId) {
@@ -368,11 +350,11 @@ export const AlbumDetail: React.FC = () => {
     return `hsl(${hue}, 100%, 45%)`;
   };
 
-  const handleStartReview = () => {
+  const handleStartReview = useCallback(() => {
     setIsReviewing(true);
-  };
+  }, []);
 
-  const handleCancelReview = () => {
+  const handleCancelReview = useCallback(() => {
     setIsReviewing(false);
     if (existingReview) {
       const base = typeof existingReview.baseOverallRating === 'number'
@@ -402,31 +384,24 @@ export const AlbumDetail: React.FC = () => {
         visualAestheticEcosystem: 0,
       });
     }
-  };
+  }, [existingReview]);
 
-  const handleDeleteReview = async () => {
-    if (!album || !existingReview) return;
+  const handleDeleteReview = useCallback(async () => {
+    if (!album || !existingReview || !currentUserId) return;
     
     const confirmDelete = window.confirm("Are you sure you want to delete this review? This action cannot be undone.");
     if (!confirmDelete) return;
 
     try {
-      // Delete from backend if user is logged in
-      if (currentUserId) {
-        await backend.deleteReview(currentUserId, album.id);
-        // Refresh review count from server
-        try {
-          const list = await backend.getAlbumReviews(album.id);
-          setReviewCount(Array.isArray(list) ? list.length : 0);
-        } catch {
-          setReviewCount(0);
-        }
+      await backend.deleteReview(currentUserId, album.id);
+      
+      // Refresh review count from server
+      try {
+        const list = await backend.getAlbumReviews(album.id);
+        setReviewCount(Array.isArray(list) ? list.length : 0);
+      } catch {
+        setReviewCount(0);
       }
-
-      // Delete from localStorage
-      const savedReviews = JSON.parse(localStorage.getItem("albumReviews") || "[]");
-      const filtered = savedReviews.filter((r: AlbumReview) => r.albumId !== album.id);
-      localStorage.setItem("albumReviews", JSON.stringify(filtered));
       
       if (!currentUserId) {
         setReviewCount(filtered.filter((r: AlbumReview) => r.albumId === album.id).length);
@@ -445,10 +420,10 @@ export const AlbumDetail: React.FC = () => {
       });
       setIsReviewing(false);
     } catch (error) {
-      console.error("Failed to delete review:", error);
-      alert("Failed to delete review. Please try again.");
+      logger.error('Failed to delete review:', error);
+      alert('Failed to delete review. Please try again.');
     }
-  };
+  }, [album, existingReview, currentUserId]);
 
   if (loading) return <div className="loading">Loading album...</div>;
   if (error) return <div className="error">{error}</div>;
@@ -484,7 +459,7 @@ export const AlbumDetail: React.FC = () => {
           <div className="album-hero-content">
             <div className="album-artwork-wrapper">
               <div className="album-artwork-container">
-                {albumImage && <img src={albumImage} alt={album.name} className="album-artwork-image" />}
+                {albumImage && <img src={albumImage} alt={album.name} className="album-artwork-image" loading="lazy" />}
               </div>
             </div>
 
@@ -707,7 +682,7 @@ export const AlbumDetail: React.FC = () => {
               </div>
 
               <div className="writeup-section">
-                <label htmlFor="writeup">Your Thoughts</label>
+                <label htmlFor="writeup">Your Thoughts (Optional)</label>
                 <textarea
                   id="writeup"
                   value={writeup}
@@ -715,23 +690,33 @@ export const AlbumDetail: React.FC = () => {
                   placeholder="What did you think of this album? Share your insights, favorite moments, and overall impressions..."
                   rows={8}
                   disabled={!canRate}
+                  aria-describedby="char-count"
                 />
-                <div className="character-count">
+                <div 
+                  id="char-count"
+                  className="character-count"
+                  style={{ 
+                    color: writeup.length > 1300 ? 'var(--rc-red)' : 'var(--muted)',
+                    fontWeight: writeup.length > 1300 ? '600' : '400'
+                  }}
+                >
                   {writeup.length} / 1400 characters
+                  {writeup.length > 1300 && ' - Approaching limit!'}
                 </div>
               </div>
 
               <div className="review-actions">
-                <button className="cancel-btn" onClick={handleCancelReview}>
+                <button className="cancel-btn btn btn-ghost" onClick={handleCancelReview}>
                   Cancel
                 </button>
                 <button
-                  className="save-btn"
+                  className="save-btn btn btn-primary"
                   onClick={handleSaveReview}
                   disabled={!canRate || overallRating === 0}
+                  title={overallRating === 0 ? 'Please set an overall rating' : 'Save your review'}
                 >
                   <Star size={18} fill="currentColor" />
-                  Save Review
+                  {overallRating === 0 ? 'Set Rating First' : 'Save Review'}
                 </button>
               </div>
             </div>
@@ -855,6 +840,8 @@ export const AlbumDetail: React.FC = () => {
     </div>
   );
 };
+
+export default AlbumDetail;
 
 
 

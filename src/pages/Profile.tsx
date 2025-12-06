@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Music, Star, Calendar } from 'lucide-react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { backend } from '../services/backend';
+import { logger } from '../utils/logger';
 import type { AlbumReview } from '../types';
 import '../styles/pages/Profile.css';
 
@@ -12,27 +14,29 @@ export const Profile: React.FC = () => {
   const { loginWithRedirect, user, isAuthenticated, isLoading } = useAuth0();
 
   useEffect(() => {
-    const loadReviews = () => {
-      const savedReviewsRaw = localStorage.getItem('albumReviews') || '[]';
+    const loadReviews = async () => {
+      if (!isAuthenticated || !user?.sub) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const savedReviewsArr = JSON.parse(savedReviewsRaw) as AlbumReview[];
-        const migrated: AlbumReview[] = (savedReviewsArr || []).map((r) => {
-          if (typeof r.overallRating === 'number' && r.overallRating <= 5) {
-            return { ...r, overallRating: Math.round(r.overallRating * 20) };
-          }
-          return { ...r, overallRating: Math.round(r.overallRating || 0) };
-        });
-        setReviews(migrated);
+        logger.debug('[Profile] Fetching reviews for user:', user.sub);
+        const data = await backend.getUserReviews(user.sub);
+        const reviewsArray = Array.isArray(data) ? data : [];
+        setReviews(reviewsArray);
       } catch (err) {
-        console.error('Profile: Error parsing reviews:', err);
+        logger.error('Profile: Error loading reviews:', err);
         setReviews([]);
       } finally {
         setLoading(false);
       }
     };
 
-    loadReviews();
-  }, []);
+    if (!isLoading) {
+      loadReviews();
+    }
+  }, [isAuthenticated, isLoading, user]);
 
   const handleLogin = () => {
     loginWithRedirect();
@@ -116,6 +120,7 @@ export const Profile: React.FC = () => {
                 src={user.picture}
                 alt={user.name || user.email || 'User'}
                 className="profile-avatar"
+                loading="lazy"
               />
             )}
             <div className="user-details">
@@ -161,6 +166,7 @@ export const Profile: React.FC = () => {
                           <img
                             src={review.album.images[0].url}
                             alt={review.album.name}
+                            loading="lazy"
                           />
                         )}
                       </div>
@@ -203,3 +209,5 @@ export const Profile: React.FC = () => {
     </div>
   );
 };
+
+export default Profile;

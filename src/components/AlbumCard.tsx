@@ -31,7 +31,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
     <div className="album-card" onClick={handleClick}>
       <div className="album-image">
         {imageUrl ? (
-          <img src={imageUrl} alt={album.name} />
+          <img src={imageUrl} alt={album.name} loading="lazy" />
         ) : (
           <div className="album-image-placeholder">♪</div>
         )}

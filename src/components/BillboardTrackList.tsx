@@ -119,7 +119,7 @@ export const BillboardTrackList: React.FC<BillboardTrackListProps> = ({
               
               <div className="track-image">
                 {spotifyTrack.album?.images?.[0]?.url ? (
-                  <img src={spotifyTrack.album.images[0].url} alt={spotifyTrack.name} />
+                  <img src={spotifyTrack.album.images[0].url} alt={spotifyTrack.name} loading="lazy" />
                 ) : (
                   <div className="track-image-placeholder">
                     <span>♪</span>

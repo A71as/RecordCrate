@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
+import { logger } from '../utils/logger';
 import { AlbumCard } from '../components/AlbumCard';
 import { ArtistCard } from '../components/ArtistCard';
 import { FilterTabs } from '../components/FilterTabs';
 import { AlbumGridSkeleton } from '../components/AlbumCardSkeleton';
-import AlbumStreakCalendar, { type AlbumStreakCalendarEntry } from '../components/AlbumStreakCalendar';
+import AlbumStreakCalendar, { type AlbumStreakCalendar Entry } from '../components/AlbumStreakCalendar';
 import { useSpotify } from '../hooks/useSpotify';
 import { spotifyService } from '../services/spotify';
+import { backend } from '../services/backend';
 import { recommendationService } from '../services/recommendations';
 import { dailyRecommendationService, type DailyRecommendation } from '../services/dailyRecommendation';
 import type { SpotifyAlbum, SpotifyArtist, FilterType } from '../types';
@@ -19,6 +21,7 @@ export const Discover: React.FC = () => {
   const [albums, setAlbums] = useState<SpotifyAlbum[]>([]);
   const [artists, setArtists] = useState<SpotifyArtist[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterType>('new-releases-week');
+  const [retryCount, setRetryCount] = useState(0);
   const [albumPage, setAlbumPage] = useState(1);
   const [displayedAlbums, setDisplayedAlbums] = useState<SpotifyAlbum[]>([]);
   const [recommendations, setRecommendations] = useState<{
@@ -46,6 +49,10 @@ export const Discover: React.FC = () => {
     setDailyEntries(entries);
   }, [calendarMonth]);
 
+  const handleRetry = useCallback(() => {
+    setRetryCount(prev => prev + 1);
+  }, []);
+
   useEffect(() => {
     const fetchContent = async () => {
       const { albums: fetchedAlbums, artists: fetchedArtists} = 
@@ -56,21 +63,32 @@ export const Discover: React.FC = () => {
     };
 
     fetchContent();
-  }, [activeFilter, getFilteredContent]);
+  }, [activeFilter, getFilteredContent, retryCount]);
 
   // Load personalized recommendations
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        const recs = await recommendationService.getPersonalizedFeed(20);
+        // Fetch user reviews first
+        let userReviews = [];
+        if (isAuthenticated && user?.sub) {
+          try {
+            const reviewsData = await backend.getUserReviews(user.sub);
+            userReviews = Array.isArray(reviewsData) ? reviewsData : [];
+          } catch (err) {
+            logger.error('Failed to load user reviews for recommendations:', err);
+          }
+        }
+        
+        const recs = await recommendationService.getPersonalizedFeed(userReviews, 20);
         setRecommendations(recs);
       } catch (err) {
-        console.error('Failed to load recommendations:', err);
+        logger.error('Failed to load recommendations:', err);
       }
     };
 
     fetchRecommendations();
-  }, []); // Load once on mount
+  }, [isAuthenticated, user]); // Re-fetch when auth state changes
 
   // Load daily AI recommendation
   useEffect(() => {
@@ -191,16 +209,26 @@ export const Discover: React.FC = () => {
       <div className="container">
         {hasError && (
           <div className="error-banner" style={{ 
-            background: 'rgba(238, 92, 92, 0.1)', 
-            border: '1px solid rgba(238, 92, 92, 0.3)',
-            borderRadius: '8px',
-            padding: '1rem',
+            background: 'var(--rc-red-light)', 
+            border: '2px solid var(--rc-red)',
+            borderRadius: '12px',
+            padding: '1.5rem',
             marginBottom: '2rem',
             textAlign: 'center'
           }}>
-            <p style={{ margin: 0, color: 'var(--rc-text)' }}>
-              ⚠️ Unable to load Spotify content. Some features may be unavailable.
+            <p style={{ margin: '0 0 1rem 0', color: 'var(--rc-red)', fontSize: '1.1rem', fontWeight: '600' }}>
+              ⚠️ Unable to load Spotify content
             </p>
+            <p style={{ margin: '0 0 1rem 0', color: 'var(--muted)', fontSize: '0.95rem' }}>
+              {error}
+            </p>
+            <button 
+              onClick={handleRetry}
+              className="btn btn-secondary btn-sm"
+              style={{ marginTop: '0.5rem' }}
+            >
+              🔄 Retry
+            </button>
           </div>
         )}
         
@@ -237,8 +265,16 @@ export const Discover: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="aotd-error">
-                  <p>Could not load today's recommendation. Please try refreshing the page.</p>
+                <div className="aotd-error" style={{ textAlign: 'center', padding: '2rem' }}>
+                  <p style={{ marginBottom: '1rem', color: 'var(--muted)' }}>
+                    Could not load today's recommendation.
+                  </p>
+                  <button 
+                    onClick={() => window.location.reload()}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    🔄 Retry
+                  </button>
                 </div>
               )}
             </div>
@@ -373,3 +409,5 @@ export const Discover: React.FC = () => {
     </div>
   );
 };
+
+export default Discover;

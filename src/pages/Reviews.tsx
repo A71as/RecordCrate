@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Star, Calendar, User as UserIcon, Music } from 'lucide-react';
 import { backend } from '../services/backend';
 import type { AlbumReview } from '../types';
+import { ReviewGridSkeleton } from '../components/ReviewCardSkeleton';
 import '../styles/pages/Reviews.css';
 
 export const Reviews: React.FC = () => {
@@ -10,10 +11,6 @@ export const Reviews: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'recent' | 'top-rated' | 'most-discussed'>('recent');
-
-  useEffect(() => {
-    loadReviews();
-  }, []);
 
   const loadReviews = async () => {
     try {
@@ -33,6 +30,10 @@ export const Reviews: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadReviews();
+  }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -71,9 +72,14 @@ export const Reviews: React.FC = () => {
     return (
       <div className="reviews-page">
         <div className="container">
-          <div className="loading">
-            <div className="loading-spinner"></div>
-            Loading reviews...
+          <div className="reviews-header">
+            <div className="reviews-hero">
+              <h1>Community Reviews</h1>
+              <p>Explore what the RecordCrate community is listening to and loving</p>
+            </div>
+          </div>
+          <div className="reviews-grid">
+            <ReviewGridSkeleton count={9} />
           </div>
         </div>
       </div>
@@ -115,14 +121,34 @@ export const Reviews: React.FC = () => {
         </div>
 
         {error && (
-          <div className="error-message">
-            {error}
+          <div className="error-message" style={{ 
+            background: 'var(--rc-red-light)', 
+            border: '2px solid var(--rc-red)',
+            borderRadius: '12px',
+            padding: '2rem',
+            textAlign: 'center'
+          }}>
+            <p style={{ marginBottom: '1rem', color: 'var(--rc-red)', fontWeight: '600' }}>
+              {error}
+            </p>
+            <button 
+              onClick={() => loadReviews()}
+              className="btn btn-primary btn-sm"
+            >
+              🔄 Try Again
+            </button>
           </div>
         )}
 
-        {!error && sortedReviews.length === 0 && (
-          <div className="no-reviews">
-            <p>No reviews yet. Be the first to share your thoughts on an album!</p>
+        {!error && sortedReviews.length === 0 && !loading && (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <Star size={40} />
+            </div>
+            <h3>No Reviews Yet</h3>
+            <p>
+              Be the first to share your thoughts! Search for an album and write a review to get started.
+            </p>
           </div>
         )}
 
@@ -143,6 +169,7 @@ export const Reviews: React.FC = () => {
                       src={albumImage}
                       alt={albumName}
                       className="review-album-image"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="review-album-placeholder">
@@ -214,3 +241,5 @@ export const Reviews: React.FC = () => {
     </div>
   );
 };
+
+export default Reviews;

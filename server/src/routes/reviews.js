@@ -25,6 +25,7 @@ const sanitizeString = (str, maxLength = 5000) => {
 };
 
 // Upsert a review for a user+album
+// NOTE: All submitted reviews are public and immediately available in the community reviews feed (GET /api/reviews)
 router.post('/', async (req, res) => {
   try {
     const {
@@ -95,6 +96,7 @@ router.post('/', async (req, res) => {
         .slice(0, 20); // Limit to 20 artists
     }
 
+    // Upsert: Update existing review or create new one
     const doc = await AlbumReview.findOneAndUpdate(
       { userSpotifyId, albumId },
       {
@@ -108,11 +110,18 @@ router.post('/', async (req, res) => {
           albumName: sanitizedAlbumName,
           albumArtists: sanitizedArtists,
           albumImage: sanitizedAlbumImage,
+          updatedAt: new Date(),
         },
+        $setOnInsert: {
+          createdAt: new Date(),
+        }
       },
-      { new: true, upsert: true }
+      { 
+        upsert: true, 
+        new: true,
+        runValidators: true 
+      }
     );
-
     res.json(doc);
   } catch (e) {
     console.error('save review error', e);

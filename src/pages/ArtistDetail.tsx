@@ -15,6 +15,8 @@ export const ArtistDetail: React.FC = () => {
     const [currentTrackPage, setCurrentTrackPage] = useState(1);
     const [localLoading, setLocalLoading] = useState(true);
     const [localError, setLocalError] = useState<string | null>(null);
+    const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
+    const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
 
     const tracksPerPage = 10;
 
@@ -41,7 +43,7 @@ export const ArtistDetail: React.FC = () => {
 
             } catch (err) {
                 setLocalError('Failed to load artist information');
-                console.error('Error fetching artist data:', err);
+                logger.error('Error fetching artist data:', err);
             } finally {
                 setLocalLoading(false);
             }
@@ -59,6 +61,39 @@ export const ArtistDetail: React.FC = () => {
     const formatAlbumType = (type?: string): string => {
         if (!type) return 'Album';
         return type.charAt(0).toUpperCase() + type.slice(1);
+    };
+
+    const formatFollowers = (count: number): string => {
+        if (count >= 1000000) {
+            return `${(count / 1000000).toFixed(1)}M`;
+        }
+        if (count >= 1000) {
+            return `${(count / 1000).toFixed(1)}K`;
+        }
+        return count.toString();
+    };
+
+    const handleTrackPreview = (trackId: string, previewUrl: string, event: React.MouseEvent) => {
+        event.stopPropagation();
+        
+        if (currentAudio) {
+            currentAudio.pause();
+            if (playingTrackId === trackId) {
+                setPlayingTrackId(null);
+                setCurrentAudio(null);
+                return;
+            }
+        }
+        
+        const audio = new Audio(previewUrl);
+        audio.addEventListener('ended', () => {
+            setPlayingTrackId(null);
+            setCurrentAudio(null);
+        });
+        
+        audio.play().catch(logger.error);
+        setPlayingTrackId(trackId);
+        setCurrentAudio(audio);
     };
 
     const handleAlbumClick = (albumId: string) => {
@@ -104,9 +139,18 @@ export const ArtistDetail: React.FC = () => {
         return (
             <div className="main-content">
                 <div className="container">
-                    <div className="loading-container">
-                        <div className="loading-spinner"></div>
-                        <p className="loading-message">Loading artist information...</p>
+                    <div className="artist-detail">
+                        <div className="artist-hero">
+                            <div className="skeleton" style={{ width: 'clamp(180px, 25vw, 240px)', height: 'clamp(180px, 25vw, 240px)', borderRadius: '50%', margin: '0 auto 2rem' }} />
+                            <div className="skeleton skeleton-heading" style={{ width: '60%', height: '3rem', margin: '0 auto 1rem' }} />
+                            <div className="skeleton skeleton-text" style={{ width: '30%', height: '1.5rem', margin: '0 auto 2rem' }} />
+                            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginBottom: '2rem' }}>
+                                <div className="skeleton" style={{ width: '100px', height: '36px', borderRadius: '50px' }} />
+                                <div className="skeleton" style={{ width: '100px', height: '36px', borderRadius: '50px' }} />
+                                <div className="skeleton" style={{ width: '100px', height: '36px', borderRadius: '50px' }} />
+                            </div>
+                            <div className="skeleton" style={{ width: '200px', height: '48px', borderRadius: '50px', margin: '0 auto' }} />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -117,15 +161,27 @@ export const ArtistDetail: React.FC = () => {
         return (
             <div className="main-content">
                 <div className="container">
-                    <div className="error-message">
-                        {localError || 'Artist not found'}
+                    <div className="empty-state">
+                        <div className="empty-state-icon">
+                            <span style={{ fontSize: '3rem' }}>🎵</span>
+                        </div>
+                        <h3>{localError || 'Artist not found'}</h3>
+                        <p>We couldn't load this artist's information. This might be a temporary issue.</p>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="btn btn-primary"
+                            >
+                                🔄 Retry
+                            </button>
+                            <button
+                                onClick={() => navigate('/search')}
+                                className="btn btn-secondary"
+                            >
+                                Back to Search
+                            </button>
+                        </div>
                     </div>
-                    <button
-                        onClick={() => navigate('/search')}
-                        className="search-button back-button"
-                    >
-                        Back to Search
-                    </button>
                 </div>
             </div>
         );
@@ -134,7 +190,7 @@ export const ArtistDetail: React.FC = () => {
     return (
         <div className="main-content">
             <div className="container">
-                <button className="back-button" onClick={() => {
+                <button className="btn btn-ghost" style={{ marginBottom: '2rem' }} onClick={() => {
                     if (window.history.length > 1) {
                         navigate(-1);
                     } else {
@@ -146,14 +202,15 @@ export const ArtistDetail: React.FC = () => {
                 </button>
 
                 <div className="artist-detail">
-                    {/* Artist Header */}
-                    <div className="artist-header">
-                        <div className="artist-image-container">
+                    {/* Artist Hero */}
+                    <div className="artist-hero">
+                        <div className="artist-image-wrapper">
                             {artist.images?.[0] ? (
                                 <img
                                     src={artist.images[0].url}
                                     alt={artist.name}
                                     className="artist-image"
+                                    loading="lazy"
                                 />
                             ) : (
                                 <div className="artist-image-placeholder">
@@ -161,35 +218,33 @@ export const ArtistDetail: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="artist-info">
-                            <h1 className="artist-name">{artist.name}</h1>
-                            <div className="artist-stats">
-                                <span className="followers">
-                                    {artist.followers?.total.toLocaleString()} followers
-                                </span>
-                                {artist.genres && artist.genres.length > 0 && (
-                                    <div className="genres">
-                                        {artist.genres.slice(0, 3).map((genre, index) => (
-                                            <span key={index} className="genre-tag">
-                                                {genre}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            <a
-                                href={artist.external_urls.spotify}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="spotify-link"
-                            >
-                                Open in Spotify
-                            </a>
+                        <h1 className="artist-name">{artist.name}</h1>
+                        <div className="artist-stats">
+                            <span className="followers" title={`${artist.followers?.total.toLocaleString()} followers`}>
+                                {formatFollowers(artist.followers?.total || 0)} followers
+                            </span>
                         </div>
+                        {artist.genres && artist.genres.length > 0 && (
+                            <div className="genres">
+                                {artist.genres.slice(0, 5).map((genre, index) => (
+                                    <span key={index} className="genre-tag">
+                                        {genre}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                        <a
+                            href={artist.external_urls.spotify}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="spotify-link"
+                        >
+                            Open in Spotify
+                        </a>
                     </div>
 
-                    {/* Popular Tracks with Pagination */}
-                    {topTracks.length > 0 && (
+                    {/* Popular Tracks */}
+                    {topTracks.length > 0 ? (
                         <section className="artist-section">
                             <div className="section-header">
                                 <h2 className="section-title">Popular Tracks</h2>
@@ -223,22 +278,21 @@ export const ArtistDetail: React.FC = () => {
                                             <h3 className="track-name">{track.name}</h3>
                                             <p className="track-album">{track.album?.name}</p>
                                         </div>
-                                        <span className="track-duration">
-                                            {formatDuration(track.duration_ms)}
-                                        </span>
-                                        {track.preview_url && (
-                                            <button
-                                                className="preview-button"
-                                                onClick={(event) => {
-                                                    event.stopPropagation();
-                                                    const audio = new Audio(track.preview_url!);
-                                                    audio.play().catch(console.error);
-                                                }}
-                                                title="Play preview"
-                                            >
-                                                ▶️
-                                            </button>
-                                        )}
+                                        <div className="track-right">
+                                            <span className="track-duration">
+                                                {formatDuration(track.duration_ms)}
+                                            </span>
+                                            {track.preview_url && (
+                                                <button
+                                                    className={`preview-button ${playingTrackId === track.id ? 'playing' : ''}`}
+                                                    onClick={(event) => handleTrackPreview(track.id, track.preview_url!, event)}
+                                                    title={playingTrackId === track.id ? 'Pause preview' : 'Play preview'}
+                                                    aria-label={playingTrackId === track.id ? 'Pause preview' : 'Play preview'}
+                                                >
+                                                    {playingTrackId === track.id ? '⏸️' : '▶️'}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -264,10 +318,17 @@ export const ArtistDetail: React.FC = () => {
                                 </div>
                             )}
                         </section>
+                    ) : (
+                        <section className="artist-section">
+                            <div className="empty-state" style={{ padding: '2rem' }}>
+                                <h3>No Popular Tracks Available</h3>
+                                <p>We couldn't find popular tracks for this artist at the moment.</p>
+                            </div>
+                        </section>
                     )}
 
                     {/* Complete Discography */}
-                    {discography.length > 0 && (
+                    {discography.length > 0 ? (
                         <section className="artist-section">
                             <h2 className="section-title">Discography</h2>
                             <div className="albums-grid">
@@ -282,6 +343,7 @@ export const ArtistDetail: React.FC = () => {
                                                 src={album.images[0].url}
                                                 alt={album.name}
                                                 className="album-image"
+                                                loading="lazy"
                                             />
                                         ) : (
                                             <div className="album-image-placeholder">
@@ -290,17 +352,26 @@ export const ArtistDetail: React.FC = () => {
                                         )}
                                         <div className="album-info">
                                             <h3 className="album-name">{album.name}</h3>
-                                            {album.release_date && (
-                                                <p className="album-year">
-                                                    {new Date(album.release_date).getFullYear()}
-                                                </p>
-                                            )}
-                                            <p className="album-type">
-                                                {formatAlbumType(album.album_type)} | {album.total_tracks} tracks
-                                            </p>
+                                            <div className="album-meta">
+                                                {album.release_date && (
+                                                    <span className="album-year">
+                                                        {new Date(album.release_date).getFullYear()}
+                                                    </span>
+                                                )}
+                                                <span className="album-type">
+                                                    {formatAlbumType(album.album_type)}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </section>
+                    ) : (
+                        <section className="artist-section">
+                            <div className="empty-state" style={{ padding: '2rem' }}>
+                                <h3>No Discography Available</h3>
+                                <p>We couldn't find albums for this artist at the moment.</p>
                             </div>
                         </section>
                     )}
@@ -310,3 +381,5 @@ export const ArtistDetail: React.FC = () => {
         </div>
     );
 };
+
+export default ArtistDetail;

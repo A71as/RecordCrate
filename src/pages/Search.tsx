@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '../utils/logger';
 import { Sparkles } from 'lucide-react';
 import { SearchInput } from '../components/SearchInput';
 import { SearchDropdown } from '../components/SearchDropdown';
@@ -143,7 +144,7 @@ export const Search: React.FC = () => {
       // Track selected
       if (track.preview_url) {
         const audio = new Audio(track.preview_url);
-        audio.play().catch(console.error);
+        audio.play().catch(logger.error);
       }
     }
   });
@@ -426,24 +427,36 @@ export const Search: React.FC = () => {
           artistResults.length === 0 &&
           trackResults.length === 0 &&
           hasSearched && (
-            <div className="no-results-container">
-              <div className="no-results-icon">🔍</div>
+            <div className="empty-state">
+              <div className="empty-state-icon">
+                <Sparkles size={40} />
+              </div>
               <h3>No Results Found</h3>
               <p>
                 We couldn't find any matches for <strong>"{query}"</strong>
               </p>
-              <div className="search-suggestions">
-                <p className="suggestions-label">Try:</p>
-                <ul>
+              <div className="search-suggestions" style={{ marginTop: '1.5rem', textAlign: 'left', maxWidth: '400px' }}>
+                <p className="suggestions-label" style={{ fontWeight: '600', marginBottom: '0.75rem', color: 'var(--rc-text)' }}>Try:</p>
+                <ul style={{ paddingLeft: '1.5rem', color: 'var(--muted)', lineHeight: '1.75' }}>
                   <li>Checking your spelling</li>
                   <li>Using different keywords</li>
                   <li>Searching for an artist or album name</li>
                   <li>Using our Natural Language Search for better results</li>
                 </ul>
               </div>
+              <button 
+                onClick={() => setIsNaturalLanguageMode(true)}
+                className="btn btn-primary"
+                style={{ marginTop: '1.5rem' }}
+              >
+                <Sparkles size={18} />
+                Try Natural Language Search
+              </button>
             </div>
           )}
       </div>
     </div>
   );
 };
+
+export default Search;

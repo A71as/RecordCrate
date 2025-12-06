@@ -1,21 +1,40 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth0Provider } from '@auth0/auth0-react';
-import { AuthProvider } from './context/AuthProvider';
+import { lazy, Suspense } from 'react';
+import { logger } from './utils/logger';
 import { Header } from './components/Header';
-import { Home } from './pages/Home';
-import { Discover } from './pages/Discover';
-import { TrendingCharts } from './pages/TrendingCharts';
-import { Search } from './pages/Search';
-import { Profile } from './pages/Profile';
-import { UserProfile } from './pages/UserProfile';
-import { Reviews } from './pages/Reviews';
-import { AlbumDetail } from './pages/AlbumDetail';
-import { ArtistDetail } from './pages/ArtistDetail';
-import { SpotifyCallback } from './pages/SpotifyCallback';
-import { Auth0Callback } from './pages/Auth0Callback';
+import { AuthProvider } from './context/AuthProvider';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './styles/global.css';
 import './styles/index.css';
 import './App.css';
+
+// Lazy load pages for better performance
+const Home = lazy(() => import('./pages/Home'));
+const Discover = lazy(() => import('./pages/Discover'));
+const TrendingCharts = lazy(() => import('./pages/TrendingCharts'));
+const Search = lazy(() => import('./pages/Search'));
+const Profile = lazy(() => import('./pages/Profile'));
+const UserProfile = lazy(() => import('./pages/UserProfile'));
+const Reviews = lazy(() => import('./pages/Reviews'));
+const AlbumDetail = lazy(() => import('./pages/AlbumDetail'));
+const ArtistDetail = lazy(() => import('./pages/ArtistDetail'));
+const SpotifyCallback = lazy(() => import('./pages/SpotifyCallback'));
+const Auth0Callback = lazy(() => import('./pages/Auth0Callback'));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 'calc(100vh - var(--header-height))',
+    fontSize: '1.2rem',
+    color: 'var(--muted)'
+  }}>
+    Loading...
+  </div>
+);
 
 // Auth0 configuration
 const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -24,7 +43,7 @@ const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
 function App() {
   // Check if Auth0 is properly configured
   if (!domain || !clientId) {
-    console.warn('Auth0 not configured. Please set VITE_AUTH0_DOMAIN and VITE_AUTH0_CLIENT_ID in .env.local');
+    logger.warn('Auth0 not configured. Please set VITE_AUTH0_DOMAIN and VITE_AUTH0_CLIENT_ID in .env.local');
     
     // Render app without Auth0 if not configured
     return (
@@ -33,11 +52,13 @@ function App() {
           <div className="App">
             <Header />
             <main className="main-content">
-              <div style={{ padding: '2rem', textAlign: 'center' }}>
-                <h2>Auth0 Configuration Required</h2>
-                <p>Please configure Auth0 credentials in .env.local file</p>
-                <p>See console for details</p>
-              </div>
+              <ErrorBoundary>
+                <div style={{ padding: '2rem', textAlign: 'center' }}>
+                  <h2>Auth0 Configuration Required</h2>
+                  <p>Please configure Auth0 credentials in .env.local file</p>
+                  <p>See console for details</p>
+                </div>
+              </ErrorBoundary>
             </main>
           </div>
         </Router>
@@ -60,19 +81,23 @@ function App() {
           <div className="App">
             <Header />
             <main className="main-content">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/discover" element={<Discover />} />
-                <Route path="/trending" element={<TrendingCharts />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/user/:userId" element={<UserProfile />} />
-                <Route path="/reviews" element={<Reviews />} />
-                <Route path="/album/:albumId" element={<AlbumDetail />} />
-                <Route path="/artist/:id" element={<ArtistDetail />} />
-                <Route path="/callback" element={<SpotifyCallback />} />
-                <Route path="/auth/callback" element={<Auth0Callback />} />
-              </Routes>
+              <ErrorBoundary>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/discover" element={<Discover />} />
+                    <Route path="/trending" element={<TrendingCharts />} />
+                    <Route path="/search" element={<Search />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/user/:userId" element={<UserProfile />} />
+                    <Route path="/reviews" element={<Reviews />} />
+                    <Route path="/album/:albumId" element={<AlbumDetail />} />
+                    <Route path="/artist/:id" element={<ArtistDetail />} />
+                    <Route path="/callback" element={<SpotifyCallback />} />
+                    <Route path="/auth/callback" element={<Auth0Callback />} />
+                  </Routes>
+                </Suspense>
+              </ErrorBoundary>
             </main>
           </div>
         </Router>

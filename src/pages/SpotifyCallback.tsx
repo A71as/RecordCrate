@@ -112,3 +112,5 @@ export const SpotifyCallback: React.FC = () => {
 
   return null;
 };
+
+export default SpotifyCallback;

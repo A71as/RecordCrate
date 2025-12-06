@@ -107,6 +107,7 @@ export const UserProfile: React.FC = () => {
                 src={userAvatar}
                 alt={userName}
                 className="user-avatar"
+                loading="lazy"
               />
             ) : (
               <div className="user-avatar-placeholder">
@@ -155,6 +156,7 @@ export const UserProfile: React.FC = () => {
                           src={albumImage}
                           alt={albumName}
                           className="review-album-image"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="review-album-placeholder">
@@ -218,3 +220,5 @@ export const UserProfile: React.FC = () => {
     </div>
   );
 };
+
+export default UserProfile;

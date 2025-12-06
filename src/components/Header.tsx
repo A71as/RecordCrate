@@ -132,6 +132,7 @@ export const Header: React.FC = () => {
                     src={displayAvatar}
                     alt={displayName}
                     className="user-avatar"
+                    loading="lazy"
                   />
                 )}
                 <span className="user-name">{displayName}</span>

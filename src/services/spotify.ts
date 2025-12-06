@@ -1,5 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 import axios from 'axios';
+import { LRUCache } from '../utils/cache';
 import type {
   DiscographyEntry,
   SpotifyAlbum,
@@ -34,6 +35,13 @@ class SpotifyService {
   private userAccessToken: string | null = null;
   private refreshToken: string | null = null;
   private pendingTokenExchange: Promise<{ access_token: string; refresh_token: string }> | null = null;
+  
+  // Cache instances for different data types
+  private albumCache = new LRUCache<SpotifyAlbum[]>(50, 10 * 60 * 1000); // 10 min TTL
+  private artistCache = new LRUCache<SpotifyArtist[]>(50, 10 * 60 * 1000);
+  private trackCache = new LRUCache<SpotifyTrack[]>(50, 10 * 60 * 1000);
+  private detailCache = new LRUCache<SpotifyAlbum | SpotifyArtist>(100, 15 * 60 * 1000); // 15 min for details
+  private genreCache = new LRUCache<string[]>(1, 30 * 60 * 1000); // 30 min for genres
 
   async getAccessToken(): Promise<string> {
     if (this.accessToken && Date.now() < this.tokenExpiry) {
@@ -70,11 +78,20 @@ class SpotifyService {
   }
 
   async getAvailableGenres(): Promise<string[]> {
+    // Check cache first
+    const cached = this.genreCache.get('genres');
+    if (cached) {
+      return cached;
+    }
+
     // Prefer backend to avoid exposing secrets in the client
     try {
       const resp = await axios.get(`${API_BASE}/api/discography/genres`);
       const genres = resp.data?.genres ?? [];
-      if (Array.isArray(genres) && genres.length > 0) return genres;
+      if (Array.isArray(genres) && genres.length > 0) {
+        this.genreCache.set('genres', genres);
+        return genres;
+      }
     } catch (err) {
       console.debug('Backend genre fetch failed, falling back to client credentials (if available):', err);
     }
@@ -85,7 +102,11 @@ class SpotifyService {
       const response = await axios.get('https://api.spotify.com/v1/recommendations/available-genre-seeds', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return response.data.genres ?? [];
+      const genres = response.data.genres ?? [];
+      if (genres.length > 0) {
+        this.genreCache.set('genres', genres);
+      }
+      return genres;
     } catch (err) {
       console.debug('Direct Spotify genre fetch failed (likely no creds). Returning empty genres.', err);
       return [];
@@ -93,6 +114,13 @@ class SpotifyService {
   }
 
   async searchAlbums(query: string): Promise<SpotifyAlbum[]> {
+    // Check cache first
+    const cacheKey = `albums:${query.toLowerCase()}`;
+    const cached = this.albumCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     try {
       const token = await this.getAccessToken();
 
@@ -107,7 +135,9 @@ class SpotifyService {
         }
       );
 
-      return response.data.albums.items;
+      const albums = response.data.albums.items;
+      this.albumCache.set(cacheKey, albums);
+      return albums;
     } catch (error) {
       console.warn('Spotify API not available:', error);
       return [];
@@ -142,6 +172,13 @@ class SpotifyService {
   }
 
   async searchArtists(query: string): Promise<SpotifyArtist[]> {
+    // Check cache first
+    const cacheKey = `artists:${query.toLowerCase()}`;
+    const cached = this.artistCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     try {
       const token = await this.getAccessToken();
 
@@ -156,7 +193,9 @@ class SpotifyService {
         }
       );
 
-      return response.data.artists.items;
+      const artists = response.data.artists.items;
+      this.artistCache.set(cacheKey, artists);
+      return artists;
     } catch (error) {
       console.warn('Spotify API not available:', error);
       return [];
@@ -164,6 +203,13 @@ class SpotifyService {
   }
 
   async searchTracks(query: string): Promise<SpotifyTrack[]> {
+    // Check cache first
+    const cacheKey = `tracks:${query.toLowerCase()}`;
+    const cached = this.trackCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     try {
       const token = await this.getAccessToken();
 
@@ -178,14 +224,21 @@ class SpotifyService {
         }
       );
 
-      return response.data.tracks.items;
+      const tracks = response.data.tracks.items;
+      this.trackCache.set(cacheKey, tracks);
+      return tracks;
     } catch (error) {
       console.warn('Spotify API not available:', error);
       return [];
     }
-  }
+  }  async getAlbum(id: string): Promise<SpotifyAlbum> {
+    // Check cache first
+    const cacheKey = `album:${id}`;
+    const cached = this.detailCache.get(cacheKey) as SpotifyAlbum | undefined;
+    if (cached) {
+      return cached;
+    }
 
-  async getAlbum(id: string): Promise<SpotifyAlbum> {
     const token = await this.getAccessToken();
 
     const response = await axios.get(
@@ -197,10 +250,18 @@ class SpotifyService {
       }
     );
 
+    this.detailCache.set(cacheKey, response.data);
     return response.data;
   }
 
   async getArtist(id: string): Promise<SpotifyArtist> {
+    // Check cache first
+    const cacheKey = `artist:${id}`;
+    const cached = this.detailCache.get(cacheKey) as SpotifyArtist | undefined;
+    if (cached) {
+      return cached;
+    }
+
     const token = await this.getAccessToken();
 
     const response = await axios.get(
@@ -212,6 +273,7 @@ class SpotifyService {
       }
     );
 
+    this.detailCache.set(cacheKey, response.data);
     return response.data;
   }
 

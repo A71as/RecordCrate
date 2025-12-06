@@ -9,7 +9,7 @@ export const Auth0Callback = () => {
   useEffect(() => {
     if (!isLoading) {
       if (error) {
-        console.error('Auth0 callback error:', error);
+        logger.error('Auth0 callback error:', error);
         navigate('/?error=auth_failed');
       } else if (isAuthenticated) {
         navigate('/profile');
@@ -62,3 +62,5 @@ export const Auth0Callback = () => {
     </div>
   );
 };
+
+export default Auth0Callback;

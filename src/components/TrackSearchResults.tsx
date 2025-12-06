@@ -43,7 +43,7 @@ export const TrackSearchResults: React.FC<TrackSearchResultsProps> = ({ tracks }
                                         className="preview-button"
                                         onClick={() => {
                                             const audio = new Audio(track.preview_url!);
-                                            audio.play().catch(console.error);
+                                            audio.play().catch(logger.error);
                                         }}
                                         title="Play preview"
                                     >

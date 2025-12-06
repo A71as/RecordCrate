@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const accessToken = await spotifyService.getAccessToken();
         setHasSpotifyAccess(!!accessToken);
       } catch (error) {
-        console.error('Failed to get Spotify access', error);
+        logger.error('Failed to get Spotify access', error);
         setHasSpotifyAccess(false);
       } finally {
         setLoadingSpotify(false);

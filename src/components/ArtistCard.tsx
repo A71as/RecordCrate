@@ -24,7 +24,7 @@ export const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onClick }) => {
     <div className="artist-card" onClick={handleClick}>
       <div className="artist-image">
         {imageUrl ? (
-          <img src={imageUrl} alt={artist.name} />
+          <img src={imageUrl} alt={artist.name} loading="lazy" />
         ) : (
           <div className="artist-image-placeholder">👤</div>
         )}

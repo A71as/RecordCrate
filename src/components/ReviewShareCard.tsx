@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Download, Share2, X } from 'lucide-react';
+import { logger } from '../utils/logger';
 import type { AlbumReview, SpotifyAlbum } from '../types';
 import '../styles/components/ReviewShareCard.css';
 
@@ -157,7 +158,7 @@ export const ReviewShareCard: React.FC<ReviewShareCardProps> = ({
       }, 'image/png');
 
     } catch (error) {
-      console.error('Error generating card image:', error);
+      logger.error('Error generating card image:', error);
       setIsGenerating(false);
     }
   };
@@ -284,7 +285,7 @@ export const ReviewShareCard: React.FC<ReviewShareCardProps> = ({
         handleDownload();
       }
     } catch (error) {
-      console.error('Error sharing:', error);
+      logger.error('Error sharing:', error);
       handleDownload();
     }
   };
@@ -312,7 +313,7 @@ export const ReviewShareCard: React.FC<ReviewShareCardProps> = ({
               <p>Generating shareable image...</p>
             </div>
           ) : imageUrl ? (
-            <img src={imageUrl} alt="Review card" className="review-card-preview" />
+            <img src={imageUrl} alt="Review card" className="review-card-preview" loading="lazy" />
           ) : null}
         </div>
 

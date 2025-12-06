@@ -11,9 +11,9 @@ export interface RecommendationScore {
 class RecommendationService {
   /**
    * Get album recommendations based on user's review history
+   * @param reviews - User's reviews (should be fetched from backend before calling)
    */
-  async getAlbumRecommendations(limit: number = 20): Promise<RecommendationScore[]> {
-    const reviews = this.getUserReviews();
+  async getAlbumRecommendations(reviews: AlbumReview[], limit: number = 20): Promise<RecommendationScore[]> {
     
     if (reviews.length === 0) {
       // No reviews yet, return popular albums
@@ -86,9 +86,9 @@ class RecommendationService {
 
   /**
    * Get artist recommendations based on listening history
+   * @param reviews - User's reviews (should be fetched from backend before calling)
    */
-  async getArtistRecommendations(limit: number = 15): Promise<RecommendationScore[]> {
-    const reviews = this.getUserReviews();
+  async getArtistRecommendations(reviews: AlbumReview[], limit: number = 15): Promise<RecommendationScore[]> {
     
     if (reviews.length === 0) {
       const topArtists = await spotifyService.getTopArtists();
@@ -135,11 +135,11 @@ class RecommendationService {
 
   /**
    * Get genre-based recommendations
+   * @param reviews - User's reviews (should be fetched from backend before calling)
    */
-  async getGenreBasedRecommendations(limit: number = 20): Promise<RecommendationScore[]> {
-    const reviews = this.getUserReviews();
+  async getGenreBasedRecommendations(reviews: AlbumReview[], limit: number = 20): Promise<RecommendationScore[]> {
     const topReviews = reviews
-      .filter(r => r.overallRating >= 8)
+      .filter((r) => r.overallRating >= 8)
       .slice(0, 3);
 
     if (topReviews.length === 0) {
@@ -165,7 +165,7 @@ class RecommendationService {
         const similar = await spotifyService.searchAlbums(artistName);
         
         similar.forEach(album => {
-          if (reviews.some(r => r.albumId === album.id)) return;
+          if (reviews.some((r) => r.albumId === album.id)) return;
           
           const existingRec = recommendations.find(r => r.item.id === album.id);
           if (existingRec) {
@@ -189,33 +189,21 @@ class RecommendationService {
   }
 
   /**
-   * Get user reviews from localStorage
-   */
-  private getUserReviews(): AlbumReview[] {
-    try {
-      const reviews = localStorage.getItem('albumReviews');
-      return reviews ? JSON.parse(reviews) : [];
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-      return [];
-    }
-  }
-
-  /**
    * Get "For You" recommendations - mixed approach
+   * @param reviews - User's reviews (should be fetched from backend before calling)
    */
-  async getPersonalizedFeed(limit: number = 30): Promise<{
+  async getPersonalizedFeed(reviews: AlbumReview[], limit: number = 30): Promise<{
     albums: RecommendationScore[];
     artists: RecommendationScore[];
   }> {
-    const [albumRecs, artistRecs] = await Promise.all([
-      this.getAlbumRecommendations(limit),
-      this.getArtistRecommendations(Math.floor(limit / 2))
+    const [albums, artists] = await Promise.all([
+      this.getAlbumRecommendations(reviews, limit),
+      this.getArtistRecommendations(reviews, Math.floor(limit / 2))
     ]);
 
     return {
-      albums: albumRecs,
-      artists: artistRecs
+      albums: albums,
+      artists: artists
     };
   }
 }

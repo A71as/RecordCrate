@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Sparkles, X, Loader } from 'lucide-react';
 import { AlbumCard } from '../components/AlbumCard';
 import { ArtistCard } from '../components/ArtistCard';
@@ -30,7 +30,7 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
   const { loading, error, naturalLanguageSearch } = useSpotify();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
 
@@ -38,15 +38,15 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({ on
     const searchResults = await naturalLanguageSearch(query);
     setResults(searchResults);
     setSearchDescription(searchResults.query?.description || query);
-  };
+  }, [query, naturalLanguageSearch]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setQuery('');
     setResults({ albums: [], artists: [], tracks: [] });
     setHasSearched(false);
     setSearchDescription('');
     inputRef.current?.focus();
-  };
+  }, []);
 
   const totalResults = results.albums.length + results.artists.length + results.tracks.length;
 

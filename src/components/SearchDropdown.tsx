@@ -84,6 +84,7 @@ export const SearchDropdown = forwardRef<HTMLDivElement, SearchDropdownProps>(({
                                 src={imageUrl}
                                 alt={name}
                                 className={imageClass}
+                                loading="lazy"
                             />
                         )}
                         <div className="dropdown-item-info">

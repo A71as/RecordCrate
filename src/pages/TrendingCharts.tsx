@@ -47,3 +47,5 @@ export const TrendingCharts: React.FC = () => {
     </div>
   );
 };
+
+export default TrendingCharts;

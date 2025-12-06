@@ -33,17 +33,19 @@
     gap: var(--space-2);
 }
 
+
 .billboard-track-item {
     display: grid;
-    grid-template-columns: 50px 60px 1fr 200px 60px 40px 40px;
+    grid-template-columns: 50px 60px 1fr 160px 60px 40px 40px;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3);
+    gap: var(--space-2);
+    padding: 18px 20px;
     background: var(--panel-bg);
-    border: 1px solid var(--panel-border);
-    border-radius: 12px;
+    border: 1.5px solid var(--panel-border);
+    border-radius: 16px;
     transition: all 0.2s ease;
     cursor: pointer;
+    box-sizing: border-box;
 }
 
 .billboard-track-item:hover {
@@ -55,9 +57,10 @@
 
 /* Placeholder tracks (not on Spotify) */
 .billboard-track-item.placeholder {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: not-allowed;
-    background: color-mix(in srgb, var(--panel-bg) 90%, var(--muted) 10%);
+    background: color-mix(in srgb, var(--panel-bg) 92%, var(--muted) 8%);
+    border-style: dashed;
 }
 
 .billboard-track-item.placeholder:hover {
@@ -169,9 +172,13 @@
 .track-image {
     width: 60px;
     height: 60px;
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
+    background: var(--rc-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .track-image img {
@@ -189,6 +196,7 @@
     justify-content: center;
     color: var(--panel-bg);
     font-size: 1.5rem;
+    border-radius: 10px;
 }
 
 .track-info {
@@ -222,11 +230,22 @@
 }
 
 .track-duration {
-    font-size: 0.9rem;
-    color: var(--muted-2);
-    font-weight: 600;
+    font-size: 1rem;
+    color: var(--rc-text);
+    font-weight: 700;
     text-align: center;
     font-variant-numeric: tabular-nums;
+    background: var(--rc-cream);
+    border: 2px solid var(--rc-amber-glow);
+    border-radius: 50px;
+    min-width: 60px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    letter-spacing: 0.5px;
 }
 
 .explicit-badge {
@@ -306,60 +325,56 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
     .billboard-track-item {
-        grid-template-columns: 40px 50px 1fr 150px 50px 30px 35px;
-        gap: var(--space-2);
-        padding: var(--space-2);
+        grid-template-columns: 40px 50px 1fr 100px 40px 30px 30px;
+        gap: var(--space-1);
+        padding: 12px 10px;
     }
-
     .track-rank {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
-
     .track-image {
-        width: 50px;
-        height: 50px;
+        width: 48px;
+        height: 48px;
     }
 }
 
 @media (max-width: 768px) {
     .billboard-track-item {
-        grid-template-columns: 35px 50px 1fr 50px 35px;
-        gap: var(--space-2);
+        grid-template-columns: 30px 40px 1fr 35px 30px;
+        gap: 6px;
+        padding: 8px 4px;
     }
-
     .track-album {
         display: none;
     }
-
     .explicit-badge {
         display: none;
     }
-
     .track-rank {
-        font-size: 1rem;
+        font-size: 0.95rem;
+    }
+    .track-image {
+        width: 38px;
+        height: 38px;
     }
 }
 
 @media (max-width: 480px) {
     .billboard-track-item {
-        grid-template-columns: 30px 45px 1fr 35px;
-        padding: var(--space-2);
+        grid-template-columns: 22px 32px 1fr 22px;
+        padding: 4px 2px;
     }
-
     .track-duration {
         display: none;
     }
-
     .track-image {
-        width: 45px;
-        height: 45px;
+        width: 32px;
+        height: 32px;
     }
-
     .track-name {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
-
     .track-artist {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
     }
 }
